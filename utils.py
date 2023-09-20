@@ -1,19 +1,36 @@
 import os
 import tempfile
+import time
+from datetime import datetime
 
 import streamlit as st
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
+from langchain.memory import XataChatMessageHistory
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
+from xata.client import XataClient
 
 import ui_config
 
 ui = ui_config.create_ui_from_config()
 
 
+def xata_chat_history(_session_id: str):
+    chat_history = XataChatMessageHistory(
+        session_id=_session_id,
+        api_key=st.secrets["xata_api_key"],
+        db_url=st.secrets["xata_db_url"],
+        table_name="tiangong_memory",
+    )
+
+    return chat_history
+
 # decorator
 def enable_chat_history(func):
+    if "xata_history" not in st.session_state:
+        st.session_state["xata_history"] = xata_chat_history(_session_id=str(time.time()))
     # to show chat history on ui
     if "messages" not in st.session_state:
         st.session_state["messages"] = [
@@ -73,3 +90,55 @@ def get_faiss_db(uploaded_files):
         st.stop()
 
     return faiss_db
+
+def fetch_chat_history():
+    """Fetch the chat history."""
+    client = XataClient()
+    response = client.sql().query(
+        'SELECT "sessionId", "content" FROM (SELECT DISTINCT ON ("sessionId") "sessionId", "xata.createdAt", "content" FROM "tiangong_memory" ORDER BY "sessionId", "xata.createdAt" ASC, "content" ASC) AS subquery ORDER BY "xata.createdAt" DESC'
+    )
+    records = response["records"]
+    for record in records:
+        timestamp = float(record["sessionId"])
+        record["entry"] = (
+            datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+            + " - "
+            + record["content"]
+        )
+
+    table_map = {item["sessionId"]: item["entry"] for item in records}
+
+    return table_map
+
+def delete_chat_history(session_id):
+    """Delete the chat history by session_id."""
+    client = XataClient()
+    client.sql().query(
+        'DELETE FROM "tiangong_memory" WHERE "sessionId" = $1',
+        [session_id],
+    )
+
+def convert_history_to_message(history):
+    if isinstance(history, HumanMessage):
+        return {"role": "user", "content": history.content}
+    elif isinstance(history, AIMessage):
+        return {
+            "role": "assistant",
+            "avatar": ui.chat_ai_avatar,
+            "content": history.content,
+        }
+
+
+def initialize_messages(history):
+    # 将历史消息转换为消息格式
+    messages = [convert_history_to_message(message) for message in history]
+
+    # 在最前面加入欢迎消息
+    welcome_message = {
+        "role": "assistant",
+        "avatar": ui.chat_ai_avatar,
+        "content": ui.chat_ai_welcome,
+    }
+    messages.insert(0, welcome_message)
+
+    return messages

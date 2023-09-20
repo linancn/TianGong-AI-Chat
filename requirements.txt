@@ -1,11 +1,11 @@
-black
 duckduckgo-search
 faiss-cpu
 langchain
 openai
 pinecone-client
-streamlit==1.25.0
+streamlit
 tiktoken
 toml
 unstructured[local-inference]
 wikipedia
+xata
