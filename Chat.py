@@ -2,6 +2,8 @@ import datetime
 import json
 import os
 import re
+import time
+from datetime import datetime
 
 import pinecone
 import streamlit as st
@@ -9,22 +11,25 @@ from langchain import LLMChain, PromptTemplate
 from langchain.chains.openai_functions import create_structured_output_chain
 from langchain.chat_models import ChatOpenAI
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.memory import ChatMessageHistory
 from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.tools import DuckDuckGoSearchResults, WikipediaQueryRun
 from langchain.utilities import WikipediaAPIWrapper
 from langchain.vectorstores import Pinecone
 
-
-import utils
 import ui_config
+import utils
 from streaming import StreamHandler
+from utils import xata_chat_history
 
 llm_model = st.secrets["llm_model"]
 langchain_verbose = st.secrets["langchain_verbose"]
 
 ui = ui_config.create_ui_from_config()
+
+os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
+os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
+os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
 
 st.set_page_config(page_title=ui.page_title, layout="wide", page_icon=ui.page_icon)
 
@@ -84,33 +89,105 @@ if auth:
             st.title(ui.sidebar_title)
         st.subheader(ui.sidebar_subheader)
 
-        with st.expander(ui.sidebar_expander_title):
-            search_internet = st.checkbox(ui.search_internet_checkbox_label, value=True)
-            search_docs = st.checkbox(ui.search_docs_checkbox_label, value=False)
+        with st.expander(ui.sidebar_expander_title, expanded=False):
+            search_internet = st.toggle(ui.search_internet_checkbox_label, value=False)
+            search_docs = st.toggle(ui.search_docs_checkbox_label, value=False)
 
-        if search_docs:
-            search_docs_option = st.radio(
-                label=ui.search_docs_options,
-                options=(
-                    ui.search_docs_options_isolated,
-                    ui.search_docs_options_combined,
-                ),
-                horizontal=True,
+            if search_docs:
+                search_docs_option = st.radio(
+                    label=ui.search_docs_options,
+                    options=(
+                        ui.search_docs_options_combined,
+                        ui.search_docs_options_isolated,
+                    ),
+                    horizontal=True,
+                )
+                uploaded_files = st.file_uploader(
+                    ui.sidebar_file_uploader_title,
+                    accept_multiple_files=True,
+                    type=None,
+                )
+
+                if uploaded_files != [] and uploaded_files != st.session_state.get(
+                    "uploaded_files"
+                ):
+                    st.session_state["uploaded_files"] = uploaded_files
+                    with st.spinner(ui.sidebar_file_uploader_spinner):
+                        st.session_state["faiss_db"] = utils.get_faiss_db(
+                            uploaded_files
+                        )
+
+        st.divider()
+
+        col_newchat, col_delete = st.columns([1, 1])
+        with col_newchat:
+            new_chat = st.button(
+                ui.sidebar_newchat_button_label, use_container_width=True
             )
-            uploaded_files = st.sidebar.file_uploader(
-                ui.sidebar_file_uploader_title,
-                accept_multiple_files=True,
-                type=None,
+        if new_chat:
+            st.session_state.clear()
+            st.experimental_rerun()
+
+        with col_delete:
+            delete_chat = st.button(
+                ui.sidebar_delete_button_label, use_container_width=True
             )
+        if delete_chat:
+            utils.delete_chat_history(st.session_state["selected_chat_id"])
+            st.session_state.clear()
+            st.experimental_rerun()
 
-            if uploaded_files != [] and uploaded_files != st.session_state.get(
-                "uploaded_files"
-            ):
-                st.session_state["uploaded_files"] = uploaded_files
-                with st.spinner(ui.sidebar_file_uploader_spinner):
-                    st.session_state["faiss_db"] = utils.get_faiss_db(uploaded_files)
+        # fetch chat history from xata
+        table_map = utils.fetch_chat_history()
+        if "first_run" not in st.session_state:
+            timestamp = time.time()
+            st.session_state["timestamp"] = timestamp
+        else:
+            timestamp = st.session_state["timestamp"]
 
-    os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
+        # add new chat to table_map
+        table_map_new = {
+            str(timestamp): datetime.fromtimestamp(timestamp).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+            + " - New Chat"
+        }
+
+        # Merge two dicts
+        table_map = table_map_new | table_map
+
+        # Get all keys from table_map into a list
+        entries = list(table_map.keys())
+        # Check if selected_chat_id exists in session_state, if not set default as the first entry
+        if "selected_chat_id" not in st.session_state:
+            st.session_state["selected_chat_id"] = entries[0]
+
+        # Update the selectbox with the current selected_chat_id value
+        current_chat_id = st.selectbox(
+            label=ui.current_chat_title,
+            label_visibility="collapsed",
+            options=entries,
+            format_func=lambda x: table_map[x],
+            # index=entries.index(
+            #     st.session_state["selected_chat_id"]
+            # ),  # Use the saved value's index
+        )
+
+        # Save the selected value back to session state
+        st.session_state["selected_chat_id"] = current_chat_id
+
+        if "first_run" not in st.session_state:
+            st.session_state["xata_history"] = xata_chat_history(
+                _session_id=current_chat_id
+            )
+            st.session_state["first_run"] = True
+        else:
+            st.session_state["xata_history"] = xata_chat_history(
+                _session_id=current_chat_id
+            )
+            st.session_state["messages"] = utils.initialize_messages(
+                st.session_state["xata_history"].messages
+            )
 
     class Basic:
         def __init__(self):
@@ -136,7 +213,7 @@ if auth:
 
             docs_list = []
             for doc in docs:
-                date = datetime.datetime.fromtimestamp(doc.metadata["created_at"])
+                date = datetime.fromtimestamp(doc.metadata["created_at"])
                 formatted_date = date.strftime("%Y-%m")  # Format date as 'YYYY-MM'
                 source_entry = "[{}. {}. {}.]({})".format(
                     doc.metadata["source_id"],
@@ -285,19 +362,19 @@ if auth:
 
         @utils.enable_chat_history
         def main(self):
-            if "chat_history" not in st.session_state:
-                chat_history = ChatMessageHistory()
-                st.session_state["chat_history"] = chat_history
-            else:
-                chat_history = st.session_state["chat_history"]
+            # if "chat_history" not in st.session_state:
+            #     st.session_state["chat_history"] = ChatMessageHistory()
+            # else:
+            #     chat_history = st.session_state["chat_history"]
 
             user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
 
             if user_query:
-                chat_history.add_user_message(user_query)
+                # chat_history.add_user_message(user_query)
                 utils.display_msg(user_query, "user")
+                st.session_state["xata_history"].add_user_message(user_query)
 
-                if len(chat_history.messages) <= 1:
+                if len(st.session_state["xata_history"].messages) <= 1:
                     func_calling_response = self.func_calling_chain().run(user_query)
 
                     query = func_calling_response.get("query")
@@ -344,7 +421,7 @@ if auth:
                             input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
                 else:
                     chat_history_response = self.chat_history_chain()(
-                        {"input": chat_history.messages[-7:]},
+                        {"input": st.session_state["xata_history"].messages[-7:]},
                     )
                     chat_history_summary = chat_history_response["text"]
 
@@ -402,8 +479,7 @@ if auth:
                         {"input": input},
                         callbacks=[st_cb],
                     )
-                    chat_history.add_ai_message(response["text"])
-                    st.session_state["chat_history"] = chat_history
+
                     st.session_state["messages"].append(
                         {
                             "role": "assistant",
@@ -411,6 +487,10 @@ if auth:
                             "content": response["text"],
                         }
                     )
+                    st.session_state["xata_history"].add_ai_message(response["text"])
+
+                    if len(st.session_state["messages"]) == 3:
+                        st.experimental_rerun()
 
     if __name__ == "__main__":
         obj = Basic()
