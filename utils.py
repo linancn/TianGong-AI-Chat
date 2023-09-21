@@ -6,6 +6,7 @@ from datetime import datetime
 import pinecone
 import streamlit as st
 from langchain import LLMChain, PromptTemplate
+from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains.openai_functions import create_structured_output_chain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredFileLoader
@@ -25,6 +26,35 @@ ui = ui_config.create_ui_from_config()
 
 llm_model = st.secrets["llm_model"]
 langchain_verbose = st.secrets["langchain_verbose"]
+
+
+def check_password():
+    """Returns `True` if the user had the correct password."""
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if st.session_state["password"] == st.secrets["password"]:
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # don't store password
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        # First run, show input for password.
+        st.text_input(
+            "Password", type="password", on_change=password_entered, key="password"
+        )
+        return False
+    elif not st.session_state["password_correct"]:
+        # Password not correct, show input + error.
+        st.text_input(
+            "Password", type="password", on_change=password_entered, key="password"
+        )
+        st.error("😕 Password incorrect")
+        return False
+    else:
+        # Password correct.
+        return True
 
 
 def search_pinecone(query, created_at, top_k=16):
@@ -202,7 +232,6 @@ def xata_chat_history(_session_id: str):
 
     return chat_history
 
-
 # decorator
 def enable_chat_history(func):
     if "xata_history" not in st.session_state:
@@ -268,6 +297,17 @@ def get_faiss_db(uploaded_files):
         st.stop()
 
     return faiss_db
+
+
+class StreamHandler(BaseCallbackHandler):
+    
+    def __init__(self, container, initial_text=""):
+        self.container = container
+        self.text = initial_text
+
+    def on_llm_new_token(self, token: str, **kwargs):
+        self.text += token
+        self.container.markdown(self.text)
 
 
 def fetch_chat_history():
