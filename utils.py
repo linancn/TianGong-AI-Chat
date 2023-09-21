@@ -1,32 +1,31 @@
-import os
+import re
 import tempfile
 import time
-import re
 from datetime import datetime
 
 import pinecone
 import streamlit as st
+from langchain import LLMChain, PromptTemplate
+from langchain.chains.openai_functions import create_structured_output_chain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.chains.openai_functions import create_structured_output_chain
+from langchain.memory import XataChatMessageHistory
+from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import DuckDuckGoSearchResults, WikipediaQueryRun
-from langchain.vectorstores import FAISS
 from langchain.utilities import WikipediaAPIWrapper
-from langchain.memory import XataChatMessageHistory
-from langchain.schema import AIMessage, HumanMessage, SystemMessage
-from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
-from langchain import LLMChain, PromptTemplate
-from langchain.schema import HumanMessage, SystemMessage
+from langchain.vectorstores import FAISS, Pinecone
 from xata.client import XataClient
-from langchain.vectorstores import Pinecone
 
 import ui_config
 
 ui = ui_config.create_ui_from_config()
+
 llm_model = st.secrets["llm_model"]
 langchain_verbose = st.secrets["langchain_verbose"]
+
 
 def search_pinecone(query, created_at, top_k=16):
     embeddings = OpenAIEmbeddings()
@@ -59,6 +58,7 @@ def search_pinecone(query, created_at, top_k=16):
 
     return docs_list
 
+
 def search_internet(query):
     search = DuckDuckGoSearchResults()
     results = search.run(query)
@@ -67,8 +67,7 @@ def search_internet(query):
     matches = re.findall(pattern, results)
 
     docs = [
-        {"snippet": match[0], "title": match[1], "link": match[2]}
-        for match in matches
+        {"snippet": match[0], "title": match[1], "link": match[2]} for match in matches
     ]
 
     docs_list = []
@@ -83,11 +82,13 @@ def search_internet(query):
 
     return docs_list
 
+
 def search_wiki(query):
     wikipedia = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
     response_wiki = wikipedia.run(query)
 
     return response_wiki
+
 
 def seach_docs(query, top_k=16):
     docs = st.session_state["faiss_db"].similarity_search(query, k=top_k)
@@ -97,6 +98,7 @@ def seach_docs(query, top_k=16):
         docs_list.append({"content": doc.page_content, "source": source_entry})
 
     return docs_list
+
 
 def func_calling_chain():
     func_calling_json_schema = {
@@ -114,11 +116,6 @@ def func_calling_chain():
                 "description": 'Date extracted for a vector database semantic search from a chat history, in MongoDB\'s query and projection operators, in format like {"$gte": 1609459200.0, "$lte": 1640908800.0}',
                 "type": "string",
             },
-            # "author": {
-            #     "title": "Author Filters",
-            #     "description": 'Author(s) extracted in MongoDB\'s query and projection operators, in format like {"$in": ["John Doe"]}',
-            #     "type": "string",
-            # },
         },
         "required": ["query"],
     }
@@ -133,9 +130,7 @@ def func_calling_chain():
 
     prompt_func_calling = ChatPromptTemplate(messages=prompt_func_calling_msgs)
 
-    llm_func_calling = ChatOpenAI(
-        model_name=llm_model, temperature=0, streaming=False
-    )
+    llm_func_calling = ChatOpenAI(model_name=llm_model, temperature=0, streaming=False)
 
     func_calling_chain = create_structured_output_chain(
         output_schema=func_calling_json_schema,
@@ -145,6 +140,7 @@ def func_calling_chain():
     )
 
     return func_calling_chain
+
 
 def chat_history_chain():
     llm_chat_history = ChatOpenAI(
@@ -167,6 +163,7 @@ def chat_history_chain():
     )
 
     return chat_history_chain
+
 
 def main_chain():
     llm_chat = ChatOpenAI(
@@ -195,8 +192,6 @@ def main_chain():
     return chain
 
 
-
-
 def xata_chat_history(_session_id: str):
     chat_history = XataChatMessageHistory(
         session_id=_session_id,
@@ -207,10 +202,13 @@ def xata_chat_history(_session_id: str):
 
     return chat_history
 
+
 # decorator
 def enable_chat_history(func):
     if "xata_history" not in st.session_state:
-        st.session_state["xata_history"] = xata_chat_history(_session_id=str(time.time()))
+        st.session_state["xata_history"] = xata_chat_history(
+            _session_id=str(time.time())
+        )
     # to show chat history on ui
     if "messages" not in st.session_state:
         st.session_state["messages"] = [
@@ -271,6 +269,7 @@ def get_faiss_db(uploaded_files):
 
     return faiss_db
 
+
 def fetch_chat_history():
     """Fetch the chat history."""
     client = XataClient()
@@ -290,6 +289,7 @@ def fetch_chat_history():
 
     return table_map
 
+
 def delete_chat_history(session_id):
     """Delete the chat history by session_id."""
     client = XataClient()
@@ -297,6 +297,7 @@ def delete_chat_history(session_id):
         'DELETE FROM "tiangong_memory" WHERE "sessionId" = $1',
         [session_id],
     )
+
 
 def convert_history_to_message(history):
     if isinstance(history, HumanMessage):

@@ -1,18 +1,23 @@
 import datetime
 import json
 import os
-import re
 import time
 from datetime import datetime
 
 import streamlit as st
-from langchain import LLMChain, PromptTemplate
-from langchain.chat_models import ChatOpenAI
 
 import ui_config
 import utils
 from streaming import StreamHandler
-from utils import search_pinecone, search_internet, seach_docs, func_calling_chain, chat_history_chain, main_chain, xata_chat_history
+from utils import (
+    chat_history_chain,
+    func_calling_chain,
+    main_chain,
+    seach_docs,
+    search_internet,
+    search_pinecone,
+    xata_chat_history,
+)
 
 llm_model = st.secrets["llm_model"]
 langchain_verbose = st.secrets["langchain_verbose"]
@@ -181,143 +186,124 @@ if auth:
                 st.session_state["xata_history"].messages
             )
 
-    class Basic:
-        def __init__(self):
-            self.openai_model = llm_model
-            self.verbose = langchain_verbose
 
-        @utils.enable_chat_history
-        def main():
-            # if "chat_history" not in st.session_state:
-            #     st.session_state["chat_history"] = ChatMessageHistory()
-            # else:
-            #     chat_history = st.session_state["chat_history"]
+    @utils.enable_chat_history
+    def main():
 
-            user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
+        user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
 
-            if user_query:
-                # chat_history.add_user_message(user_query)
-                utils.display_msg(user_query, "user")
-                st.session_state["xata_history"].add_user_message(user_query)
+        if user_query:
+            # chat_history.add_user_message(user_query)
+            utils.display_msg(user_query, "user")
+            st.session_state["xata_history"].add_user_message(user_query)
 
-                if len(st.session_state["xata_history"].messages) <= 1:
-                    func_calling_response = func_calling_chain().run(user_query)
+            if len(st.session_state["xata_history"].messages) <= 1:
+                func_calling_response = func_calling_chain().run(user_query)
 
-                    query = func_calling_response.get("query")
-                    try:
-                        created_at = json.loads(
-                            func_calling_response.get("created_at", None)
-                        )
-                    except TypeError:
-                        created_at = None
+                query = func_calling_response.get("query")
+                try:
+                    created_at = json.loads(
+                        func_calling_response.get("created_at", None)
+                    )
+                except TypeError:
+                    created_at = None
 
-                    if search_docs:
-                        if search_docs_option == ui.search_docs_options_isolated:
-                            docs_response = seach_docs(query, top_k=16)
-                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources."""
-                        elif search_docs_option == ui.search_docs_options_combinedd:
-                            if search_online:
-                                embedding_results = search_pinecone(
-                                    query, created_at, top_k=8
-                                )
-                                docs_response = seach_docs(query, top_k=8)
-                                docs_response.extend(embedding_results)
-                                internet_results = search_internet(query)
-                                docs_response.extend(internet_results)
-                                input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
-                            elif not search_online:
-                                embedding_results = search_pinecone(
-                                    query, created_at, top_k=8
-                                )
-                                docs_response = seach_docs(query, top_k=8)
-                                docs_response.extend(embedding_results)
-                                input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
-                    elif not search_docs:
+                if search_docs:
+                    if search_docs_option == ui.search_docs_options_isolated:
+                        docs_response = seach_docs(query, top_k=16)
+                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources."""
+                    elif search_docs_option == ui.search_docs_options_combinedd:
                         if search_online:
                             embedding_results = search_pinecone(
-                                query, created_at, top_k=16
+                                query, created_at, top_k=8
                             )
+                            docs_response = seach_docs(query, top_k=8)
+                            docs_response.extend(embedding_results)
                             internet_results = search_internet(query)
-                            embedding_results.extend(internet_results)
-                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
+                            docs_response.extend(internet_results)
+                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
                         elif not search_online:
                             embedding_results = search_pinecone(
-                                query, created_at, top_k=16
+                                query, created_at, top_k=8
                             )
-                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
-                else:
-                    chat_history_response = chat_history_chain()(
-                        {"input": st.session_state["xata_history"].messages[-7:]},
+                            docs_response = seach_docs(query, top_k=8)
+                            docs_response.extend(embedding_results)
+                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
+                elif not search_docs:
+                    if search_online:
+                        embedding_results = search_pinecone(query, created_at, top_k=16)
+                        internet_results = search_internet(query)
+                        embedding_results.extend(internet_results)
+                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
+                    elif not search_online:
+                        embedding_results = search_pinecone(query, created_at, top_k=16)
+                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
+            else:
+                chat_history_response = chat_history_chain()(
+                    {"input": st.session_state["xata_history"].messages[-7:]},
+                )
+                chat_history_summary = chat_history_response["text"]
+
+                func_calling_response = func_calling_chain().run(chat_history_summary)
+
+                query = func_calling_response.get("query")
+
+                try:
+                    created_at = json.loads(
+                        func_calling_response.get("created_at", None)
                     )
-                    chat_history_summary = chat_history_response["text"]
+                except TypeError:
+                    created_at = None
 
-                    func_calling_response = func_calling_chain().run(
-                        chat_history_summary
-                    )
-
-                    query = func_calling_response.get("query")
-
-                    try:
-                        created_at = json.loads(
-                            func_calling_response.get("created_at", None)
-                        )
-                    except TypeError:
-                        created_at = None
-
-                    if search_docs:
-                        if search_docs_option == ui.search_docs_options_isolated:
-                            docs_response = seach_docs(query, top_k=16)
-                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources. Current conversation:"{chat_history_summary}"""
-                        elif search_docs_option == ui.search_docs_options_combined:
-                            if search_online:
-                                embedding_results = search_pinecone(
-                                    query, created_at, top_k=8
-                                )
-                                docs_response = seach_docs(query, top_k=8)
-                                docs_response.extend(embedding_results)
-                                internet_results = search_internet(query)
-                                docs_response.extend(internet_results)
-                                input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
-                            elif not search_online:
-                                embedding_results = search_pinecone(
-                                    query, created_at, top_k=8
-                                )
-                                docs_response = seach_docs(query, top_k=8)
-                                docs_response.extend(embedding_results)
-                                input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
-                    elif not search_docs:
+                if search_docs:
+                    if search_docs_option == ui.search_docs_options_isolated:
+                        docs_response = seach_docs(query, top_k=16)
+                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources. Current conversation:"{chat_history_summary}"""
+                    elif search_docs_option == ui.search_docs_options_combined:
                         if search_online:
                             embedding_results = search_pinecone(
-                                query, created_at, top_k=16
+                                query, created_at, top_k=8
                             )
+                            docs_response = seach_docs(query, top_k=8)
+                            docs_response.extend(embedding_results)
                             internet_results = search_internet(query)
-                            embedding_results.extend(internet_results)
-                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
+                            docs_response.extend(internet_results)
+                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
                         elif not search_online:
                             embedding_results = search_pinecone(
-                                query, created_at, top_k=16
+                                query, created_at, top_k=8
                             )
-                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
+                            docs_response = seach_docs(query, top_k=8)
+                            docs_response.extend(embedding_results)
+                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
+                elif not search_docs:
+                    if search_online:
+                        embedding_results = search_pinecone(query, created_at, top_k=16)
+                        internet_results = search_internet(query)
+                        embedding_results.extend(internet_results)
+                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
+                    elif not search_online:
+                        embedding_results = search_pinecone(query, created_at, top_k=16)
+                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
 
-                with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
-                    st_cb = StreamHandler(st.empty())
-                    response = main_chain()(
-                        {"input": input},
-                        callbacks=[st_cb],
-                    )
+            with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
+                st_cb = StreamHandler(st.empty())
+                response = main_chain()(
+                    {"input": input},
+                    callbacks=[st_cb],
+                )
 
-                    st.session_state["messages"].append(
-                        {
-                            "role": "assistant",
-                            "avatar": ui.chat_ai_avatar,
-                            "content": response["text"],
-                        }
-                    )
-                    st.session_state["xata_history"].add_ai_message(response["text"])
+                st.session_state["messages"].append(
+                    {
+                        "role": "assistant",
+                        "avatar": ui.chat_ai_avatar,
+                        "content": response["text"],
+                    }
+                )
+                st.session_state["xata_history"].add_ai_message(response["text"])
 
-                    if len(st.session_state["messages"]) == 3:
-                        st.experimental_rerun()
+                if len(st.session_state["messages"]) == 3:
+                    st.rerun()
 
     if __name__ == "__main__":
-        obj = Basic()
-        obj.main()
+        main()
