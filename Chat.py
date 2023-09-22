@@ -8,9 +8,10 @@ import streamlit as st
 
 import ui_config
 import utils
-from streaming import StreamHandler
 from utils import (
+    StreamHandler,
     chat_history_chain,
+    check_password,
     func_calling_chain,
     main_chain,
     seach_docs,
@@ -19,45 +20,12 @@ from utils import (
     xata_chat_history,
 )
 
-llm_model = st.secrets["llm_model"]
-langchain_verbose = st.secrets["langchain_verbose"]
-
-ui = ui_config.create_ui_from_config()
-
 os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
 os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
 os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
 
+ui = ui_config.create_ui_from_config()
 st.set_page_config(page_title=ui.page_title, layout="wide", page_icon=ui.page_icon)
-
-
-def check_password():
-    """Returns `True` if the user had the correct password."""
-
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["password"]:
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # don't store password
-        else:
-            st.session_state["password_correct"] = False
-
-    if "password_correct" not in st.session_state:
-        # First run, show input for password.
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        return False
-    elif not st.session_state["password_correct"]:
-        # Password not correct, show input + error.
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        st.error("😕 Password incorrect")
-        return False
-    else:
-        # Password correct.
-        return True
 
 
 if ui.need_passwd is False:
@@ -186,10 +154,8 @@ if auth:
                 st.session_state["xata_history"].messages
             )
 
-
     @utils.enable_chat_history
     def main():
-
         user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
 
         if user_query:
