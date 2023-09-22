@@ -90,7 +90,9 @@ ui_data = {
         </div>
         """,
     "sidebar_expander_title": "Advanced Search Settings:",
+    "search_knowledge_base_checkbox_label": "Knowledge Base",
     "search_internet_checkbox_label": "Internet",
+    "search_wikipedia_checkbox_label": "Wikipedia",
     "search_docs_checkbox_label": "Documents",
     "search_docs_options": "Options:",
     "search_docs_options_isolated": "Isolated",

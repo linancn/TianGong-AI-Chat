@@ -55,7 +55,13 @@ if auth:
         st.subheader(ui.sidebar_subheader)
 
         with st.expander(ui.sidebar_expander_title, expanded=False):
+            search_knowledge_base = st.toggle(
+                ui.search_knowledge_base_checkbox_label, value=False
+            )
             search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
+            search_wikipedia = st.toggle(
+                ui.search_wikipedia_checkbox_label, value=False
+            )
             search_docs = st.toggle(ui.search_docs_checkbox_label, value=False)
 
             if search_docs:
@@ -91,7 +97,7 @@ if auth:
             )
         if new_chat:
             st.session_state.clear()
-            st.experimental_rerun()
+            st.rerun()
 
         with col_delete:
             delete_chat = st.button(
@@ -100,7 +106,7 @@ if auth:
         if delete_chat:
             utils.delete_chat_history(st.session_state["selected_chat_id"])
             st.session_state.clear()
-            st.experimental_rerun()
+            st.rerun()
 
         # fetch chat history from xata
         table_map = utils.fetch_chat_history()
@@ -163,94 +169,47 @@ if auth:
             utils.display_msg(user_query, "user")
             st.session_state["xata_history"].add_user_message(user_query)
 
-            if len(st.session_state["xata_history"].messages) <= 1:
-                func_calling_response = func_calling_chain().run(user_query)
+            chat_history_response = chat_history_chain()(
+                {"input": st.session_state["xata_history"].messages[-6:]},
+            )
 
-                query = func_calling_response.get("query")
-                try:
-                    created_at = json.loads(
-                        func_calling_response.get("created_at", None)
-                    )
-                except TypeError:
-                    created_at = None
+            chat_history_recent = chat_history_response["text"]
 
-                if search_docs:
-                    if search_docs_option == ui.search_docs_options_isolated:
-                        docs_response = seach_docs(query, top_k=16)
-                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources."""
-                    elif search_docs_option == ui.search_docs_options_combinedd:
-                        if search_online:
-                            embedding_results = search_pinecone(
-                                query, created_at, top_k=8
-                            )
-                            docs_response = seach_docs(query, top_k=8)
-                            docs_response.extend(embedding_results)
-                            internet_results = search_internet(query)
-                            docs_response.extend(internet_results)
-                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
-                        elif not search_online:
-                            embedding_results = search_pinecone(
-                                query, created_at, top_k=8
-                            )
-                            docs_response = seach_docs(query, top_k=8)
-                            docs_response.extend(embedding_results)
-                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
-                elif not search_docs:
+            func_calling_response = func_calling_chain().run(chat_history_recent)
+
+            query = func_calling_response.get("query")
+
+            try:
+                created_at = json.loads(func_calling_response.get("created_at", None))
+            except TypeError:
+                created_at = None
+
+            if search_docs:
+                if search_docs_option == ui.search_docs_options_isolated:
+                    docs_response = seach_docs(query, top_k=16)
+                    input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources. Current conversation:"{chat_history_recent}"""
+                elif search_docs_option == ui.search_docs_options_combined:
                     if search_online:
-                        embedding_results = search_pinecone(query, created_at, top_k=16)
+                        embedding_results = search_pinecone(query, created_at, top_k=8)
+                        docs_response = seach_docs(query, top_k=8)
+                        docs_response.extend(embedding_results)
                         internet_results = search_internet(query)
-                        embedding_results.extend(internet_results)
-                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
+                        docs_response.extend(internet_results)
+                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_recent}"""
                     elif not search_online:
-                        embedding_results = search_pinecone(query, created_at, top_k=16)
-                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls."""
-            else:
-                chat_history_response = chat_history_chain()(
-                    {"input": st.session_state["xata_history"].messages[-7:]},
-                )
-                chat_history_summary = chat_history_response["text"]
-
-                func_calling_response = func_calling_chain().run(chat_history_summary)
-
-                query = func_calling_response.get("query")
-
-                try:
-                    created_at = json.loads(
-                        func_calling_response.get("created_at", None)
-                    )
-                except TypeError:
-                    created_at = None
-
-                if search_docs:
-                    if search_docs_option == ui.search_docs_options_isolated:
-                        docs_response = seach_docs(query, top_k=16)
-                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources. Current conversation:"{chat_history_summary}"""
-                    elif search_docs_option == ui.search_docs_options_combined:
-                        if search_online:
-                            embedding_results = search_pinecone(
-                                query, created_at, top_k=8
-                            )
-                            docs_response = seach_docs(query, top_k=8)
-                            docs_response.extend(embedding_results)
-                            internet_results = search_internet(query)
-                            docs_response.extend(internet_results)
-                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
-                        elif not search_online:
-                            embedding_results = search_pinecone(
-                                query, created_at, top_k=8
-                            )
-                            docs_response = seach_docs(query, top_k=8)
-                            docs_response.extend(embedding_results)
-                            input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
-                elif not search_docs:
-                    if search_online:
-                        embedding_results = search_pinecone(query, created_at, top_k=16)
-                        internet_results = search_internet(query)
-                        embedding_results.extend(internet_results)
-                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
-                    elif not search_online:
-                        embedding_results = search_pinecone(query, created_at, top_k=16)
-                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_summary}"""
+                        embedding_results = search_pinecone(query, created_at, top_k=8)
+                        docs_response = seach_docs(query, top_k=8)
+                        docs_response.extend(embedding_results)
+                        input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_recent}"""
+            elif not search_docs:
+                if search_online:
+                    embedding_results = search_pinecone(query, created_at, top_k=16)
+                    internet_results = search_internet(query)
+                    embedding_results.extend(internet_results)
+                    input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_recent}"""
+                elif not search_online:
+                    embedding_results = search_pinecone(query, created_at, top_k=16)
+                    input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_recent}"""
 
             with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
                 st_cb = StreamHandler(st.empty())

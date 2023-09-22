@@ -31,7 +31,9 @@ class UI:
     sidebar_subheader: str
     sidebar_markdown: str
     sidebar_expander_title: str
+    search_knowledge_base_checkbox_label: str
     search_internet_checkbox_label: str
+    search_wikipedia_checkbox_label: str
     search_docs_checkbox_label: str
     search_docs_options: str
     search_docs_options_isolated: str
