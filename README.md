@@ -9,7 +9,6 @@
 
 Python 3 -> Additional Opentions -> 3.11-bullseye -> ZSH Plugins (Last One) -> Trust @devcontainers-contrib -> Keep Defaults
 
-
 Setup `venv`:
 
 ```bash
@@ -63,7 +62,6 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install -r requirements.txt --upgrade
 ```
 
-
 ```bash
 brew update
 brew install libmagic
@@ -77,7 +75,6 @@ brew install tesseract
 brew install libreoffice
 brew install pandoc
 ```
-
 
 ## Start
 
