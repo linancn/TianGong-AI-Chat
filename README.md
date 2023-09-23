@@ -1,5 +1,5 @@
 
-# TianGong Chat
+# TianGong Chat [![Docker Publish](https://github.com/linancn/TianGong-AI-Chat/actions/workflows/docker_publish.yml/badge.svg)](https://github.com/linancn/TianGong-AI-Chat/actions/workflows/docker_publish.yml)
 
 ## Env Preparing
 
