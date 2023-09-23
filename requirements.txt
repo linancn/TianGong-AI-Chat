@@ -1,9 +1,13 @@
+arxiv
 duckduckgo-search
 faiss-cpu
 langchain
 openai
+pdfplumber
 pinecone-client
+requests
 streamlit
+tenacity
 tiktoken
 toml
 unstructured[local-inference]

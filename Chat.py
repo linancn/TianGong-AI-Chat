@@ -14,9 +14,11 @@ from utils import (
     check_password,
     func_calling_chain,
     main_chain,
-    seach_docs,
+    seach_uploaded_docs,
+    search_arxiv_docs,
     search_internet,
     search_pinecone,
+    search_wiki,
     xata_chat_history,
 )
 
@@ -323,13 +325,21 @@ if auth:
 
             top_k_values = top_k_mappings.get(current_top_k_mappings)
 
-            search_knowledge_base_top_k = top_k_values.get(
-                "search_knowledge_base_top_k", 0
-            )
-            search_online_top_k = top_k_values.get("search_online_top_k", 0)
-            search_wikipedia_top_k = top_k_values.get("search_wikipedia_top_k", 0)
-            search_arxiv_top_k = top_k_values.get("search_arxiv_top_k", 0)
-            search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
+            # override search_docs_top_k if search_docs_option is isolated
+            if top_k_values is None:
+                search_knowledge_base_top_k = 0
+                search_online_top_k = 0
+                search_wikipedia_top_k = 0
+                search_arxiv_top_k = 0
+                search_docs_top_k = 16
+            else:
+                search_knowledge_base_top_k = top_k_values.get(
+                    "search_knowledge_base_top_k", 0
+                )
+                search_online_top_k = top_k_values.get("search_online_top_k", 0)
+                search_wikipedia_top_k = top_k_values.get("search_wikipedia_top_k", 0)
+                search_arxiv_top_k = top_k_values.get("search_arxiv_top_k", 0)
+                search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
 
         st.divider()
 
@@ -418,6 +428,7 @@ if auth:
             func_calling_response = func_calling_chain().run(chat_history_recent)
 
             query = func_calling_response.get("query")
+            arxiv_query = func_calling_response.get("arxiv_query")
 
             try:
                 created_at = json.loads(func_calling_response.get("created_at", None))
@@ -429,36 +440,13 @@ if auth:
                 search_pinecone(query, created_at, top_k=search_knowledge_base_top_k)
             )
             docs_response.extend(search_internet(query, top_k=search_online_top_k))
-            
+            docs_response.extend(search_wiki(query, top_k=search_wikipedia_top_k))
+            docs_response.extend(
+                search_arxiv_docs(arxiv_query, top_k=search_arxiv_top_k)
+            )
+            docs_response.extend(seach_uploaded_docs(query, top_k=search_docs_top_k))
 
             input = f"""Provide a clear, well-organized, and critically analyzed respond to "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give detailed corresponding sources. Current conversation history:"{chat_history_recent}"""
-
-            # if search_docs:
-            #     if search_docs_option == ui.search_docs_options_isolated:
-            #         docs_response = seach_docs(query, top_k=16)
-            #         input = f"""Provide a clear, well-organized, and critically analyzed respond to "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources. Current conversation history:"{chat_history_recent}"""
-            #     elif search_docs_option == ui.search_docs_options_combined:
-            #         if search_online:
-            #             embedding_results = search_pinecone(query, created_at, top_k=8)
-            #             docs_response = seach_docs(query, top_k=8)
-            #             docs_response.extend(embedding_results)
-            #             internet_results = search_internet(query)
-            #             docs_response.extend(internet_results)
-            #             input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_recent}"""
-            #         elif not search_online:
-            #             embedding_results = search_pinecone(query, created_at, top_k=8)
-            #             docs_response = seach_docs(query, top_k=8)
-            #             docs_response.extend(embedding_results)
-            #             input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_recent}"""
-            # elif not search_docs:
-            #     if search_online:
-            #         embedding_results = search_pinecone(query, created_at, top_k=16)
-            #         internet_results = search_internet(query)
-            #         embedding_results.extend(internet_results)
-            #         input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_recent}"""
-            #     elif not search_online:
-            #         embedding_results = search_pinecone(query, created_at, top_k=16)
-            #         input = f"""Provide a clear, well-organized, and critically analyzed respond to the following question of "{user_query}" in its original language, while leveraging the information of "{embedding_results}". Do not return any prefix like "AI:". Give corresponding detailed sources with urls. Current conversation:"{chat_history_recent}"""
 
             with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
                 st_cb = StreamHandler(st.empty())
