@@ -56,80 +56,6 @@ def check_password():
         # Password correct.
         return True
 
-
-def search_pinecone(query, created_at, top_k=16):
-    embeddings = OpenAIEmbeddings()
-    pinecone.init(
-        api_key=st.secrets["pinecone_api_key"],
-        environment=st.secrets["pinecone_environment"],
-    )
-    vectorstore = Pinecone.from_existing_index(
-        index_name=st.secrets["pinecone_index"],
-        embedding=embeddings,
-    )
-    if created_at is not None:
-        docs = vectorstore.similarity_search(
-            query, k=top_k, filter={"created_at": created_at}
-        )
-    else:
-        docs = vectorstore.similarity_search(query, k=top_k)
-
-    docs_list = []
-    for doc in docs:
-        date = datetime.fromtimestamp(doc.metadata["created_at"])
-        formatted_date = date.strftime("%Y-%m")  # Format date as 'YYYY-MM'
-        source_entry = "[{}. {}. {}.]({})".format(
-            doc.metadata["source_id"],
-            doc.metadata["author"],
-            formatted_date,
-            doc.metadata["url"],
-        )
-        docs_list.append({"content": doc.page_content, "source": source_entry})
-
-    return docs_list
-
-
-def search_internet(query):
-    search = DuckDuckGoSearchResults()
-    results = search.run(query)
-
-    pattern = r"\[snippet: (.*?), title: (.*?), link: (.*?)\]"
-    matches = re.findall(pattern, results)
-
-    docs = [
-        {"snippet": match[0], "title": match[1], "link": match[2]} for match in matches
-    ]
-
-    docs_list = []
-
-    for doc in docs:
-        docs_list.append(
-            {
-                "content": doc["snippet"],
-                "source": "[{}]({})".format(doc["title"], doc["link"]),
-            }
-        )
-
-    return docs_list
-
-
-def search_wiki(query):
-    wikipedia = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
-    response_wiki = wikipedia.run(query)
-
-    return response_wiki
-
-
-def seach_docs(query, top_k=16):
-    docs = st.session_state["faiss_db"].similarity_search(query, k=top_k)
-    docs_list = []
-    for doc in docs:
-        source_entry = doc.metadata["source"]
-        docs_list.append({"content": doc.page_content, "source": source_entry})
-
-    return docs_list
-
-
 def func_calling_chain():
     func_calling_json_schema = {
         "title": "get_querys_and_filters_to_search_embeddings",
@@ -170,6 +96,88 @@ def func_calling_chain():
     )
 
     return func_calling_chain
+
+
+def search_pinecone(query, created_at, top_k=16):
+    if top_k == 0:
+        return []
+
+    embeddings = OpenAIEmbeddings()
+    pinecone.init(
+        api_key=st.secrets["pinecone_api_key"],
+        environment=st.secrets["pinecone_environment"],
+    )
+    vectorstore = Pinecone.from_existing_index(
+        index_name=st.secrets["pinecone_index"],
+        embedding=embeddings,
+    )
+    if created_at is not None:
+        docs = vectorstore.similarity_search(
+            query, k=top_k, filter={"created_at": created_at}
+        )
+    else:
+        docs = vectorstore.similarity_search(query, k=top_k)
+
+    docs_list = []
+    for doc in docs:
+        date = datetime.fromtimestamp(doc.metadata["created_at"])
+        formatted_date = date.strftime("%Y-%m")  # Format date as 'YYYY-MM'
+        source_entry = "[{}. {}. {}.]({})".format(
+            doc.metadata["source_id"],
+            doc.metadata["author"],
+            formatted_date,
+            doc.metadata["url"],
+        )
+        docs_list.append({"content": doc.page_content, "source": source_entry})
+
+    return docs_list
+
+
+def search_internet(query, top_k=4):
+    if top_k == 0:
+        return []
+
+    search = DuckDuckGoSearchResults(num_results=top_k)
+
+    results = search.run(query)
+
+    pattern = r"\[snippet: (.*?), title: (.*?), link: (.*?)\]"
+    matches = re.findall(pattern, results)
+
+    docs = [
+        {"snippet": match[0], "title": match[1], "link": match[2]} for match in matches
+    ]
+
+    docs_list = []
+
+    for doc in docs:
+        docs_list.append(
+            {
+                "content": doc["snippet"],
+                "source": "[{}]({})".format(doc["title"], doc["link"]),
+            }
+        )
+
+    return docs_list
+
+
+def search_wiki(query):
+    wikipedia = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
+    response_wiki = wikipedia.run(query)
+
+    return response_wiki
+
+
+def seach_docs(query, top_k=16):
+    docs = st.session_state["faiss_db"].similarity_search(query, k=top_k)
+    docs_list = []
+    for doc in docs:
+        source_entry = doc.metadata["source"]
+        docs_list.append({"content": doc.page_content, "source": source_entry})
+
+    return docs_list
+
+
 
 
 def chat_history_chain():
@@ -231,6 +239,7 @@ def xata_chat_history(_session_id: str):
     )
 
     return chat_history
+
 
 # decorator
 def enable_chat_history(func):
@@ -300,7 +309,6 @@ def get_faiss_db(uploaded_files):
 
 
 class StreamHandler(BaseCallbackHandler):
-    
     def __init__(self, container, initial_text=""):
         self.container = container
         self.text = initial_text
