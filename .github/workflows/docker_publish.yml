@@ -1,9 +1,7 @@
-name: Build and Push Docker Image
+name: Docker Publish
 
 on:
   push:
-    branches:
-      - main
     tags:
       - v*.*.*
 
@@ -12,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Login to DockerHub
@@ -21,13 +19,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Extract Docker metadata
+      - name: Extract Docker Metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: linancn/tiangong-ai-chat
 
-      - name: Build and Push Docker image
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .

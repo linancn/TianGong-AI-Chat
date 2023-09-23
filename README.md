@@ -86,15 +86,15 @@ streamlit run Chat.py
 
 ### Auto Build
 
-The auto build will be triggered by pushing any tag named like release-v$version. For instance, push a tag named as release-v0.0.1 will build a docker image of 0.0.1 version.
+The auto build will be triggered by pushing any tag named like release-v$version. For instance, push a tag named as v0.0.1 will build a docker image of 0.0.1 version.
 
 ```bash
 #list existing tags
 git tag
 #creat a new tag
-git tag release-v0.0.1
+git tag v0.0.1
 #push this tag to origin
-git push origin release-v0.0.1
+git push origin v0.0.1
 ```
 
 ### Production Run
