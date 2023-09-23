@@ -34,6 +34,7 @@ class UI:
     search_knowledge_base_checkbox_label: str
     search_internet_checkbox_label: str
     search_wikipedia_checkbox_label: str
+    search_arxiv_checkbox_label: str
     search_docs_checkbox_label: str
     search_docs_options: str
     search_docs_options_isolated: str
@@ -41,12 +42,13 @@ class UI:
     sidebar_file_uploader_title: str
     sidebar_file_uploader_spinner: str
     sidebar_file_uploader_error: str
+    sidebar_newchat_button_label: str
+    sidebar_delete_button_label: str
     current_chat_title: str
     chat_ai_avatar: str
     chat_ai_welcome: str
     chat_human_placeholder: str
-    sidebar_newchat_button_label: str
-    sidebar_delete_button_label: str
+
 
 
 def create_ui_from_config():
