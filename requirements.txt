@@ -6,6 +6,7 @@ openai
 pdfplumber
 pinecone-client
 requests
+sphinx
 streamlit
 tenacity
 tiktoken
