@@ -224,9 +224,9 @@ if auth:
 
             input = f""" You must:
 use "{chat_history_recent}" to decide the response more concise or more detailed;
-based on the "{docs_response}" and your own knowledge, provide a logical, clear, well-organized, and critically analyzed respond in the language used in "{user_query}";
+based on the "{docs_response}" and your own knowledge, provide a logical, clear, well-organized, and critically analyzed respond in the language of "{user_query}";
 use bullet points only when necessary;
-give in-text citations where relevant (e.g., (Liu, etc));
+give in-text citations where relevant (e.g., (Liu, 2020), (webpage title), etc);
 list full reference information with hyperlinks at the end, for only those cited in the text.
 
 You must not:
