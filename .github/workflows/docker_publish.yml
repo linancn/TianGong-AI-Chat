@@ -23,7 +23,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: linancn/tiangong-ai-chat
+          images: ${{ secrets.DOCKERHUB_REPOSITORY }}/${{ secrets.DOCKERHUB_IMAGENAME }}
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
