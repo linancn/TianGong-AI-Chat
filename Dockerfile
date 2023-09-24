@@ -24,4 +24,4 @@ RUN pip install -r requirements.txt --upgrade
 COPY . .
 
 # 运行脚本
-CMD ["streamlit", "run", "Chat.py"]
+CMD ["streamlit", "run", "src/Chat.py"]

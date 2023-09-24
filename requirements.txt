@@ -6,6 +6,9 @@ openai
 pdfplumber
 pinecone-client
 requests
+sphinx
+sphinx-autobuild
+sphinx-rtd-theme
 streamlit
 tenacity
 tiktoken
