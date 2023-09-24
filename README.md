@@ -97,6 +97,14 @@ git tag v0.0.1
 git push origin v0.0.1
 ```
 
+### sphinx
+
+```bash
+sphinx-apidoc -o source ../src/
+sphinx-autobuild source build/html
+```
+
+
 ### Production Run
 
 ```bash
