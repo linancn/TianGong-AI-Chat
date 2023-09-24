@@ -1,3 +1,4 @@
+"""utilities used in the app"""
 import io
 import re
 import tempfile
@@ -28,6 +29,7 @@ from xata.client import XataClient
 import ui_config
 
 ui = ui_config.create_ui_from_config()
+
 
 llm_model = st.secrets["llm_model"]
 langchain_verbose = st.secrets["langchain_verbose"]
