@@ -4,7 +4,7 @@ ui_data = {
         "primaryColor": "#82318E",
     },
     "page_title": "TianGong Chat",
-    "page_icon": "static/favicon.ico",
+    "page_icon": "src/static/favicon.ico",
     "page_markdown": """
       <style>
           body {
@@ -63,7 +63,7 @@ ui_data = {
           }
       </style>
       """,
-    "sidebar_image": "static/logo.png",
+    "sidebar_image": "src/static/logo.png",
     "sidebar_title": "TianGong Chat",
     "sidebar_subheader": "AI for Science 🔬 - Intelligent Chatbot",
     "sidebar_markdown": """
@@ -102,7 +102,7 @@ ui_data = {
     "sidebar_file_uploader_spinner": "Analyzing...",
     "sidebar_file_uploader_error": "None of the files can be analyzed, please check the format!",
     "current_chat_title": "Chat History :",
-    "chat_ai_avatar": "static/logo.png",
+    "chat_ai_avatar": "src/static/logo.png",
     "chat_ai_welcome": "How can I help you?",
     "chat_human_placeholder": "Ask me anything!",
     "sidebar_newchat_button_label": "New Chat",

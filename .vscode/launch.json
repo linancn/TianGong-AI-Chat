@@ -10,7 +10,7 @@
             "request": "launch",
             "module": "streamlit",
             "cwd": "${workspaceFolder}",
-            "args": ["run", "Chat.py"]
+            "args": ["run", "src/Chat.py"]
         }
     ]
 }
