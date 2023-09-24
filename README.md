@@ -1,5 +1,5 @@
 
-# TianGong Chat
+# TianGong Chat [![Docker Publish](https://github.com/linancn/TianGong-AI-Chat/actions/workflows/docker_publish.yml/badge.svg)](https://github.com/linancn/TianGong-AI-Chat/actions/workflows/docker_publish.yml)
 
 ## Env Preparing
 
@@ -86,22 +86,48 @@ streamlit run Chat.py
 
 ### Auto Build
 
-The auto build will be triggered by pushing any tag named like release-v$version. For instance, push a tag named as release-v0.0.1 will build a docker image of 0.0.1 version.
+The auto build will be triggered by pushing any tag named like release-v$version. For instance, push a tag named as v0.0.1 will build a docker image of 0.0.1 version.
 
 ```bash
 #list existing tags
 git tag
 #creat a new tag
-git tag release-v0.0.1
+git tag v0.0.1
 #push this tag to origin
-git push origin release-v0.0.1
+git push origin v0.0.1
 ```
 
 ### Production Run
 
 ```bash
+
+docker network create tiangongbridge
+
 docker run --detach \
-    --name tiangong-chat \
+    --name nginx-proxy \
+    --restart=always \
+    --publish 80:80 \
+    --publish 443:443 \
+    --volume certs:/etc/nginx/certs \
+    --volume vhost:/etc/nginx/vhost.d \
+    --volume html:/usr/share/nginx/html \
+    --volume /var/run/docker.sock:/tmp/docker.sock:ro \
+    --network=tiangongbridge \
+    --network-alias=nginx-proxy \
+    nginxproxy/nginx-proxy:latest
+
+docker run --detach \
+    --name nginx-proxy-acme \
+    --restart=always \
+    --volumes-from nginx-proxy \
+    --volume /var/run/docker.sock:/var/run/docker.sock:ro \
+    --volume acme:/etc/acme.sh \
+    --network=tiangongbridge \
+    --network-alias=nginx-proxy-acme \
+    nginxproxy/acme-companion:latest
+
+docker run --detach \
+    --name tiangong-ai-chat \
     --restart=always \
     --expose 8501 \
     --net=tiangongbridge \
@@ -110,7 +136,9 @@ docker run --detach \
     --env VIRTUAL_PORT=8501 \
     --env LETSENCRYPT_HOST=YourURL \
     --env LETSENCRYPT_EMAIL=YourEmail \
-    image:tag
+    linancn/tiangong-ai-chat:latest
+
+docker cp .streamlit/secrets.toml tiangong-ai-chat:/app/.streamlit/secrets.toml
 
 ```
 
