@@ -220,7 +220,20 @@ if auth:
             )
             docs_response.extend(seach_uploaded_docs(query, top_k=search_docs_top_k))
 
-            input = f"""Provide a clear, well-organized, and critically analyzed respond to "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give detailed corresponding sources. Current conversation history:"{chat_history_recent}"""
+            # input = f"""Provide a clear, well-organized, and critically analyzed respond to "{user_query}" in its original language, while leveraging the information of "{docs_response}". Do not return any prefix like "AI:". Give detailed corresponding sources. Current conversation history:"{chat_history_recent}"""
+
+            input = f""" You must:
+use "{chat_history_recent}" to decide the response more concise or more detailed;
+based on the "{docs_response}" and your own knowledge, provide a logical, clear, well-organized, and critically analyzed respond in the language of "{user_query}";
+use bullet points only when necessary;
+give in-text citations where relevant (e.g., (Liu, 2020), (webpage title), etc);
+list full reference information with hyperlinks at the end, for only those cited in the text.
+
+You must not:
+include any duplicate or redundant information;
+translate reference to query's language;
+return any prefix like "AI:".
+"""
 
             with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
                 st_cb = StreamHandler(st.empty())

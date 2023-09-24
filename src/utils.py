@@ -878,8 +878,7 @@ def main_chain():
 
     template = """You MUST ONLY responese to science-related quests.
     DO NOT return any information on politics, ethnicity, gender, national sovereignty, or other sensitive topics.
-    {input}
-    Use bullet points if a better expression effect can be achieved."""
+    {input}"""
 
     prompt = PromptTemplate(
         input_variables=["input"],
