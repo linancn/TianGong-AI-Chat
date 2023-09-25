@@ -6,5 +6,6 @@ src
 
    Chat
    top_k_mappings
+   ui
    ui_config
    utils
