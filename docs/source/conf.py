@@ -27,7 +27,7 @@ extensions = [
 ]
 
 templates_path = ["_templates"]
-exclude_patterns = ["Chat.rst"]
+exclude_patterns = []
 
 
 # -- Options for HTML output -------------------------------------------------
