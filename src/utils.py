@@ -1,5 +1,6 @@
 """utilities used in the app"""
 import io
+import os
 import re
 import tempfile
 import time
@@ -31,8 +32,8 @@ import ui_config
 ui = ui_config.create_ui_from_config()
 
 
-llm_model = st.secrets["llm_model"]
-langchain_verbose = st.secrets["langchain_verbose"]
+llm_model = os.environ["LLM_MODEL"]
+langchain_verbose = bool(os.environ.get("LANGCHAIN_VERBOSE", "True") == "True")
 
 
 def check_password():
@@ -40,7 +41,7 @@ def check_password():
 
     def password_entered():
         """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["password"]:
+        if st.session_state["password"] == os.environ["PASSWORD"]:
             st.session_state["password_correct"] = True
             del st.session_state["password"]  # don't store password
         else:
@@ -117,11 +118,11 @@ def search_pinecone(query, created_at, top_k=16):
 
     embeddings = OpenAIEmbeddings()
     pinecone.init(
-        api_key=st.secrets["pinecone_api_key"],
-        environment=st.secrets["pinecone_environment"],
+        api_key=os.environ["PINECONE_API_KEY"],
+        environment=os.environ["PINECONE_ENVIRONMENT"],
     )
     vectorstore = Pinecone.from_existing_index(
-        index_name=st.secrets["pinecone_index"],
+        index_name=os.environ["PINECONE_INDEX"],
         embedding=embeddings,
     )
     if created_at is not None:
@@ -897,8 +898,8 @@ def main_chain():
 def xata_chat_history(_session_id: str):
     chat_history = XataChatMessageHistory(
         session_id=_session_id,
-        api_key=st.secrets["xata_api_key"],
-        db_url=st.secrets["xata_db_url"],
+        api_key=os.environ["XATA_API_KEY"],
+        db_url=os.environ["XATA_DATABASE_URL"],
         table_name="tiangong_memory",
     )
 

@@ -6,6 +6,16 @@ from datetime import datetime
 
 import streamlit as st
 
+os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
+os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
+os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
+os.environ["LLM_MODEL"] = st.secrets["llm_model"]
+os.environ["LANGCHAIN_VERBOSE"] = str(st.secrets["langchain_verbose"])
+os.environ["PASSWORD"] = st.secrets["password"]
+os.environ["PINECONE_API_KEY"] = st.secrets["pinecone_api_key"]
+os.environ["PINECONE_ENVIRONMENT"] = st.secrets["pinecone_environment"]
+os.environ["PINECONE_INDEX"] = st.secrets["pinecone_index"]
+
 import ui_config
 import utils
 from top_k_mappings import top_k_mappings
@@ -22,10 +32,6 @@ from utils import (
     search_wiki,
     xata_chat_history,
 )
-
-os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
-os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
-os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
 
 ui = ui_config.create_ui_from_config()
 st.set_page_config(page_title=ui.page_title, layout="wide", page_icon=ui.page_icon)
