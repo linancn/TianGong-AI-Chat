@@ -653,25 +653,27 @@ def wiki_query_func_calling_chain():
 
 def search_wiki(query: str, top_k=16) -> list:
     """
-    Conducts a Wikipedia search for the top K most relevant results, returning them as text chunks with metadata.
-    Utilizes :func:`wiki_query_func_calling_chain` for language identification, :class:`langchain.text_splitter.RecursiveCharacterTextSplitter` for text chunking, :class:`langchain.embeddings.OpenAIEmbeddings` for embeddings, and :class:`langchain.vectorstores.FAISS` for similarity search.
+    Searches Wikipedia for relevant documents based on the given query and returns the top k results.
 
-    :param query: The query string to search for on Wikipedia.
+    :param query: The search query string.
     :type query: str
-    :param top_k: The number of top K most relevant results to return. Default is 16.
-    :type top_k: int, optional
+    :param top_k: The maximum number of results to return. Defaults to 16.
+    :type top_k: int
+    :return: A list of dictionaries, each containing the page content and source of a search result. Returns an empty list if 'top_k' is set to 0.
+    :rtype: list
 
-    :returns: A list of dictionaries containing the chunked content and the source of each chunk.
-            Each dictionary has two keys: 'content' for the chunk of text and 'source' for the source metadata.
-    :rtype: list[dict]
+    Function Behavior:
+        - Identifies the language of the query using the :func: `wiki_query_func_calling_chain` function.
+        - Uses the `WikipediaLoader` class to load Wikipedia documents relevant to the query.
+        - Splits the text into manageable chunks using `RecursiveCharacterTextSplitter`.
+        - Embeds the text chunks using `OpenAIEmbeddings` and indexes them with FAISS.
+        - Performs a similarity search on the query to retrieve the top k relevant documents.
 
-    :raises ValueError: If the `top_k` parameter is less than zero.
-    :raises ConnectionError: If there is a problem connecting to Wikipedia or FAISS database.
-    :raises TimeoutError: If the WikipediaLoader times out while fetching data.
-    :raises KeyError: If expected metadata like 'title' or 'source' is missing in the loaded Wikipedia documents.
-    :raises Exception: For any other unforeseen errors during the search process.
+    Exceptions:
+        - KeyError: If the 'language' key is not present in the result from `wiki_query_func_calling_chain`.
+        - Any exceptions that may be raised by dependent classes or functions like `WikipediaLoader`, `RecursiveCharacterTextSplitter`, etc.
     """
-
+    
     if top_k == 0:
         return []
 
@@ -943,7 +945,6 @@ def parse_paper(pdf_stream):
 
 
 def search_arxiv_docs(query: str, top_k=16) -> list:
-    """Search arxiv.org for results."""
     """
     Searches for academic papers on arxiv.org based on a query and returns the top-k most relevant results.
 
@@ -1072,6 +1073,25 @@ def get_faiss_db(uploaded_files):
 
 
 def search_uploaded_docs(query, top_k=16):
+    """
+    Searches the FAISS database for similar documents based on the provided query and returns a list of top results.
+
+    :param query: The query string for the similarity search.
+    :type query: str
+    :param top_k: The maximum number of top results to return. Defaults to 16.
+    :type top_k: int or None
+    :returns: A list of dictionaries, each containing the content and source of a matching document. The function returns an empty list if 'top_k' is set to 0.
+    :rtype: list of dicts
+
+    Function Behavior:
+        - Retrieves the FAISS database from the Streamlit session state.
+        - Performs a similarity search in the FAISS database based on the query.
+        - Structures the search results into a list of dictionaries and returns it.
+
+    Exceptions:
+        - TypeError could be raised if the types of 'query' or 'top_k' do not match the expected types.
+    """
+
     if top_k == 0:
         return []
 
@@ -1085,6 +1105,22 @@ def search_uploaded_docs(query, top_k=16):
 
 
 def chat_history_chain():
+    """
+    Creates and returns a Large Language Model (LLM) chain configured to produce highly concise and well-organized chat history.
+
+    :return: A configured LLM chain object for producing concise chat histories.
+    :rtype: Object
+
+    Function Behavior:
+        - Initializes a ChatOpenAI instance for a specific language model.
+        - Configures a prompt template asking for a highly concise and well-organized chat history.
+        - Constructs and returns an LLMChain instance, which uses the configured language model and prompt template.
+
+    Exceptions:
+        - Exceptions could propagate from underlying dependencies like the ChatOpenAI or LLMChain classes.
+        - TypeError could be raised if internal configurations within the function do not match the expected types.
+    """
+
     llm_chat_history = ChatOpenAI(
         model=llm_model,
         temperature=0,
@@ -1108,6 +1144,22 @@ def chat_history_chain():
 
 
 def main_chain():
+    """
+    Creates and returns a main Large Language Model (LLM) chain configured to produce responses only to science-related queries while avoiding sensitive topics.
+
+    :return: A configured LLM chain object for producing responses that adhere to the defined conditions.
+    :rtype: Object
+
+    Function Behavior:
+        - Initializes a ChatOpenAI instance for a specific language model with streaming enabled.
+        - Configures a prompt template instructing the model to strictly respond to science-related questions while avoiding sensitive topics.
+        - Constructs and returns an LLMChain instance, which uses the configured language model and prompt template.
+
+    Exceptions:
+        - Exceptions could propagate from underlying dependencies like the ChatOpenAI or LLMChain classes.
+        - TypeError could be raised if internal configurations within the function do not match the expected types.
+    """
+
     llm_chat = ChatOpenAI(
         model=llm_model,
         temperature=0,
@@ -1134,6 +1186,23 @@ def main_chain():
 
 
 def xata_chat_history(_session_id: str):
+    """
+    Creates and returns an instance of XataChatMessageHistory to manage chat history based on the provided session ID.
+
+    :param _session_id: The session ID for which chat history needs to be managed.
+    :type _session_id: str
+    :return: An instance of XataChatMessageHistory configured with the session ID, API key, database URL, and table name.
+    :rtype: XataChatMessageHistory object
+
+    Function Behavior:
+        - Initializes a XataChatMessageHistory instance using the given session ID, API key from the environment, database URL from the environment, and a predefined table name.
+        - Returns the initialized instance for managing the chat history related to the session.
+
+    Exceptions:
+        - KeyError could be raised if the required environment variables ("XATA_API_KEY" or "XATA_DATABASE_URL") are not set.
+        - Exceptions could propagate from the XataChatMessageHistory class if initialization fails.
+    """
+
     chat_history = XataChatMessageHistory(
         session_id=_session_id,
         api_key=os.environ["XATA_API_KEY"],
@@ -1146,6 +1215,26 @@ def xata_chat_history(_session_id: str):
 
 # decorator
 def enable_chat_history(func):
+    """
+    A decorator to enable chat history functionality in the Streamlit application.
+
+    :param func: The function to be wrapped by this decorator.
+    :type func: Callable
+    :return: The wrapped function with chat history functionality enabled.
+    :rtype: Callable
+
+    Function Behavior:
+        - Checks if the "xata_history" key is in the Streamlit session state. If not, initializes XataChatMessageHistory with a new session ID and stores it in the session state.
+        - Checks if the "messages" key is in the Streamlit session state. If not, initializes it with the assistant's welcome message.
+        - Iterates through the stored messages and displays them in the Streamlit UI.
+        - Executes the original function passed to the decorator.
+
+    Usage:
+        @enable_chat_history
+        def your_function():
+            # Your code here
+    """
+
     if "xata_history" not in st.session_state:
         st.session_state["xata_history"] = xata_chat_history(
             _session_id=str(time.time())
@@ -1172,17 +1261,48 @@ def enable_chat_history(func):
 
 
 class StreamHandler(BaseCallbackHandler):
+    """
+    A handler class for streaming text to a Streamlit container during the Language Learning Model (LLM) operation.
+    """
     def __init__(self, container, initial_text=""):
         self.container = container
         self.text = initial_text
 
     def on_llm_new_token(self, token: str, **kwargs):
+        """
+        Callback function for when a new token is generated by the LLM.
+
+        :param token: The newly generated token.
+        :type token: str
+        :param kwargs: Additional keyword arguments, if any.
+        """
         self.text += token
         self.container.markdown(self.text)
 
 
 def fetch_chat_history():
-    """Fetch the chat history."""
+    """
+    Fetches the chat history from the Xata database, organizing it into a structured format for further use.
+
+    :returns: A dictionary where each session ID is mapped to its corresponding chat history entry, formatted with date and content.
+    :rtype: dict
+
+    Function Behavior:
+        - Utilizes the XataClient class to connect to the Xata database.
+        - Executes an SQL query to fetch unique session IDs along with their latest content and timestamp.
+        - Formats the timestamp to a readable date and time format and appends it along with the content.
+        - Returns the organized chat history as a dictionary where the session IDs are the keys and the formatted chat history entries are the values.
+
+    Exceptions:
+        - ConnectionError: Could be raised if there are issues connecting to the Xata database.
+        - SQL-related exceptions: Could be raised if the query is incorrect or if there are other database-related issues.
+        - TypeError: Could be raised if the types of the returned values do not match the expected types.
+
+    Note:
+        - The SQL query used in this function assumes that the Xata database schema has specific columns. If the schema changes, the query may need to be updated.
+        - The function returns an empty dictionary if no records are found.
+    """
+
     client = XataClient()
     response = client.sql().query(
         'SELECT "sessionId", "content" FROM (SELECT DISTINCT ON ("sessionId") "sessionId", "xata.createdAt", "content" FROM "tiangong_memory" ORDER BY "sessionId", "xata.createdAt" ASC, "content" ASC) AS subquery ORDER BY "xata.createdAt" DESC'
@@ -1202,7 +1322,25 @@ def fetch_chat_history():
 
 
 def delete_chat_history(session_id):
-    """Delete the chat history by session_id."""
+    """
+    Deletes the chat history associated with a specific session ID from the Xata database.
+
+    :param session_id: The session ID for which the chat history needs to be deleted.
+    :type session_id: str
+
+    Function Behavior:
+        - Utilizes the XataClient class to connect to the Xata database.
+        - Executes an SQL query to delete all records associated with the given session ID.
+
+    Exceptions:
+        - ConnectionError: Could be raised if there are issues connecting to the Xata database.
+        - SQL-related exceptions: Could be raised if the query is incorrect or if there are other database-related issues.
+
+    Note:
+        - The function does not check whether the session ID exists in the database before attempting the delete operation.
+        - Ensure that you want to permanently delete the chat history for the specified session ID before calling this function.
+    """
+
     client = XataClient()
     client.sql().query(
         'DELETE FROM "tiangong_memory" WHERE "sessionId" = $1',
@@ -1211,6 +1349,18 @@ def delete_chat_history(session_id):
 
 
 def convert_history_to_message(history):
+    """
+    Converts a chat history object into a dictionary containing the role and content of the message.
+
+    :param history: The chat history object to convert.
+    :type history: list
+    :returns: A dictionary containing the 'role' and 'content' of the message. If it's an AIMessage, an additional 'avatar' field is included.
+    :rtype: dict
+
+    Function Behavior:
+        - Checks the type of the incoming history object.
+        - Transforms it into a dictionary containing the role ('user' or 'assistant') and the content of the message.
+    """
     if isinstance(history, HumanMessage):
         return {"role": "user", "content": history.content}
     elif isinstance(history, AIMessage):
@@ -1222,6 +1372,21 @@ def convert_history_to_message(history):
 
 
 def initialize_messages(history):
+    """
+    Initializes a list of chat messages based on the given chat history.
+
+    :param history: The list of chat history objects to initialize the messages from.
+    :type history: list
+    :returns: A list of dictionaries containing the 'role', 'content', and optionally 'avatar' of each message, with a welcome message inserted at the beginning.
+    :rtype: list of dicts
+
+    Function Behavior:
+        - Converts each message in the chat history to a dictionary format using the `convert_history_to_message` function.
+        - Inserts a welcome message at the beginning of the list.
+    
+    Exceptions:
+        - Exceptions that may propagate from the `convert_history_to_message` function.
+    """
     # 将历史消息转换为消息格式
     messages = [convert_history_to_message(message) for message in history]
 
