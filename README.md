@@ -100,8 +100,8 @@ git push origin v0.0.1
 ### sphinx
 
 ```bash
-cd docs && sphinx-apidoc -o source ../src/ && cd ..
-cd docs && sphinx-autobuild source build/html && cd ..
+cd docs/source && sphinx-apidoc -o . ../../src/ && cd ../..
+cd docs/source && sphinx-autobuild . build/html && cd ../..
 ```
 
 ### Production Run
