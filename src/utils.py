@@ -48,7 +48,26 @@ langchain_verbose = bool(os.environ.get("LANGCHAIN_VERBOSE", "True") == "True")
 
 
 def check_password():
-    """Returns `True` if the user had the correct password."""
+    """
+    Validates a user-entered password against an environment variable in a Streamlit application.
+
+    :returns: True if the entered password is correct, False otherwise.
+    :rtype: bool
+
+    Function Behavior:
+        - Displays a password input field and validates the user's input.
+        - Utilizes Streamlit's session state to keep track of password validity across reruns.
+
+    Local Functions:
+        - password_entered(): Compares the user-entered password with the stored password in the environment variable.
+
+    Exceptions:
+        - Relies on the 'os' library to fetch the stored password, so issues in environment variable could lead to exceptions.
+
+    Note:
+        - The "PASSWORD" environment variable must be set for password validation.
+        - Deletes the entered password from the session state after validation.
+    """
 
     def password_entered():
         """Checks whether a password entered by the user is correct."""
@@ -77,6 +96,25 @@ def check_password():
 
 
 def func_calling_chain():
+    """
+    Creates and returns a function calling chain for extracting query and filter information from a chat history.
+
+    :returns: An object representing the function calling chain, which is configured to generate structured output based on the provided JSON schema and chat prompt template.
+    :rtype: object
+
+    Function Behavior:
+        - Defines a JSON schema for structured output that includes query information and date filters.
+        - Creates a chat prompt template to instruct the underlying language model on how to generate the desired structured output.
+        - Utilizes a language model for structured output generation.
+        - Creates the function calling chain with 'create_structured_output_chain', passing the JSON schema, language model, and chat prompt template as arguments.
+
+    Exceptions:
+        - This function depends on external modules and classes like 'SystemMessage', 'HumanMessage', 'ChatPromptTemplate', etc. Exceptions may arise if these dependencies encounter issues.
+
+    Note:
+        - It uses a specific language model identified by 'llm_model' for structured output generation. Ensure that 'llm_model' is properly initialized and available for use to avoid unexpected issues.
+    """
+
     func_calling_json_schema = {
         "title": "get_querys_and_filters_to_search",
         "description": "Extract the next queries and filters for searching from a chat history.",
@@ -124,6 +162,32 @@ def func_calling_chain():
 
 
 def search_pinecone(query, created_at, top_k=16):
+    """
+    Performs a similarity search on Pinecone's vector database based on a given query and optional date filter, and returns a list of relevant documents.
+
+    :param query: The query to be used for similarity search in Pinecone's vector database.
+    :type query: str
+    :param created_at: The date filter to be applied in the search, specified in a format compatible with Pinecone's filtering options.
+    :type created_at: str or None
+    :param top_k: The number of top matching documents to return. Defaults to 16.
+    :type top_k: int or None
+    :returns: A list of dictionaries, each containing the content and source of the matched documents. The function returns an empty list if 'top_k' is set to 0.
+    :rtype: list of dicts
+
+    Function Behavior:
+        - Initializes Pinecone with the specified API key and environment.
+        - Conducts a similarity search based on the provided query and optional date filter.
+        - Extracts and formats the relevant document information before returning.
+
+    Exceptions:
+        - This function relies on Pinecone and Python's os library. Exceptions could propagate if there are issues related to API keys, environment variables, or Pinecone initialization.
+        - TypeError could be raised if the types of 'query', 'created_at', or 'top_k' do not match the expected types.
+
+    Note:
+        - Ensure the Pinecone API key and environment variables are set before running this function.
+        - The function uses 'OpenAIEmbeddings' to initialize Pinecone's vector store, which should be compatible with the embeddings in the Pinecone index.
+    """
+
     if top_k == 0:
         return []
 
@@ -159,6 +223,26 @@ def search_pinecone(query, created_at, top_k=16):
 
 
 def search_internet(query, top_k=4):
+    """
+    Performs an internet search based on the provided query using the DuckDuckGo search engine and returns a list of top results.
+
+    :param query: The query string for the internet search.
+    :type query: str
+    :param top_k: The maximum number of top results to return. Defaults to 4.
+    :type top_k: int or None.
+    :returns: A list of dictionaries, each containing the snippet, title, and link of a search result. The function returns an empty list if 'top_k' is set to 0.
+    :rtype: list of dicts
+
+    Function Behavior:
+        - Uses the DuckDuckGoSearchResults class to perform the search.
+        - Parses the raw search results to extract relevant snippet, title, and link information.
+        - Structures this information into a list of dictionaries and returns it.
+
+    Exceptions:
+        - This function relies on the DuckDuckGoSearchResults class, so exceptions might propagate from issues in that dependency.
+        - TypeError could be raised if the types of 'query' or 'top_k' do not match the expected types.
+    """
+
     if top_k == 0:
         return []
 
@@ -187,6 +271,27 @@ def search_internet(query, top_k=4):
 
 
 def wiki_query_func_calling_chain():
+    """
+    Identifies the language of a query for Wikipedia search and returns it as part of a structured output chain. This function relies on a specific JSON schema to define the structure of the output data.
+
+    :returns: The structured output chain that can identify the language of a query for Wikipedia search, based on a pre-defined JSON schema.
+    :rtype: object
+
+    Function Behavior:
+        - Initializes a ChatPromptTemplate with system messages and templates to guide the chat behavior.
+        - Sets up a ChatOpenAI model for identifying the language.
+        - Creates a structured output chain using the JSON schema, the language identification model, and the chat prompt template.
+        - Returns the structured output chain, which can be executed later to obtain the language identifier for a Wikipedia search query.
+
+    Exceptions:
+        - This function relies on the create_structured_output_chain function, so any exceptions that occur in that function could propagate.
+        - TypeError could be raised if internal components like llm_func_calling or prompt_func_calling do not match the expected types.
+
+    Note:
+        - The function is specifically tailored for language identification for Wikipedia queries and is not a generic language identification model.
+        - It strictly follows a pre-defined language mapping, and the output language is one of the many predefined language codes.
+    """
+
     func_calling_json_schema = {
         "title": "identify_query_language_to_search_Wikipedia",
         "description": "Accurately identifying the language of the query to search Wikipedia.",
@@ -547,7 +652,26 @@ def wiki_query_func_calling_chain():
 
 
 def search_wiki(query: str, top_k=16) -> list:
-    """Search Wikipedia for results."""
+    """
+    Conducts a Wikipedia search for the top K most relevant results, returning them as text chunks with metadata.
+    Utilizes :func:`wiki_query_func_calling_chain` for language identification, :class:`langchain.text_splitter.RecursiveCharacterTextSplitter` for text chunking, :class:`langchain.embeddings.OpenAIEmbeddings` for embeddings, and :class:`langchain.vectorstores.FAISS` for similarity search.
+
+    :param query: The query string to search for on Wikipedia.
+    :type query: str
+    :param top_k: The number of top K most relevant results to return. Default is 16.
+    :type top_k: int, optional
+
+    :returns: A list of dictionaries containing the chunked content and the source of each chunk.
+            Each dictionary has two keys: 'content' for the chunk of text and 'source' for the source metadata.
+    :rtype: list[dict]
+
+    :raises ValueError: If the `top_k` parameter is less than zero.
+    :raises ConnectionError: If there is a problem connecting to Wikipedia or FAISS database.
+    :raises TimeoutError: If the WikipediaLoader times out while fetching data.
+    :raises KeyError: If expected metadata like 'title' or 'source' is missing in the loaded Wikipedia documents.
+    :raises Exception: For any other unforeseen errors during the search process.
+    """
+
     if top_k == 0:
         return []
 
@@ -590,6 +714,29 @@ def search_wiki(query: str, top_k=16) -> list:
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
 def download_file_to_stream(url):
+    """
+    Downloads a file from a given URL and returns its content as a binary stream. The function will retry up to 3 times with a 2-second wait in case of failure.
+
+    :param url: The URL of the file to download.
+    :type url: str
+    :returns: A BytesIO object containing the file content.
+    :rtype: io.BytesIO
+
+    Function Behavior:
+        - Sets up headers with a fake User-Agent to send the HTTP GET request.
+        - Sends an HTTP GET request to the specified URL, streaming the response.
+        - Checks the HTTP status code and raises an exception if it's not 200.
+        - Reads the content in chunks and writes it to a BytesIO object.
+        - Seeks back to the beginning of the BytesIO object before returning it.
+
+    Exceptions:
+        - requests.exceptions.RequestException could be raised if the HTTP GET request fails.
+        - TypeError could be raised if the type of 'url' does not match the expected type.
+
+    Note:
+        - This function uses the `retry` decorator to automatically handle retries.
+    """
+
     # 使用伪造的User-Agent
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36"
@@ -613,6 +760,35 @@ def download_file_to_stream(url):
 
 
 def parse_paper(pdf_stream):
+    """
+    Parses the text content of a PDF paper using pdfplumber. This function aims to extract the main text body from a paper, skipping headers, footers, and other irrelevant sections like "Acknowledgements" and "References."
+
+    :param pdf_stream: The byte stream of the PDF to be parsed.
+    :type pdf_stream: io.BytesIO or file-like object
+    :returns: The extracted main text of the PDF as a single string.
+    :rtype: str
+
+    Function Behavior:
+        - Reads the PDF from the byte stream using pdfplumber.
+        - Goes through each page to identify and collect sentences that are part of the main text.
+        - Takes into account special cases for the first page and reference section.
+        - Ignores text if it falls under headers, footers, and miscellaneous sections like "References" and "Acknowledgements."
+        - Utilizes helper function 'visitor_body' to check whether each piece of text should be included based on its coordinates and other attributes.
+
+    Local Functions:
+        - visitor_body(text, isfirstpage, x, top, bottom, fontSize, ismisc): A helper function that decides whether the given text should be included in the main text body based on its attributes and location on the page.
+
+    Exceptions:
+        - This function relies on pdfplumber for parsing PDF, so any exception thrown by pdfplumber can propagate. Such exceptions might include but are not limited to:
+            - PDFSyntaxError: If the PDF has syntactical errors.
+            - FileNotFoundError: If the pdf_stream is a file path and the file doesn't exist.
+
+    Note:
+        - The function assumes that the main text has a consistent font size throughout the paper, and uses this assumption for text extraction.
+        - The function treats the first page separately as it may contain unique elements like title and abstract.
+        - It also switches to a mode where it ignores most text once it detects sections like "References" or "Acknowledgements."
+    """
+
     # logging.info("Parsing paper")
     pdf_obj = pdfplumber.open(pdf_stream)
     number_of_pages = len(pdf_obj.pages)
@@ -768,6 +944,33 @@ def parse_paper(pdf_stream):
 
 def search_arxiv_docs(query: str, top_k=16) -> list:
     """Search arxiv.org for results."""
+    """
+    Searches for academic papers on arxiv.org based on a query and returns the top-k most relevant results.
+
+    :param query: The search query for arXiv.
+    :type query: str
+    :param top_k: The maximum number of top results to return. Defaults to 16.
+    :type top_k: int or None
+    :returns: A list of dictionaries, each containing the content and source information of a search result. The function returns an empty list if 'top_k' is set to 0.
+    :rtype: list of dicts
+
+    Function Behavior:
+        - Checks if 'top_k' is zero and, if so, returns an empty list.
+        - Uses the arXiv API to perform the initial search and get a list of relevant papers.
+        - Downloads the PDFs and extracts the text content.
+        - Splits the text content into smaller chunks for better handling.
+        - Embeds the chunks and performs a similarity search.
+        - Structures the similarity search results into a list of dictionaries and returns it.
+
+    Exceptions:
+        - arxiv.ArxivException: Raised if the search query to arXiv API fails.
+        - requests.exceptions.RequestException: May be propagated from the 'download_file_to_stream' function.
+        - TypeError: Could be raised if the types of 'query' or 'top_k' do not match the expected types.
+
+    Note:
+        - This function relies on several external libraries and methods like arXiv API, FAISS, and OpenAIEmbeddings.
+    """
+
     if top_k == 0:
         return []
 
@@ -816,6 +1019,30 @@ def search_arxiv_docs(query: str, top_k=16) -> list:
 
 
 def get_faiss_db(uploaded_files):
+    """
+    Creates a FAISS database from a list of uploaded files.
+
+    :param uploaded_files: List of uploaded file objects.
+    :type uploaded_files: list of file-like objects
+    :returns: A FAISS database containing the embeddings of the chunks from the uploaded files' content.
+    :rtype: FAISS database object
+
+    Function Behavior:
+        - Iterates through the list of uploaded files.
+        - Reads the content of each uploaded file and processes it into smaller chunks.
+        - Embeds the chunks using OpenAIEmbeddings.
+        - Creates a FAISS database from the embeddings of the chunks.
+        - If the chunks list is empty, a warning message is displayed and the function terminates.
+
+    Exceptions:
+        - Could raise exceptions related to file reading or invalid file format.
+        - An exception may propagate from the FAISS.from_documents method.
+        - TypeError could be raised if the types of 'uploaded_files' do not match the expected types.
+
+    Note:
+        - This function relies on the FAISS library for creating the database and OpenAIEmbeddings for generating embeddings.
+    """
+
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
         chunk_size=220, chunk_overlap=20
     )
@@ -844,7 +1071,7 @@ def get_faiss_db(uploaded_files):
     return faiss_db
 
 
-def seach_uploaded_docs(query, top_k=16):
+def search_uploaded_docs(query, top_k=16):
     if top_k == 0:
         return []
 
@@ -942,17 +1169,6 @@ def enable_chat_history(func):
         func(*args, **kwargs)
 
     return execute
-
-
-def display_msg(msg, author):
-    """Method to display message on the UI
-
-    Args:
-        msg (str): message to display
-        author (str): author of the message -user/assistant
-    """
-    st.session_state.messages.append({"role": author, "content": msg})
-    st.chat_message(author).write(msg)
 
 
 class StreamHandler(BaseCallbackHandler):
