@@ -104,7 +104,6 @@ cd docs && sphinx-apidoc -o source ../src/ && cd ..
 cd docs && sphinx-autobuild source build/html && cd ..
 ```
 
-
 ### Production Run
 
 ```bash
