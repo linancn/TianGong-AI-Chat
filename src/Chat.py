@@ -14,7 +14,7 @@ from utils import (
     check_password,
     func_calling_chain,
     main_chain,
-    seach_uploaded_docs,
+    search_uploaded_docs,
     search_arxiv_docs,
     search_internet,
     search_pinecone,
@@ -149,7 +149,7 @@ if auth:
 
             # Merge two dicts
             table_map = table_map_new | table_map
-        except: # if no chat history in xata
+        except:  # if no chat history in xata
             table_map = {
                 str(timestamp): datetime.fromtimestamp(timestamp).strftime(
                     "%Y-%m-%d %H:%M:%S"
@@ -192,8 +192,7 @@ if auth:
         user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
 
         if user_query:
-            # chat_history.add_user_message(user_query)
-            utils.display_msg(user_query, "user")
+            st.chat_message("user").markdown(user_query)
             st.session_state["xata_history"].add_user_message(user_query)
 
             chat_history_response = chat_history_chain()(
@@ -221,7 +220,7 @@ if auth:
             docs_response.extend(
                 search_arxiv_docs(arxiv_query, top_k=search_arxiv_top_k)
             )
-            docs_response.extend(seach_uploaded_docs(query, top_k=search_docs_top_k))
+            docs_response.extend(search_uploaded_docs(query, top_k=search_docs_top_k))
 
             input = f""" You must:
 use "{chat_history_recent}" to decide the response more concise or more detailed;
@@ -243,6 +242,9 @@ return any prefix like "AI:".
                     callbacks=[st_cb],
                 )
 
+                st.session_state["messages"].append(
+                    {"role": "user", "content": user_query}
+                )
                 st.session_state["messages"].append(
                     {
                         "role": "assistant",
