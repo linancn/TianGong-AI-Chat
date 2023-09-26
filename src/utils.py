@@ -683,7 +683,7 @@ def search_wiki(query: str, top_k=16) -> list:
     ).load()
 
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-        chunk_size=220, chunk_overlap=20
+        chunk_size=200, chunk_overlap=20
     )
     chunks = []
 
@@ -980,7 +980,7 @@ def search_arxiv_docs(query: str, top_k=16) -> list:
     ).results()
 
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-        chunk_size=220, chunk_overlap=20
+        chunk_size=200, chunk_overlap=20
     )
     chunks = []
 
@@ -1045,7 +1045,7 @@ def get_faiss_db(uploaded_files):
     """
 
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-        chunk_size=220, chunk_overlap=20
+        chunk_size=200, chunk_overlap=20
     )
     chunks = []
     for uploaded_file in uploaded_files:
