@@ -161,7 +161,7 @@ sudo nginx -s stop
 /etc/nginx/sites-available/default
 
 ```bash
-	location /auth/ {
+    location /auth/ {
         proxy_pass http://localhost:8000/redirect_to_streamlit/;
 		proxy_pass_request_headers on;
     }
