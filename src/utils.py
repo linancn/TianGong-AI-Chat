@@ -23,14 +23,18 @@ os.environ["PINECONE_API_KEY"] = st.secrets["pinecone_api_key"]
 os.environ["PINECONE_ENVIRONMENT"] = st.secrets["pinecone_environment"]
 os.environ["PINECONE_INDEX"] = st.secrets["pinecone_index"]
 
-from langchain import LLMChain, PromptTemplate
 from langchain.callbacks.base import BaseCallbackHandler
+from langchain.chains import LLMChain
 from langchain.chains.openai_functions import create_structured_output_chain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredFileLoader, WikipediaLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.memory import XataChatMessageHistory
-from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
+from langchain.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    PromptTemplate,
+)
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import DuckDuckGoSearchResults
@@ -673,7 +677,7 @@ def search_wiki(query: str, top_k=16) -> list:
         - KeyError: If the 'language' key is not present in the result from `wiki_query_func_calling_chain`.
         - Any exceptions that may be raised by dependent classes or functions like `WikipediaLoader`, `RecursiveCharacterTextSplitter`, etc.
     """
-    
+
     if top_k == 0:
         return []
 
@@ -1264,6 +1268,7 @@ class StreamHandler(BaseCallbackHandler):
     """
     A handler class for streaming text to a Streamlit container during the Language Learning Model (LLM) operation.
     """
+
     def __init__(self, container, initial_text=""):
         self.container = container
         self.text = initial_text
@@ -1383,7 +1388,7 @@ def initialize_messages(history):
     Function Behavior:
         - Converts each message in the chat history to a dictionary format using the `convert_history_to_message` function.
         - Inserts a welcome message at the beginning of the list.
-    
+
     Exceptions:
         - Exceptions that may propagate from the `convert_history_to_message` function.
     """
