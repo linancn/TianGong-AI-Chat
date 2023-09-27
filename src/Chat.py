@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 
 import streamlit as st
+from streamlit.web.server.websocket_headers import _get_websocket_headers
 
 import ui_config
 import utils
@@ -14,10 +15,10 @@ from utils import (
     check_password,
     func_calling_chain,
     main_chain,
-    search_uploaded_docs,
     search_arxiv_docs,
     search_internet,
     search_pinecone,
+    search_uploaded_docs,
     search_wiki,
     xata_chat_history,
 )
@@ -25,6 +26,7 @@ from utils import (
 ui = ui_config.create_ui_from_config()
 st.set_page_config(page_title=ui.page_title, layout="wide", page_icon=ui.page_icon)
 
+# st.write(_get_websocket_headers())
 
 if ui.need_passwd is False:
     auth = True

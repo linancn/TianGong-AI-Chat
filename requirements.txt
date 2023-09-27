@@ -1,6 +1,7 @@
 arxiv
 duckduckgo-search
 faiss-cpu
+fastapi
 langchain
 openai
 pdfplumber
@@ -14,5 +15,6 @@ tenacity
 tiktoken
 toml
 unstructured[local-inference]
+uvicorn[standard]
 wikipedia
 xata
