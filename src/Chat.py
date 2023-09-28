@@ -22,11 +22,14 @@ from utils import (
     search_wiki,
     xata_chat_history,
 )
+from langchain.schema import HumanMessage, AIMessage
 
 ui = ui_config.create_ui_from_config()
 st.set_page_config(page_title=ui.page_title, layout="wide", page_icon=ui.page_icon)
 
-# st.write(_get_websocket_headers())
+st.session_state["username"] = _get_websocket_headers().get("Username", "unknown")
+
+st.write(st.session_state["username"])
 
 if ui.need_passwd is False:
     auth = True
@@ -195,7 +198,13 @@ if auth:
 
         if user_query:
             st.chat_message("user").markdown(user_query)
-            st.session_state["xata_history"].add_user_message(user_query)
+            # st.session_state["xata_history"].add_user_message(user_query)
+            human_message = HumanMessage(
+                content=user_query, additional_kwargs={"id": "user_id"}
+            )
+            st.session_state["xata_history"].add_message(human_message)
+
+            st.write(st.session_state["xata_history"].messages)
 
             chat_history_response = chat_history_chain()(
                 {"input": st.session_state["xata_history"].messages[-6:]},
@@ -254,7 +263,12 @@ return any prefix like "AI:".
                         "content": response["text"],
                     }
                 )
-                st.session_state["xata_history"].add_ai_message(response["text"])
+                # st.session_state["xata_history"].add_ai_message(response["text"])
+
+                ai_message = AIMessage(
+                    content=response["text"], additional_kwargs={"id": "user_id"}
+                )
+                st.session_state["xata_history"].add_message(ai_message)
 
                 if len(st.session_state["messages"]) == 3:
                     st.rerun()
