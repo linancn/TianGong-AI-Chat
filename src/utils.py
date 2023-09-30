@@ -1285,7 +1285,7 @@ class StreamHandler(BaseCallbackHandler):
         self.container.markdown(self.text)
 
 
-def fetch_chat_history():
+def fetch_chat_history(username: str):
     """
     Fetches the chat history from the Xata database, organizing it into a structured format for further use.
 
@@ -1310,14 +1310,20 @@ def fetch_chat_history():
 
     client = XataClient()
     response = client.sql().query(
-        'SELECT "sessionId", "content" FROM (SELECT DISTINCT ON ("sessionId") "sessionId", "xata.createdAt", "content" FROM "tiangong_memory" ORDER BY "sessionId", "xata.createdAt" ASC, "content" ASC) AS subquery ORDER BY "xata.createdAt" DESC'
+        f"""SELECT "sessionId", "content"
+FROM (
+    SELECT DISTINCT ON ("sessionId") "sessionId", "xata.createdAt", "content"
+    FROM "tiangong_memory"
+    WHERE "additionalKwargs"->>'id' = '{username}'
+    ORDER BY "sessionId" DESC, "xata.createdAt" ASC
+) AS subquery"""
     )
     records = response["records"]
     for record in records:
         timestamp = float(record["sessionId"])
         record["entry"] = (
-            datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
-            + " - "
+            datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
+            + " : "
             + record["content"]
         )
 

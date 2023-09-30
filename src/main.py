@@ -6,7 +6,7 @@ app = FastAPI()
 
 security = HTTPBasic()
 
-VALID_USERNAME = "admin"
+VALID_USERNAME = "admin@admin.com"
 VALID_PASSWORD = "password"
 
 
