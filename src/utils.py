@@ -1,7 +1,9 @@
 """utilities used in the app"""
 import io
 import os
+import random
 import re
+import string
 import tempfile
 import time
 from collections import Counter
@@ -49,6 +51,17 @@ ui = ui_config.create_ui_from_config()
 
 llm_model = os.environ["LLM_MODEL"]
 langchain_verbose = bool(os.environ.get("LANGCHAIN_VERBOSE", "True") == "True")
+
+
+def random_email(domain="example.com"):
+    # username length is 5 to 10
+    username_length = random.randint(5, 10)
+    username = "".join(
+        random.choice(string.ascii_lowercase + string.digits)
+        for _ in range(username_length)
+    )
+
+    return f"{username}@{domain}"
 
 
 def check_password():

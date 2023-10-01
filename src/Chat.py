@@ -12,6 +12,7 @@ import utils
 from sensitivity_checker import check_text_sensitivity
 from top_k_mappings import top_k_mappings
 from utils import (
+    random_email,
     StreamHandler,
     chat_history_chain,
     check_password,
@@ -28,12 +29,15 @@ from utils import (
 ui = ui_config.create_ui_from_config()
 st.set_page_config(page_title=ui.page_title, layout="wide", page_icon=ui.page_icon)
 
+if "username" not in st.session_state:
+    if st.secrets["anonymous_allowed"]:
+        st.session_state["username"] = random_email()
+    else:
+        st.session_state["username"] = _get_websocket_headers().get(
+            "Username", "unknown@unknown.com"
+        )
 
-st.session_state["username"] = _get_websocket_headers().get(
-    "Username", "unknown@unknown.com"
-)
-
-# st.write(st.session_state["username"])
+st.write(st.session_state["username"])
 
 if ui.need_passwd is False:
     auth = True
@@ -127,7 +131,20 @@ if auth:
                 ui.sidebar_newchat_button_label, use_container_width=True
             )
         if new_chat:
-            st.session_state.clear()
+            # st.session_state.clear()
+            del st.session_state["selected_chat_id"]
+            del st.session_state["timestamp"]
+            del st.session_state["first_run"]
+            del st.session_state["messages"]
+            del st.session_state["xata_history"]
+            try:
+                del st.session_state["uploaded_files"]
+            except:
+                pass
+            try:
+                del st.session_state["faiss_db"]
+            except:
+                pass
             st.rerun()
 
         with col_delete:
@@ -136,7 +153,20 @@ if auth:
             )
         if delete_chat:
             utils.delete_chat_history(st.session_state["selected_chat_id"])
-            st.session_state.clear()
+            # st.session_state.clear()
+            del st.session_state["selected_chat_id"]
+            del st.session_state["timestamp"]
+            del st.session_state["first_run"]
+            del st.session_state["messages"]
+            del st.session_state["xata_history"]
+            try:
+                del st.session_state["uploaded_files"]
+            except:
+                pass
+            try:
+                del st.session_state["faiss_db"]
+            except:
+                pass
             st.rerun()
 
         if "first_run" not in st.session_state:
