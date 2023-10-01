@@ -15,3 +15,11 @@ Dockerfile
 README.md
 
 docs/
+
+.devcontainer/
+
+.github/
+
+sphinx/
+
+.streamlit/secrets.toml

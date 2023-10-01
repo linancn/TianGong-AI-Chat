@@ -104,6 +104,13 @@ sphinx-apidoc --force -o sphinx/source/ src/
 sphinx-autobuild sphinx/source docs/
 ```
 
+### Docker Manually Build
+
+```bash
+docker build -t linancn/tiangong-ai-chat:v0.0.1 .
+docker push linancn/tiangong-ai-chat:v0.0.1
+```
+
 ### Production Run
 
 ```bash
@@ -151,35 +158,14 @@ docker cp .streamlit/secrets.toml tiangong-ai-chat:/app/.streamlit/secrets.toml
 
 ### Nginx config
 
+default file location: /etc/nginx/sites-enabled/default
+
 ```bash
 sudo apt update
 sudo apt install nginx
 sudo nginx
 sudo nginx -s reload
 sudo nginx -s stop
-```
-
-/etc/nginx/sites-available/default
-
-```bash
-        location /auth/ {
-            proxy_pass http://localhost:8000/redirect_to_streamlit/;
-            proxy_pass_request_headers on;
-        }
-
-        location / {
-            auth_request /auth/;
-            auth_request_set $auth_status $upstream_status;
-            auth_request_set $saved_username $upstream_http_username;
-            proxy_set_header Username $saved_username;
-            proxy_pass http://localhost:8501/;
-            proxy_set_header Host $host;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        }
 ```
 
 ## To Do
