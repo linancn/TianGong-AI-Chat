@@ -26,7 +26,8 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt --upgrade
 
 # Copy the current directory contents into the container at /app
-COPY .streamlit/ src/ ./
+COPY .streamlit/  ./.streamlit/
+COPY src/ ./src/
 
 # Command to run supervisord
 CMD ["/usr/bin/supervisord"]
