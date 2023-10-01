@@ -4,10 +4,12 @@ import time
 from datetime import datetime
 
 import streamlit as st
+from langchain.schema import AIMessage, HumanMessage
 from streamlit.web.server.websocket_headers import _get_websocket_headers
 
 import ui_config
 import utils
+from sensitivity_checker import check_text_sensitivity
 from top_k_mappings import top_k_mappings
 from utils import (
     StreamHandler,
@@ -22,10 +24,10 @@ from utils import (
     search_wiki,
     xata_chat_history,
 )
-from langchain.schema import HumanMessage, AIMessage
 
 ui = ui_config.create_ui_from_config()
 st.set_page_config(page_title=ui.page_title, layout="wide", page_icon=ui.page_icon)
+
 
 st.session_state["username"] = _get_websocket_headers().get(
     "Username", "unknown@unknown.com"
@@ -148,9 +150,7 @@ if auth:
 
             # add new chat to table_map
             table_map_new = {
-                str(timestamp): datetime.fromtimestamp(timestamp).strftime(
-                    "%Y-%m-%d"
-                )
+                str(timestamp): datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
                 + " : New Chat"
             }
 
@@ -158,9 +158,7 @@ if auth:
             table_map = table_map_new | table_map
         except:  # if no chat history in xata
             table_map = {
-                str(timestamp): datetime.fromtimestamp(timestamp).strftime(
-                    "%Y-%m-%d"
-                )
+                str(timestamp): datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
                 + " : New Chat"
             }
 
@@ -200,78 +198,98 @@ if auth:
 
         if user_query:
             st.chat_message("user").markdown(user_query)
-            # st.session_state["xata_history"].add_user_message(user_query)
+            st.session_state["messages"].append({"role": "user", "content": user_query})
             human_message = HumanMessage(
                 content=user_query,
                 additional_kwargs={"id": st.session_state["username"]},
             )
             st.session_state["xata_history"].add_message(human_message)
 
-            chat_history_response = chat_history_chain()(
-                {"input": st.session_state["xata_history"].messages[-6:]},
-            )
-
-            chat_history_recent = chat_history_response["text"]
-
-            func_calling_response = func_calling_chain().run(chat_history_recent)
-
-            query = func_calling_response.get("query")
-            arxiv_query = func_calling_response.get("arxiv_query")
-
-            try:
-                created_at = json.loads(func_calling_response.get("created_at", None))
-            except TypeError:
-                created_at = None
-
-            docs_response = []
-            docs_response.extend(
-                search_pinecone(query, created_at, top_k=search_knowledge_base_top_k)
-            )
-            docs_response.extend(search_internet(query, top_k=search_online_top_k))
-            docs_response.extend(search_wiki(query, top_k=search_wikipedia_top_k))
-            docs_response.extend(
-                search_arxiv_docs(arxiv_query, top_k=search_arxiv_top_k)
-            )
-            docs_response.extend(search_uploaded_docs(query, top_k=search_docs_top_k))
-
-            input = f""" You must:
-use "{chat_history_recent}" to decide the response more concise or more detailed;
-based on the "{docs_response}" and your own knowledge, provide a logical, clear, well-organized, and critically analyzed respond in the language of "{user_query}";
-use bullet points only when necessary;
-give in-text citations where relevant in Author-Date mode, NOT in Numeric mode;
-list full reference information with hyperlinks at the end, for only those cited in the text.
-
-You must not:
-include any duplicate or redundant information;
-translate reference to query's language;
-return any prefix like "AI:".
-"""
-
-            with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
-                st_cb = StreamHandler(st.empty())
-                response = main_chain()(
-                    {"input": input},
-                    callbacks=[st_cb],
+            # check text sensitivity
+            answer = check_text_sensitivity(user_query)["answer"]
+            if answer is not None:
+                with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
+                    st.markdown(answer)
+                    st.session_state["messages"].append(
+                        {
+                            "role": "assistant",
+                            "avatar": ui.chat_ai_avatar,
+                            "content": answer,
+                        }
+                    )
+                    ai_message = AIMessage(
+                        content=check_text_sensitivity(user_query)["answer"],
+                        additional_kwargs={"id": st.session_state["username"]},
+                    )
+                    st.session_state["xata_history"].add_message(ai_message)
+            else:
+                chat_history_response = chat_history_chain()(
+                    {"input": st.session_state["xata_history"].messages[-6:]},
                 )
 
-                st.session_state["messages"].append(
-                    {"role": "user", "content": user_query}
-                )
-                st.session_state["messages"].append(
-                    {
-                        "role": "assistant",
-                        "avatar": ui.chat_ai_avatar,
-                        "content": response["text"],
-                    }
-                )
-                ai_message = AIMessage(
-                    content=response["text"],
-                    additional_kwargs={"id": st.session_state["username"]},
-                )
-                st.session_state["xata_history"].add_message(ai_message)
+                chat_history_recent = chat_history_response["text"]
 
-                if len(st.session_state["messages"]) == 3:
-                    st.rerun()
+                func_calling_response = func_calling_chain().run(chat_history_recent)
+
+                query = func_calling_response.get("query")
+                arxiv_query = func_calling_response.get("arxiv_query")
+
+                try:
+                    created_at = json.loads(
+                        func_calling_response.get("created_at", None)
+                    )
+                except TypeError:
+                    created_at = None
+
+                docs_response = []
+                docs_response.extend(
+                    search_pinecone(
+                        query, created_at, top_k=search_knowledge_base_top_k
+                    )
+                )
+                docs_response.extend(search_internet(query, top_k=search_online_top_k))
+                docs_response.extend(search_wiki(query, top_k=search_wikipedia_top_k))
+                docs_response.extend(
+                    search_arxiv_docs(arxiv_query, top_k=search_arxiv_top_k)
+                )
+                docs_response.extend(
+                    search_uploaded_docs(query, top_k=search_docs_top_k)
+                )
+
+                input = f""" You must:
+    use "{chat_history_recent}" to decide the response more concise or more detailed;
+    based on the "{docs_response}" and your own knowledge, provide a logical, clear, well-organized, and critically analyzed respond in the language of "{user_query}";
+    use bullet points only when necessary;
+    give in-text citations where relevant in Author-Date mode, NOT in Numeric mode;
+    list full reference information with hyperlinks at the end, for only those cited in the text.
+
+    You must not:
+    include any duplicate or redundant information;
+    translate reference to query's language;
+    return any prefix like "AI:".
+    """
+
+                with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
+                    st_cb = StreamHandler(st.empty())
+                    response = main_chain()(
+                        {"input": input},
+                        callbacks=[st_cb],
+                    )
+
+                    st.session_state["messages"].append(
+                        {
+                            "role": "assistant",
+                            "avatar": ui.chat_ai_avatar,
+                            "content": response["text"],
+                        }
+                    )
+                    ai_message = AIMessage(
+                        content=response["text"],
+                        additional_kwargs={"id": st.session_state["username"]},
+                    )
+                    st.session_state["xata_history"].add_message(ai_message)
+            if len(st.session_state["messages"]) == 3:
+                st.rerun()
 
     if __name__ == "__main__":
         main()
