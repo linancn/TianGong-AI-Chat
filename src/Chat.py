@@ -257,7 +257,7 @@ if auth:
                         }
                     )
                     ai_message = AIMessage(
-                        content=check_text_sensitivity(user_query)["answer"],
+                        content=answer,
                         additional_kwargs={"id": st.session_state["username"]},
                     )
                     st.session_state["xata_history"].add_message(ai_message)
