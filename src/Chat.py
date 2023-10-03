@@ -12,12 +12,16 @@ import utils
 from sensitivity_checker import check_text_sensitivity
 from top_k_mappings import top_k_mappings
 from utils import (
-    random_email,
     StreamHandler,
     chat_history_chain,
     check_password,
+    delete_chat_history,
+    fetch_chat_history,
     func_calling_chain,
+    get_faiss_db,
+    initialize_messages,
     main_chain,
+    random_email,
     search_arxiv_docs,
     search_internet,
     search_pinecone,
@@ -107,9 +111,7 @@ if auth:
                 ):
                     st.session_state["uploaded_files"] = uploaded_files
                     with st.spinner(ui.sidebar_file_uploader_spinner):
-                        st.session_state["faiss_db"] = utils.get_faiss_db(
-                            uploaded_files
-                        )
+                        st.session_state["faiss_db"] = get_faiss_db(uploaded_files)
 
             current_top_k_mappings = f"{search_knowledge_base}_{search_online}_{search_wikipedia}_{search_arxiv}_{search_docs_option}"
 
@@ -160,7 +162,7 @@ if auth:
                 ui.sidebar_delete_button_label, use_container_width=True
             )
         if delete_chat:
-            utils.delete_chat_history(st.session_state["selected_chat_id"])
+            delete_chat_history(st.session_state["selected_chat_id"])
             # st.session_state.clear()
             del st.session_state["selected_chat_id"]
             del st.session_state["timestamp"]
@@ -184,7 +186,7 @@ if auth:
             timestamp = st.session_state["timestamp"]
 
         try:  # fetch chat history from xata
-            table_map = utils.fetch_chat_history(st.session_state["username"])
+            table_map = fetch_chat_history(st.session_state["username"])
 
             # add new chat to table_map
             table_map_new = {
@@ -226,7 +228,7 @@ if auth:
             st.session_state["xata_history"] = xata_chat_history(
                 _session_id=current_chat_id
             )
-            st.session_state["messages"] = utils.initialize_messages(
+            st.session_state["messages"] = initialize_messages(
                 st.session_state["xata_history"].messages
             )
 
