@@ -141,7 +141,7 @@ if auth:
                 ui.sidebar_newchat_button_label, use_container_width=True
             )
         if new_chat:
-            # st.session_state.clear()
+            # avoid rerun for new random email,no use clear()
             del st.session_state["selected_chat_id"]
             del st.session_state["timestamp"]
             del st.session_state["first_run"]
@@ -163,7 +163,7 @@ if auth:
             )
         if delete_chat:
             delete_chat_history(st.session_state["selected_chat_id"])
-            # st.session_state.clear()
+            # avoid rerun for new random email, no use clear()
             del st.session_state["selected_chat_id"]
             del st.session_state["timestamp"]
             del st.session_state["first_run"]
