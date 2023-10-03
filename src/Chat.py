@@ -271,10 +271,18 @@ if auth:
                 except TypeError:
                     created_at = None
 
+                source = func_calling_response.get("source", None)
+
+                filters = {}
+                if created_at:
+                    filters["created_at"] = created_at
+                if source:
+                    filters["source"] = source
+
                 docs_response = []
                 docs_response.extend(
                     search_pinecone(
-                        query, created_at, top_k=search_knowledge_base_top_k
+                        query=query, filters=filters, top_k=search_knowledge_base_top_k
                     )
                 )
                 docs_response.extend(search_internet(query, top_k=search_online_top_k))

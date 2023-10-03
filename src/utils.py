@@ -131,15 +131,14 @@ def func_calling_chain():
     Note:
         - It uses a specific language model identified by 'llm_model' for structured output generation. Ensure that 'llm_model' is properly initialized and available for use to avoid unexpected issues.
     """
-
     func_calling_json_schema = {
-        "title": "get_querys_and_filters_to_search",
-        "description": "Extract the next queries and filters for searching from a chat history.",
+        "title": "get_querys_and_filters_to_search_database",
+        "description": "Extract the queries and filters for database searching",
         "type": "object",
         "properties": {
             "query": {
                 "title": "Query",
-                "description": "The next query extracted for a vector database semantic search from a chat history in the format of a JSON object",
+                "description": "The next query extracted for a vector database semantic search from a chat history",
                 "type": "string",
             },
             "arxiv_query": {
@@ -147,9 +146,98 @@ def func_calling_chain():
                 "description": "The next query for arXiv search extracted from a chat history in the format of a JSON object. Translate the query into accurate English if it is not already in English.",
                 "type": "string",
             },
+            "source": {
+                "title": "Source Filter",
+                "description": "Journal Name or Source extracted for a vector database semantic search, MUST be in upper case",
+                "type": "string",
+                "enum": [
+                    "AGRICULTURE, ECOSYSTEMS & ENVIRONMENT",
+                    "ANNUAL REVIEW OF ECOLOGY, EVOLUTION, AND SYSTEMATICS",
+                    "ANNUAL REVIEW OF ENVIRONMENT AND RESOURCES",
+                    "APPLIED CATALYSIS B: ENVIRONMENTAL",
+                    "BIOGEOSCIENCES",
+                    "BIOLOGICAL CONSERVATION",
+                    "BIOTECHNOLOGY ADVANCES",
+                    "CONSERVATION BIOLOGY",
+                    "CONSERVATION LETTERS",
+                    "CRITICAL REVIEWS IN ENVIRONMENTAL SCIENCE AND TECHNOLOGY",
+                    "DIVERSITY AND DISTRIBUTIONS",
+                    "ECOGRAPHY",
+                    "ECOLOGICAL APPLICATIONS",
+                    "ECOLOGICAL ECONOMICS",
+                    "ECOLOGICAL MONOGRAPHS",
+                    "ECOLOGY",
+                    "ECOLOGY LETTERS",
+                    "ECONOMIC SYSTEMS RESEARCH",
+                    "ECOSYSTEM HEALTH AND SUSTAINABILITY",
+                    "ECOSYSTEM SERVICES",
+                    "ECOSYSTEMS",
+                    "ENERGY & ENVIRONMENTAL SCIENCE",
+                    "ENVIRONMENT INTERNATIONAL",
+                    "ENVIRONMENTAL CHEMISTRY LETTERS",
+                    "ENVIRONMENTAL HEALTH PERSPECTIVES",
+                    "ENVIRONMENTAL POLLUTION",
+                    "ENVIRONMENTAL SCIENCE & TECHNOLOGY",
+                    "ENVIRONMENTAL SCIENCE & TECHNOLOGY LETTERS",
+                    "ENVIRONMENTAL SCIENCE AND ECOTECHNOLOGY",
+                    "ENVIRONMENTAL SCIENCE AND POLLUTION RESEARCH",
+                    "EVOLUTION",
+                    "FOREST ECOSYSTEMS",
+                    "FRONTIERS IN ECOLOGY AND THE ENVIRONMENT",
+                    "FRONTIERS OF ENVIRONMENTAL SCIENCE & ENGINEERING",
+                    "FUNCTIONAL ECOLOGY",
+                    "GLOBAL CHANGE BIOLOGY",
+                    "GLOBAL ECOLOGY AND BIOGEOGRAPHY",
+                    "GLOBAL ENVIRONMENTAL CHANGE",
+                    "INTERNATIONAL SOIL AND WATER CONSERVATION RESEARCH",
+                    "JOURNAL OF ANIMAL ECOLOGY",
+                    "JOURNAL OF APPLIED ECOLOGY",
+                    "JOURNAL OF BIOGEOGRAPHY",
+                    "JOURNAL OF CLEANER PRODUCTION",
+                    "JOURNAL OF ECOLOGY",
+                    "JOURNAL OF ENVIRONMENTAL INFORMATICS",
+                    "JOURNAL OF ENVIRONMENTAL MANAGEMENT",
+                    "JOURNAL OF HAZARDOUS MATERIALS",
+                    "JOURNAL OF INDUSTRIAL ECOLOGY",
+                    "JOURNAL OF PLANT ECOLOGY",
+                    "LANDSCAPE AND URBAN PLANNING",
+                    "LANDSCAPE ECOLOGY",
+                    "METHODS IN ECOLOGY AND EVOLUTION",
+                    "MICROBIOME",
+                    "MOLECULAR ECOLOGY",
+                    "NATURE",
+                    "NATURE CLIMATE CHANGE",
+                    "NATURE COMMUNICATIONS",
+                    "NATURE ECOLOGY & EVOLUTION",
+                    "NATURE ENERGY",
+                    "NATURE REVIEWS EARTH & ENVIRONMENT",
+                    "NATURE SUSTAINABILITY",
+                    "ONE EARTH",
+                    "PEOPLE AND NATURE",
+                    "PROCEEDINGS OF THE NATIONAL ACADEMY OF SCIENCES",
+                    "PROCEEDINGS OF THE ROYAL SOCIETY B: BIOLOGICAL SCIENCES",
+                    "RENEWABLE AND SUSTAINABLE ENERGY REVIEWS",
+                    "RESOURCES, CONSERVATION AND RECYCLING",
+                    "REVIEWS IN ENVIRONMENTAL SCIENCE AND BIO/TECHNOLOGY",
+                    "SCIENCE",
+                    "SCIENCE ADVANCES",
+                    "SCIENCE OF THE TOTAL ENVIRONMENT",
+                    "SCIENTIFIC DATA",
+                    "SUSTAINABLE CITIES AND SOCIETY",
+                    "SUSTAINABLE MATERIALS AND TECHNOLOGIES",
+                    "SUSTAINABLE PRODUCTION AND CONSUMPTION",
+                    "THE AMERICAN NATURALIST",
+                    "THE INTERNATIONAL JOURNAL OF LIFE CYCLE ASSESSMENT",
+                    "THE ISME JOURNAL",
+                    "THE LANCET PLANETARY HEALTH",
+                    "TRENDS IN ECOLOGY & EVOLUTION",
+                    "WASTE MANAGEMENT",
+                    "WATER RESEARCH",
+                ],
+            },
             "created_at": {
-                "title": "Date Filters",
-                "description": 'Date extracted for a vector database semantic search from a chat history, in MongoDB\'s query and projection operators, in format like {"$gte": 1609459200.0, "$lte": 1640908800.0}',
+                "title": "Date Filter",
+                "description": 'Date extracted for a vector database semantic search, in MongoDB\'s query and projection operators, in format like {"$gte": 1609459200.0, "$lte": 1640908800.0}',
                 "type": "string",
             },
         },
@@ -158,7 +246,7 @@ def func_calling_chain():
 
     prompt_func_calling_msgs = [
         SystemMessage(
-            content="You are a world class algorithm for extracting the next query and filters for searching from a chat history. Make sure to answer in the correct structured format"
+            content="You are a world class algorithm for extracting the next query and filters for searching from a chat history. Make sure to answer in the correct structured format."
         ),
         HumanMessage(content="The chat history:"),
         HumanMessagePromptTemplate.from_template("{input}"),
@@ -178,7 +266,7 @@ def func_calling_chain():
     return func_calling_chain
 
 
-def search_pinecone(query, created_at, top_k=16):
+def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
     """
     Performs a similarity search on Pinecone's vector database based on a given query and optional date filter, and returns a list of relevant documents.
 
@@ -217,10 +305,8 @@ def search_pinecone(query, created_at, top_k=16):
         index_name=os.environ["PINECONE_INDEX"],
         embedding=embeddings,
     )
-    if created_at is not None:
-        docs = vectorstore.similarity_search(
-            query, k=top_k, filter={"created_at": created_at}
-        )
+    if filters:
+        docs = vectorstore.similarity_search(query, k=top_k, filter=filters)
     else:
         docs = vectorstore.similarity_search(query, k=top_k)
 
@@ -228,8 +314,9 @@ def search_pinecone(query, created_at, top_k=16):
     for doc in docs:
         date = datetime.fromtimestamp(doc.metadata["created_at"])
         formatted_date = date.strftime("%Y-%m")  # Format date as 'YYYY-MM'
-        source_entry = "[{}. {}. {}.]({})".format(
+        source_entry = "[{}. {}. {}. {}.]({})".format(
             doc.metadata["source_id"],
+            doc.metadata["source"],
             doc.metadata["author"],
             formatted_date,
             doc.metadata["url"],
