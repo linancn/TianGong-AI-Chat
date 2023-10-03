@@ -105,7 +105,7 @@ ui_data = {
     "chat_ai_avatar": "src/static/logo.png",
     "chat_user_avatar": "src/static/user.png",
     "chat_ai_welcome": "How can I help you?",
-    "chat_human_placeholder": "Ask me anything!",
+    "chat_human_placeholder": "Ask me anything, in any language you like!",
     "sidebar_newchat_button_label": "New Chat",
     "sidebar_delete_button_label": "Delete Chat",
 }
