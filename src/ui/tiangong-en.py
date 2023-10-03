@@ -103,6 +103,7 @@ ui_data = {
     "sidebar_file_uploader_error": "None of the files can be analyzed, please check the format!",
     "current_chat_title": "Chat History :",
     "chat_ai_avatar": "src/static/logo.png",
+    "chat_user_avatar": "src/static/user.png",
     "chat_ai_welcome": "How can I help you?",
     "chat_human_placeholder": "Ask me anything!",
     "sidebar_newchat_button_label": "New Chat",

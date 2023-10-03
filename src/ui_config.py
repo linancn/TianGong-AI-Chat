@@ -46,6 +46,7 @@ class UI:
     sidebar_delete_button_label: str
     current_chat_title: str
     chat_ai_avatar: str
+    chat_user_avatar: str
     chat_ai_welcome: str
     chat_human_placeholder: str
 

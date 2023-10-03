@@ -37,7 +37,7 @@ if "username" not in st.session_state:
             "Username", "unknown@unknown.com"
         )
 
-st.write(st.session_state["username"])
+# st.write(st.session_state["username"])
 
 if ui.need_passwd is False:
     auth = True
@@ -227,7 +227,7 @@ if auth:
         user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
 
         if user_query:
-            st.chat_message("user").markdown(user_query)
+            st.chat_message("user", avatar=ui.chat_user_avatar).markdown(user_query)
             st.session_state["messages"].append({"role": "user", "content": user_query})
             human_message = HumanMessage(
                 content=user_query,

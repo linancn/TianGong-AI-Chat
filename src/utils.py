@@ -1266,10 +1266,7 @@ def enable_chat_history(func):
             }
         ]
     for msg in st.session_state["messages"]:
-        if msg["role"] == "user":
-            st.chat_message(msg["role"]).write(msg["content"])
-        elif msg["role"] == "assistant":
-            st.chat_message(msg["role"], avatar=msg["avatar"]).write(msg["content"])
+        st.chat_message(msg["role"], avatar=msg["avatar"]).write(msg["content"])
 
     def execute(*args, **kwargs):
         func(*args, **kwargs)
@@ -1386,7 +1383,11 @@ def convert_history_to_message(history):
         - Transforms it into a dictionary containing the role ('user' or 'assistant') and the content of the message.
     """
     if isinstance(history, HumanMessage):
-        return {"role": "user", "content": history.content}
+        return {
+            "role": "user",
+            "avatar": ui.chat_user_avatar,
+            "content": history.content,
+        }
     elif isinstance(history, AIMessage):
         return {
             "role": "assistant",
