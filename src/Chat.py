@@ -65,7 +65,7 @@ if auth:
             st.title(ui.sidebar_title)
         st.subheader(ui.sidebar_subheader)
 
-        with st.expander(ui.sidebar_expander_title, expanded=False):
+        with st.expander(ui.sidebar_expander_title, expanded=True):
             search_knowledge_base = st.toggle(
                 ui.search_knowledge_base_checkbox_label, value=False
             )
@@ -76,6 +76,14 @@ if auth:
             search_arxiv = st.toggle(ui.search_arxiv_checkbox_label, value=False)
 
             search_docs = st.toggle(ui.search_docs_checkbox_label, value=False)
+
+            # search_knowledge_base = st.toggle(
+            #     ui.search_knowledge_base_checkbox_label, value=True
+            # )
+            # search_online = st.toggle(ui.search_internet_checkbox_label, value=True)
+            # search_wikipedia = False
+            # search_arxiv = False
+            # search_docs = False
 
             search_docs_option = None
 
