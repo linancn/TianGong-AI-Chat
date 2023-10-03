@@ -253,7 +253,6 @@ if auth:
                     st.session_state["messages"].append(
                         {
                             "role": "assistant",
-                            "avatar": ui.chat_ai_avatar,
                             "content": answer,
                         }
                     )
@@ -327,7 +326,6 @@ if auth:
                     st.session_state["messages"].append(
                         {
                             "role": "assistant",
-                            "avatar": ui.chat_ai_avatar,
                             "content": response["text"],
                         }
                     )
