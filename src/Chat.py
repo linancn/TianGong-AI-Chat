@@ -81,10 +81,8 @@ if auth:
 
             search_docs = st.toggle(ui.search_docs_checkbox_label, value=False)
 
-            # search_knowledge_base = st.toggle(
-            #     ui.search_knowledge_base_checkbox_label, value=True
-            # )
-            # search_online = st.toggle(ui.search_internet_checkbox_label, value=True)
+            # search_knowledge_base =True
+            # search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
             # search_wikipedia = False
             # search_arxiv = False
             # search_docs = False
