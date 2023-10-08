@@ -1382,6 +1382,20 @@ class StreamHandler(BaseCallbackHandler):
         self.container.markdown(self.text)
 
 
+def is_valid_email(email: str) -> bool:
+    """
+    Check if the given string is a valid email address.
+
+    Args:
+    - email (str): String to check.
+
+    Returns:
+    - bool: True if valid email, False otherwise.
+    """
+    pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    return bool(re.match(pattern, email))
+
+
 def fetch_chat_history(username: str):
     """
     Fetches the chat history from the Xata database, organizing it into a structured format for further use.
@@ -1404,29 +1418,31 @@ def fetch_chat_history(username: str):
         - The SQL query used in this function assumes that the Xata database schema has specific columns. If the schema changes, the query may need to be updated.
         - The function returns an empty dictionary if no records are found.
     """
-
-    client = XataClient()
-    response = client.sql().query(
-        f"""SELECT "sessionId", "content"
-FROM (
-    SELECT DISTINCT ON ("sessionId") "sessionId", "xata.createdAt", "content"
-    FROM "tiangong_memory"
-    WHERE "additionalKwargs"->>'id' = '{username}'
-    ORDER BY "sessionId" DESC, "xata.createdAt" ASC
-) AS subquery"""
-    )
-    records = response["records"]
-    for record in records:
-        timestamp = float(record["sessionId"])
-        record["entry"] = (
-            datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
-            + " : "
-            + record["content"]
+    if is_valid_email(username):
+        client = XataClient()
+        response = client.sql().query(
+            f"""SELECT "sessionId", "content"
+    FROM (
+        SELECT DISTINCT ON ("sessionId") "sessionId", "xata.createdAt", "content"
+        FROM "tiangong_memory"
+        WHERE "additionalKwargs"->>'id' = '{username}'
+        ORDER BY "sessionId" DESC, "xata.createdAt" ASC
+    ) AS subquery"""
         )
+        records = response["records"]
+        for record in records:
+            timestamp = float(record["sessionId"])
+            record["entry"] = (
+                datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
+                + " : "
+                + record["content"]
+            )
 
-    table_map = {item["sessionId"]: item["entry"] for item in records}
+        table_map = {item["sessionId"]: item["entry"] for item in records}
 
-    return table_map
+        return table_map
+    else:
+        return {}
 
 
 def delete_chat_history(session_id):
