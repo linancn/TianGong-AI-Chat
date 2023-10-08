@@ -58,8 +58,10 @@
 <li><a class="reference internal" href="#utils.func_calling_chain"><code class="docutils literal notranslate"><span class="pre">func_calling_chain()</span></code></a></li>
 <li><a class="reference internal" href="#utils.get_faiss_db"><code class="docutils literal notranslate"><span class="pre">get_faiss_db()</span></code></a></li>
 <li><a class="reference internal" href="#utils.initialize_messages"><code class="docutils literal notranslate"><span class="pre">initialize_messages()</span></code></a></li>
+<li><a class="reference internal" href="#utils.is_valid_email"><code class="docutils literal notranslate"><span class="pre">is_valid_email()</span></code></a></li>
 <li><a class="reference internal" href="#utils.main_chain"><code class="docutils literal notranslate"><span class="pre">main_chain()</span></code></a></li>
 <li><a class="reference internal" href="#utils.parse_paper"><code class="docutils literal notranslate"><span class="pre">parse_paper()</span></code></a></li>
+<li><a class="reference internal" href="#utils.random_email"><code class="docutils literal notranslate"><span class="pre">random_email()</span></code></a></li>
 <li><a class="reference internal" href="#utils.search_arxiv_docs"><code class="docutils literal notranslate"><span class="pre">search_arxiv_docs()</span></code></a></li>
 <li><a class="reference internal" href="#utils.search_internet"><code class="docutils literal notranslate"><span class="pre">search_internet()</span></code></a></li>
 <li><a class="reference internal" href="#utils.search_pinecone"><code class="docutils literal notranslate"><span class="pre">search_pinecone()</span></code></a></li>
@@ -308,7 +310,7 @@ def your_function():</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.fetch_chat_history">
-<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">fetch_chat_history</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#utils.fetch_chat_history" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">fetch_chat_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.fetch_chat_history" title="Link to this definition"></a></dt>
 <dd><p>Fetches the chat history from the Xata database, organizing it into a structured format for further use.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -443,6 +445,16 @@ def your_function():</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="utils.is_valid_email">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">is_valid_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">email</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#utils.is_valid_email" title="Link to this definition"></a></dt>
+<dd><p>Check if the given string is a valid email address.</p>
+<p>Args:
+- email (str): String to check.</p>
+<p>Returns:
+- bool: True if valid email, False otherwise.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="utils.main_chain">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">main_chain</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#utils.main_chain" title="Link to this definition"></a></dt>
 <dd><p>Creates and returns a main Large Language Model (LLM) chain configured to produce responses only to science-related queries while avoiding sensitive topics.</p>
@@ -518,6 +530,11 @@ def your_function():</p>
 </ul>
 </div>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.random_email">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">random_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'example.com'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.random_email" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.search_arxiv_docs">
@@ -597,7 +614,7 @@ def your_function():</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.search_pinecone">
-<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">search_pinecone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">created_at</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.search_pinecone" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">search_pinecone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.search_pinecone" title="Link to this definition"></a></dt>
 <dd><p>Performs a similarity search on Pinecone’s vector database based on a given query and optional date filter, and returns a list of relevant documents.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
