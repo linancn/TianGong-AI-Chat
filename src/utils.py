@@ -964,6 +964,7 @@ def parse_paper(pdf_stream):
             "ACKNOWLEDGEMENTS",
             "Acknowledgments",
             "ACKNOWLEDGMENTS",
+            "Acknowledgement",
             "参考文献",
             "致谢",
             "謝辞",
