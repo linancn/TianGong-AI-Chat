@@ -81,7 +81,7 @@ if auth:
 
             search_docs = st.toggle(ui.search_docs_checkbox_label, value=False)
 
-            # search_knowledge_base =True
+            # search_knowledge_base = True
             # search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
             # search_wikipedia = False
             # search_arxiv = False
@@ -130,6 +130,10 @@ if auth:
                 search_wikipedia_top_k = top_k_values.get("search_wikipedia_top_k", 0)
                 search_arxiv_top_k = top_k_values.get("search_arxiv_top_k", 0)
                 search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
+
+        st.markdown(
+            body=ui.sidebar_instructions
+        )
 
         st.divider()
 

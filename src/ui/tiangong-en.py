@@ -101,6 +101,14 @@ ui_data = {
     "sidebar_file_uploader_title": "Documents to analyze:",
     "sidebar_file_uploader_spinner": "Analyzing...",
     "sidebar_file_uploader_error": "None of the files can be analyzed, please check the format!",
+    "sidebar_instructions": """*I am a Retrieval Augmentation Generation (RAG) tool designed for academic and professional documents. I use the information provided in your prompt to **search** for relevant documents and then generate responses based on them*.
+### 🌟 Ideal Questions:
+1. *What is the methods and mechanisms of carbon reduction?*
+2. *How to conduct a dynamic material flow analysis? Please refer to EST journal since 2021. ([Available Journal List](https://ai-en.tiangong.world/journal-list/))*
+### 🚫 Avoid Questions:
+1. *Hello!? What can you do?*
+2. *Help me write/translate an essay on sustainable development. (For this kind of job you may refer to [TianGong Pro Agent](https://ai.tiangong.world/pro-intro/))*
+3. *What **articles** have been published in the RCR journal since 2015? (**DO NOT** search for articles **BUT** detailed information)*""",
     "current_chat_title": "Chat History :",
     "chat_ai_avatar": "src/static/logo.png",
     "chat_user_avatar": "src/static/user.png",
