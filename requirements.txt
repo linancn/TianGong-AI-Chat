@@ -2,6 +2,7 @@ arxiv
 duckduckgo-search
 faiss-cpu
 fastapi
+itsdangerous
 langchain
 openai
 pdfplumber
