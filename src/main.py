@@ -5,7 +5,8 @@ import uuid
 import requests
 import streamlit as st
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
@@ -83,6 +84,22 @@ def login(request: Request):
 
     # 重定向到登录页面
     return RedirectResponse(login_url)
+
+
+templates = Jinja2Templates(directory="src/templates")
+
+
+@app.get("/fragment", response_class=HTMLResponse)
+async def get_fragment_page(request: Request):
+    return templates.TemplateResponse("fragment.html", {"request": request})
+
+
+@app.get("/store-fragment")
+async def store_fragment(code: str, state: str):
+    # 实际应用中，你可能会存储、处理或响应这个片段值。
+    # 为简单起见，我们只是将其打印出来。
+    print(f"Received code: {code}, state: {state}")
+    return {"detail": "Fragment stored."}
 
 
 @app.get("/callback/")

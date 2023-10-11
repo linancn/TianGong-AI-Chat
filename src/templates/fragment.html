@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fragment Getter</title>
+    <script>
+        window.onload = function () {
+            var fragmentString = window.location.hash.substring(1); // Remove the '#'
+            var params = {};
+
+            fragmentString.split('&').forEach(function (part) {
+                var item = part.split('=');
+                params[item[0]] = decodeURIComponent(item[1]);
+            });
+
+            var code = params['code'];
+            var state = params['state'];
+
+            console.log(code, state);
+
+            // 可选: 发送code和state到服务器
+            fetch(`/store-fragment?code=${code}&state=${state}`);
+        };
+    </script>
+</head>
+
+<body>
+    <h1>Fragment Getter Page</h1>
+    <p>After loading, this page will send the fragment to the server.</p>
+</body>
+
+</html>
