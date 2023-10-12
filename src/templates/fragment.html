@@ -21,7 +21,7 @@
             console.log(code, state);
 
             // 可选: 发送code和state到服务器
-            fetch(`/store-fragment?code=${code}&state=${state}`);
+            fetch(`/callback?code=${code}&state=${state}`);
         };
     </script>
 </head>

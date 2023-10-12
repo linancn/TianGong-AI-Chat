@@ -1,17 +1,18 @@
 import base64
 import hashlib
+import json
 import uuid
 
 import requests
 import streamlit as st
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
 
-app.add_middleware(SessionMiddleware, secret_key=str(uuid.uuid4()))
+app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
 
 
 # 你的配置信息
@@ -40,15 +41,17 @@ def generate_code_challenge(code_verifier):
 
 
 @app.get("/check_auth/")
-def check_auth(request: Request):
-    # Your logic here to check if the user is authenticated.
-    # If authenticated, return a 200 OK response.
-    # If not authenticated, return a 401 Unauthorized response.
-    is_authenticated = False
-    if not is_authenticated:
+def check_auth(request: Request = None):
+    if (
+        "plan_status" not in request.session
+        or request.session["plan_status"] != "ACTIVE"
+    ):
         raise HTTPException(status_code=401, detail="Unauthorized")
-
-    return Response(status_code=200)
+    else:
+        response = Response(content='{"status": "OK"}', media_type="application/json")
+        response.headers["member_id"] = request.session["member_id"]
+        response.headers["plan_name"] = request.session["plan_name"]
+        return response
 
 
 @app.get("/redirect_to_wix/")
@@ -94,16 +97,12 @@ async def get_fragment_page(request: Request):
     return templates.TemplateResponse("fragment.html", {"request": request})
 
 
-@app.get("/store-fragment")
-async def store_fragment(code: str, state: str):
-    # 实际应用中，你可能会存储、处理或响应这个片段值。
-    # 为简单起见，我们只是将其打印出来。
-    print(f"Received code: {code}, state: {state}")
-    return {"detail": "Fragment stored."}
-
-
-@app.get("/callback/")
-def get_token(code: str = None, state: str = None, request: Request = None):
+@app.get("/callback")
+async def get_token(
+    code: str = None,
+    state: str = None,
+    request: Request = None,
+):
     if not code:
         raise HTTPException(status_code=400, detail="Missing authorization code")
 
@@ -131,10 +130,21 @@ def get_token(code: str = None, state: str = None, request: Request = None):
     if not access_token:
         raise HTTPException(status_code=400, detail="Token request failed")
 
-    # 在此处保存访问令牌，例如在session中，并执行其他必要的操作
     request.session["access_token"] = access_token
 
-    return {"access_token": access_token}
+    orders_response = requests.get(
+        "https://www.wixapis.com/pricing-plans/v2/member/orders",
+        headers={"authorization": access_token},
+    )
+
+    orders = json.loads(orders_response.text)
+
+    request.session["plan_name"] = orders["orders"][0]["planName"]
+    request.session["plan_status"] = orders["orders"][0]["status"]
+    request.session["member_id"] = orders["orders"][0]["buyer"]["memberId"]
+
+    response = RedirectResponse("https://test.tiangong.world/")
+    return response
 
 
 if __name__ == "__main__":

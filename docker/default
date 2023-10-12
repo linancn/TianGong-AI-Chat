@@ -1,6 +1,6 @@
 server {
-    listen 808 default_server;
-    listen [::]:808 default_server;
+    listen 80 default_server;
+    listen [::]:80 default_server;
 
     root /var/www/html;
 
@@ -10,6 +10,7 @@ server {
 
     location /auth/ {
         proxy_pass http://localhost:8000/check_auth/;
+        proxy_pass_request_headers on;
     }
 
     error_page 401 = http://localhost:8000/redirect_to_wix/;
@@ -30,5 +31,9 @@ server {
 
     location /callback/ {
         proxy_pass http://localhost:8000/callback/;
+    }
+
+    location /fragment/ {
+        proxy_pass http://localhost:8000/fragment/;
     }
 }
