@@ -2,8 +2,10 @@ import datetime
 import json
 import time
 from datetime import datetime
+import requests
 
 import streamlit as st
+import streamlit.components.v1 as components
 from langchain.schema import AIMessage, HumanMessage
 from streamlit.web.server.websocket_headers import _get_websocket_headers
 
@@ -41,7 +43,98 @@ if "username" not in st.session_state:
             "Username", "unknown@unknown.com"
         )
 
+
 # st.write(st.session_state["username"])
+
+
+CLIENT_ID = st.secrets["wix_client_id"]
+# REDIRECT_URI = st.secrets["wix_redirect_uri"]
+
+
+def wix_get_access_token():
+    request = requests.post(
+        "https://www.wixapis.com/oauth2/token",
+        headers={
+            "content-type": "application/json",
+        },
+        json={"clientId": CLIENT_ID, "grantType": "anonymous"},
+    )
+    return request.json()["access_token"]
+
+
+def wix_login(access_token: str, username: str, password: str):
+    url = "https://www.wixapis.com/_api/iam/authentication/v2/login"
+
+    headers = {
+        "authorization": access_token,
+        "content-type": "application/json",
+    }
+
+    data = {"loginId": {"email": username}, "password": password}
+
+    response = requests.post(url, headers=headers, json=data)
+    response_text = json.loads(response.text)
+
+    if response_text["state"] == "SUCCESS":
+        session_token = response_text["sessionToken"]
+        respond = requests.post(
+            "https://www.wixapis.com/_api/redirects-api/v1/redirect-session",
+            headers={
+                "authorization": access_token,
+                "content-type": "application/json",
+            },
+            json={
+                "auth": {
+                    "authRequest": {
+                        "clientId": CLIENT_ID,
+                        "codeChallenge": "JNU5gZmEjgVL2eXfgSmUW3S2E202k2rkq4u3M_drdCY",
+                        "codeChallengeMethod": "S256",
+                        "responseMode": "web_message",
+                        "responseType": "code",
+                        "scope": "offline_access",
+                        "state": "Z4dy7JM2S7n35VnBhdMeOQyXQW7UkE2Q1afdPLL419o",
+                        "sessionToken": session_token,
+                    }
+                }
+            },
+        )
+
+        url_response = respond.json()["redirectSession"]["fullUrl"]
+
+        my_component = components.declare_component(
+            "my_component", url=url_response
+        )
+
+        # Send data to the frontend using named arguments.
+        return_value = my_component(url=url_response)
+
+        # `my_component`'s return value is the data returned from the frontend.
+        st.write("Value = ", return_value)
+
+        orders_response = requests.get(
+            "https://www.wixapis.com/pricing-plans/v2/member/orders",
+            headers={"authorization": session_token},
+        )
+
+    return response.json()
+
+
+col_left, col_center, col_right = st.columns(3)
+
+with col_center:
+    with st.form(key="login_form"):
+        username = st.text_input("username")
+        password = st.text_input("password", type="password")
+        submit = st.form_submit_button("Login")
+
+if submit:
+    wix_access_token = wix_get_access_token()
+    wix_login_response = wix_login(
+        access_token=wix_access_token, username=username, password=password
+    )
+
+
+st.stop()
 
 if ui.need_passwd is False:
     auth = True
@@ -131,9 +224,7 @@ if auth:
                 search_arxiv_top_k = top_k_values.get("search_arxiv_top_k", 0)
                 search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
 
-        st.markdown(
-            body=ui.sidebar_instructions
-        )
+        st.markdown(body=ui.sidebar_instructions)
 
         st.divider()
 
