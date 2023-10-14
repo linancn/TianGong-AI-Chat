@@ -88,11 +88,29 @@ def get_member_access_token(code: str):
     return member_access_token
 
 
-def get_orders(member_access_token: str):
+def get_highest_active_subscription(orders):
+    # Define priority levels
+    priority = {"Elite": 3, "Pro": 2, "Basic": 1}
+
+    # Find all orders with "ACTIVE" status
+    active_orders = [order for order in orders if order["status"] == "ACTIVE"]
+
+    if not active_orders:
+        return None
+
+    # Get the order with the highest level
+    highest_order = max(active_orders, key=lambda x: priority.get(x["planName"], 0))
+
+    return highest_order["planName"]
+
+
+def get_subscription(member_access_token: str):
     orders_response = requests.get(
         "https://www.wixapis.com/pricing-plans/v2/member/orders",
         headers={"authorization": member_access_token},
     )
-    orders = json.loads(orders_response.text)
+    orders = json.loads(orders_response.text)["orders"]
 
-    return orders
+    subscription = get_highest_active_subscription(orders)
+
+    return subscription

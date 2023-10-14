@@ -36,7 +36,7 @@ from utils import (
 )
 from wix_oauth import (
     get_member_access_token,
-    get_orders,
+    get_subscription,
     wix_get_access_token,
     wix_get_callback_url,
 )
@@ -91,8 +91,8 @@ if "wix_callback_url" in st.session_state:
         member_access_token = get_member_access_token(
             code=st.session_state["wix_return_data"]
         )
-        orders = get_orders(member_access_token=member_access_token)
-        st.write(orders)
+        subsription = get_subscription(member_access_token=member_access_token)
+        st.write(subsription)
 
 
 if "username" not in st.session_state:
