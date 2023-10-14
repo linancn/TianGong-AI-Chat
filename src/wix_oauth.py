@@ -41,8 +41,7 @@ def wix_get_callback_url(access_token: str, username: str, password: str):
     response = requests.post(url, headers=headers, json=data)
     response_text = json.loads(response.text)
 
-    code_verifier = "JNU5gZmEjgVL2eXfgSmUW3S2E202k2rkq4u3M_drdCY"
-    code_challenge = generate_code_challenge(code_verifier)
+    code_challenge = generate_code_challenge(st.session_state["code_verifier"])
 
     if response_text["state"] == "SUCCESS":
         session_token = response_text["sessionToken"]
@@ -61,7 +60,7 @@ def wix_get_callback_url(access_token: str, username: str, password: str):
                         "responseMode": "web_message",
                         "responseType": "code",
                         "scope": "offline_access",
-                        "state": "Z4dy7JM2S7n35VnBhdMeOQyXQW7UkE2Q1afdPLL419o",
+                        "state": st.session_state["state"],
                         "sessionToken": session_token,
                     }
                 }
@@ -81,7 +80,7 @@ def get_member_access_token(code: str):
             "client_id": CLIENT_ID,
             "grant_type": "authorization_code",
             "code": code,
-            "codeVerifier": "JNU5gZmEjgVL2eXfgSmUW3S2E202k2rkq4u3M_drdCY",
+            "codeVerifier": st.session_state["code_verifier"],
         },
     )
     member_access_token = response.json().get("access_token")

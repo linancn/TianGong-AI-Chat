@@ -50,6 +50,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+if "state" not in st.session_state:
+    st.session_state["state"] = str(uuid.uuid4()).replace("-", "")
+if "code_verifier" not in st.session_state:
+    st.session_state["code_verifier"] = str(uuid.uuid4()).replace("-", "")
 
 col_left, col_center, col_right = st.columns(3)
 
@@ -77,8 +81,8 @@ if "wix_callback_url" in st.session_state:
         st.session_state["wix_return_data"] = my_component(
             url=st.session_state["wix_callback_url"]
         )
-        st.session_state["wix_first_run"] = False
-
+        st.session_state["wix_first_run"] = True
+    # At least run twice, with the state code unchanged to get the code to login in
     if st.session_state["wix_return_data"] is None:
         st.session_state["wix_return_data"] = my_component1(
             url=st.session_state["wix_callback_url"]
