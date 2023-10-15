@@ -1,5 +1,12 @@
 ui_data = {
     "need_fixed_passwd": False,
+    "wix_login_username_label": "Email Address",
+    "wix_login_password_label": "Password",
+    "wix_login_button_label": "Log in",
+    "wix_signup_button_label": "Sign up",
+    "wix_login_error_text": "Login failed, please check your username and password.",
+    "wix_signup_button_url": "https://www.kaiwu.info/",
+    "wix_login_error_icon": "🚨",
     "theme": {
         "primaryColor": "#82318E",
     },

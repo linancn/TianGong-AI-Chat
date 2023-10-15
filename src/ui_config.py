@@ -22,6 +22,13 @@ class Theme:
 @dataclass
 class UI:
     need_fixed_passwd: bool
+    wix_login_username_label: str
+    wix_login_password_label: str
+    wix_login_button_label: str
+    wix_signup_button_label: str
+    wix_signup_button_url: str
+    wix_login_error_text: str
+    wix_login_error_icon: str
     theme: Theme
     page_title: str
     page_icon: str
@@ -54,7 +61,9 @@ class UI:
 
 def create_ui_from_config():
     current_dir = os.path.dirname(os.path.realpath(__file__))
-    config_path = os.path.abspath(os.path.join(current_dir, "../.streamlit/config.toml"))
+    config_path = os.path.abspath(
+        os.path.join(current_dir, "../.streamlit/config.toml")
+    )
     # 读取文件
     with open(config_path, "r") as file:
         data = toml.load(file)
