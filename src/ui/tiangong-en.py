@@ -1,5 +1,5 @@
 ui_data = {
-    "need_passwd": False,
+    "need_fixed_passwd": False,
     "theme": {
         "primaryColor": "#82318E",
     },

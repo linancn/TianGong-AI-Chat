@@ -21,7 +21,7 @@ class Theme:
 
 @dataclass
 class UI:
-    need_passwd: bool
+    need_fixed_passwd: bool
     theme: Theme
     page_title: str
     page_icon: str

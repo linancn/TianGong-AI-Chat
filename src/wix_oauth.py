@@ -4,6 +4,7 @@ import json
 
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 
 CLIENT_ID = st.secrets["wix_client_id"]
 
@@ -104,7 +105,7 @@ def get_highest_active_subscription(orders):
     return highest_order["planName"]
 
 
-def get_subscription(member_access_token: str):
+def get_subscription(member_access_token: str) -> str:
     orders_response = requests.get(
         "https://www.wixapis.com/pricing-plans/v2/member/orders",
         headers={"authorization": member_access_token},
@@ -114,3 +115,54 @@ def get_subscription(member_access_token: str):
     subscription = get_highest_active_subscription(orders)
 
     return subscription
+
+
+def check_wix_oauth():
+    placeholder = st.empty()
+
+    with placeholder.container():
+        col_left, col_center, col_right = st.columns(3)
+
+        with col_center:
+            with st.form(key="login_form"):
+                username = st.text_input("username")
+                password = st.text_input("password", type="password")
+                submit = st.form_submit_button("Login")
+
+        if submit:
+            wix_access_token = wix_get_access_token()
+            st.session_state["wix_callback_url"] = wix_get_callback_url(
+                access_token=wix_access_token, username=username, password=password
+            )
+
+        if "wix_callback_url" in st.session_state:
+            wix_component = components.declare_component(
+                "wix_component", url="https://test.tiangong.world/callback/"
+            )
+            wix_component_post = components.declare_component(
+                "wix_component_post", url="https://test.tiangong.world/callback/"
+            )
+
+            if "wix_first_run" not in st.session_state:
+                st.session_state["wix_return_data"] = wix_component(
+                    url=st.session_state["wix_callback_url"]
+                )
+                st.session_state["wix_first_run"] = True
+            # At least run twice, with the state code unchanged to get the code to login in
+            if st.session_state["wix_return_data"] is None:
+                st.session_state["wix_return_data"] = wix_component_post(
+                    url=st.session_state["wix_callback_url"]
+                )
+            else:
+                member_access_token = get_member_access_token(
+                    code=st.session_state["wix_return_data"]
+                )
+                subsription = get_subscription(member_access_token=member_access_token)
+
+                auth = True
+
+                placeholder.empty()
+
+                return auth, username, subsription
+        else:
+            return False, None, None
