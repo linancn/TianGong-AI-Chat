@@ -1,4 +1,4 @@
-name: Docker Publish
+name: WiX Docker Publish
 
 on:
   push:
@@ -40,5 +40,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.modifytag.outputs.newtag }}
+          tags: ${{ steps.modifytag.outputs.newtags }}
           file: Dockerfile.wix
