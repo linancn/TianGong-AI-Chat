@@ -27,7 +27,13 @@ jobs:
 
       - name: Modify Tag
         id: modifytag
-        run: echo "newtag=${{ steps.meta.outputs.tags }}-wix" >> $GITHUB_OUTPUT
+        run: |
+          IFS=',' read -ra TAGS_ARRAY <<< "${{ steps.meta.outputs.tags }}"
+          NEW_TAGS=()
+          for tag in "${TAGS_ARRAY[@]}"; do
+              NEW_TAGS+=("${tag}-wix")
+          done
+          echo "newtags=$(IFS=,; echo "${NEW_TAGS[*]}")" >> $GITHUB_OUTPUT
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
