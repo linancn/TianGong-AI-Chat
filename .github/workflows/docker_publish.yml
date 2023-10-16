@@ -31,3 +31,16 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          file: Dockerfile
+
+      - name: Modify Tag
+        id: modifytag
+        run: echo "::set-output name=newtag::${{ steps.meta.outputs.tags }}-wix"
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.modifytag.outputs.newtag }}
+          file: Dockerfile.wix
