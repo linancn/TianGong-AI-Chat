@@ -137,13 +137,13 @@ def check_wix_oauth() -> (bool, str, str):
                 username = st.text_input(ui.wix_login_username_label)
                 password = st.text_input(ui.wix_login_password_label, type="password")
                 submit = st.form_submit_button(
-                    ui.wix_login_button_label, use_container_width=True
+                    ui.wix_login_button_label, type="primary", use_container_width=True
                 )
-                st.link_button(
-                    label=ui.wix_signup_button_label,
-                    url=ui.wix_signup_button_url,
-                    use_container_width=True,
-                )
+            st.link_button(
+                label=ui.wix_signup_button_label,
+                url=ui.wix_signup_button_url,
+                use_container_width=True,
+            )
 
         if submit:
             wix_access_token = wix_get_access_token()
