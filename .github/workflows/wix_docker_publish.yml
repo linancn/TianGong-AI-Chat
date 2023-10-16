@@ -25,10 +25,14 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_REPOSITORY }}/${{ secrets.DOCKERHUB_IMAGENAME }}
 
+      - name: Modify Tag
+        id: modifytag
+        run: echo "newtag=${{ steps.meta.outputs.tags }}-wix" >> $GITHUB_OUTPUT
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          file: Dockerfile
+          tags: ${{ steps.modifytag.outputs.newtag }}
+          file: Dockerfile.wix
