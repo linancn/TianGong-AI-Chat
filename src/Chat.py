@@ -92,6 +92,15 @@ if "logged_in" in st.session_state:
             st.title(ui.sidebar_title)
         st.subheader(ui.sidebar_subheader)
 
+        username_part = st.session_state["username"].split("@")[0]
+        subscription_part = st.session_state["subsription"]
+
+        st.markdown(
+            ui.sidebar_welcome_text.format(
+                username=username_part, subscription=subscription_part
+            )
+        )
+
         with st.expander(ui.sidebar_expander_title, expanded=True):
             search_knowledge_base = st.toggle(
                 ui.search_knowledge_base_checkbox_label, value=False

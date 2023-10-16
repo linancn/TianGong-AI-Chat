@@ -73,6 +73,7 @@ ui_data = {
     "sidebar_image": "src/static/logo.png",
     "sidebar_title": "TianGong Chat",
     "sidebar_subheader": "AI for Science 🔬 - Intelligent Chatbot",
+    "sidebar_welcome_text": """Hi, **{username}**! You're currently on the **{subscription}** plan.""",
     "sidebar_markdown": """
         <div style="position: fixed; left:25px; bottom: 10px; height:110px; width: 315px; font-size: 14px; font-weight: bold; background-color: #F0F2F6;">
             <table style="border: 0; position: absolute; bottom: 35px;">

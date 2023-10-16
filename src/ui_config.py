@@ -36,6 +36,7 @@ class UI:
     sidebar_image: str
     sidebar_title: str
     sidebar_subheader: str
+    sidebar_welcome_text: str
     sidebar_markdown: str
     sidebar_expander_title: str
     search_knowledge_base_checkbox_label: str
