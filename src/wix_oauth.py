@@ -127,6 +127,7 @@ def get_subscription(member_access_token: str) -> str:
 
 
 def check_wix_oauth() -> (bool, str, str):
+    component_url = st.secrets["component_url"]
     placeholder = st.empty()
 
     with placeholder.container():
@@ -154,10 +155,10 @@ def check_wix_oauth() -> (bool, str, str):
         if "wix_callback_url" in st.session_state:
             if st.session_state["wix_callback_url"] is not None:
                 wix_component = components.declare_component(
-                    "wix_component", url="https://test.tiangong.world/callback/"
+                    "wix_component", url=component_url
                 )
                 wix_component_post = components.declare_component(
-                    "wix_component_post", url="https://test.tiangong.world/callback/"
+                    "wix_component_post", url=component_url
                 )
 
                 if "wix_first_run" not in st.session_state:
