@@ -1,0 +1,11 @@
+# Use alpine as the base image
+FROM alpine:latest
+
+# Set the working directory
+WORKDIR /app
+
+# Create a test.txt file in the /app directory of the container
+RUN echo "Hello, Docker!" > test.txt
+
+# Specify the command to run when the container starts
+CMD ["cat", "test.txt"]
