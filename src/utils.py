@@ -1263,7 +1263,7 @@ def chat_history_chain():
 
 def main_chain():
     """
-    Creates and returns a main Large Language Model (LLM) chain configured to produce responese only to science-related queries while avoiding sensitive topics.
+    Creates and returns a main Large Language Model (LLM) chain configured to produce response only to science-related queries while avoiding sensitive topics.
 
     :return: A configured LLM chain object for producing responses that adhere to the defined conditions.
     :rtype: Object
@@ -1285,7 +1285,7 @@ def main_chain():
         verbose=langchain_verbose,
     )
 
-    template = """You MUST ONLY response to science-related quests.
+    template = """You MUST ONLY responese to science-related quests.
     DO NOT return any information on politics, ethnicity, gender, national sovereignty, or other sensitive topics.
     {input}"""
 
