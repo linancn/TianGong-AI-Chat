@@ -1263,7 +1263,7 @@ def chat_history_chain():
 
 def main_chain():
     """
-    Creates and returns a main Large Language Model (LLM) chain configured to produce response only to science-related queries while avoiding sensitive topics.
+    Creates and returns a main Large Language Model (LLM) chain configured to produce responses only to science-related queries while avoiding sensitive topics.
 
     :return: A configured LLM chain object for producing responses that adhere to the defined conditions.
     :rtype: Object
