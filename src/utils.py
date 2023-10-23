@@ -54,6 +54,17 @@ langchain_verbose = bool(os.environ.get("LANGCHAIN_VERBOSE", "True") == "True")
 
 
 def random_email(domain="example.com"):
+    """
+    Generates a random email address in the form of 'username@example.com'.
+
+    :param domain: The domain part of the email address. Defaults to 'example.com'.
+    :type domain: str
+    :return: A randomly generated email address.
+    :rtype: str
+
+    Function Behavior: 
+        - This function generates a random email address with a random username. The username is composed of lowercase ASCII letters and digits.
+    """
     # username length is 5 to 10
     username_length = random.randint(5, 10)
     username = "".join(
@@ -84,6 +95,8 @@ def check_password():
     Note:
         - The "PASSWORD" environment variable must be set for password validation.
         - Deletes the entered password from the session state after validation.
+    Security:
+        - Ensure that the "PASSWORD" environment variable is securely set to avoid unauthorized access.
     """
 
     def password_entered():
@@ -1400,7 +1413,9 @@ def is_valid_email(email: str) -> bool:
 def fetch_chat_history(username: str):
     """
     Fetches the chat history from the Xata database, organizing it into a structured format for further use.
-
+    
+    :param username: The username to filter chat history by.
+    :type username: str
     :returns: A dictionary where each session ID is mapped to its corresponding chat history entry, formatted with date and content.
     :rtype: dict
 
