@@ -134,7 +134,7 @@ def check_wix_oauth() -> (bool, str, str):
         _, col_center, _ = st.columns(3)
 
         with col_center:
-            st.markdown(ui.wix_login_title)
+            st.markdown(ui.wix_login_title, unsafe_allow_html=True)
             with st.form(key="login_form"):
                 username = st.text_input(ui.wix_login_username_label)
                 password = st.text_input(ui.wix_login_password_label, type="password")
