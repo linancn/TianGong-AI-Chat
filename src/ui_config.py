@@ -22,6 +22,7 @@ class Theme:
 @dataclass
 class UI:
     need_fixed_passwd: bool
+    wix_login_title: str
     wix_login_username_label: str
     wix_login_password_label: str
     wix_login_button_label: str

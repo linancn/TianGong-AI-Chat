@@ -1,5 +1,6 @@
 ui_data = {
     "need_fixed_passwd": False,
+    "wix_login_title": "TianGong Login",
     "wix_login_username_label": "Email Address",
     "wix_login_password_label": "Password",
     "wix_login_button_label": "Log in",
