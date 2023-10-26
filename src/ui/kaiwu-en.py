@@ -49,17 +49,28 @@ ui_data = {
               font-size: .875rem;
               line-height: 1.25rem
           }
+          .st-emotion-cache-nahz7x a {
+                color:#FFFFFF;
+          }
+          .st-emotion-cache-5rimss a {
+                color: #000000;
+        }
       </style>
       """,
     "sidebar_image": "src/static/kaiwu/logo.png",
     "sidebar_title": "Kaiwu Chat",
-    "sidebar_subheader": "Chat for sustainability",
-    "sidebar_welcome_text": """Hi, **{username}**! You're currently on the **{subscription}** plan.""",
+    "sidebar_subheader": "Chat to retrieve sustainability-related info",
+    "sidebar_welcome_text": """Welcome! Ask for what you want to know!""",
     "sidebar_markdown": """
-        <div style="position: fixed; left:25px; bottom: 10px; height:110px; width: 300px; font-size: 14px; font-weight: bold; background-color: #F0F2F6;">
+        <div style="position: fixed; left:25px; bottom: 10px; height:110px; width: 300px; font-size: 14px; font-weight: bold; background-color: transparent;">
             <table style="border: 0; position: absolute; bottom: 5px;">
                 <tr style="border: 0;">
-                    <td style="border: 0; text-align: center; padding: 0;"><p class="text-sm" style="margin: 0; opacity: 0.5;"><a style="color: black" href="https://www.tiangong.world">Forked from TianGong AI 🧠</a></p></td>
+                    <td style="border: 0; text-align: left; padding: 0; width: 210px"><p style="margin: 0; opacity: 0.5;">
+                        <a href="https://www.tiangong.world">Forked from TianGong AI</a></p>
+                    </td>
+                    <td style="border: 0; text-align: right; padding: 0; width: 100px;"><p style="margin: 0; opacity: 0.5;">
+                        <a href="mailto:service@kaiwu.info">Contact Kaiwu</a></p>
+                    </td>
                 </tr>
             </table>
         </div>
@@ -80,8 +91,8 @@ ui_data = {
     "current_chat_title": "Chat History :",
     "chat_ai_avatar": "src/static/kaiwu/logo.png",
     "chat_user_avatar": "src/static/kaiwu/user.png",
-    "chat_ai_welcome": "How can I help you?",
-    "chat_human_placeholder": "Ask for sustainability-related information, in any language you like!",
+    "chat_ai_welcome": "Hi **{username}**. What do you want to know?",
+    "chat_human_placeholder": "Send a message",
     "sidebar_newchat_button_label": "New Chat",
     "sidebar_delete_button_label": "Delete Chat",
 }
