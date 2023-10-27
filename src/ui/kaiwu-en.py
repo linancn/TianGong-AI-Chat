@@ -59,8 +59,8 @@ ui_data = {
       """,
     "sidebar_image": "src/static/kaiwu/logo.png",
     "sidebar_title": "Kaiwu Chat",
-    "sidebar_subheader": "Chat to retrieve sustainability-related info",
-    "sidebar_welcome_text": """Welcome! Ask for what you want to know!""",
+    "sidebar_subheader": "Ask to retrieve sustainability-related information, and get inspired.",
+    "sidebar_welcome_text": """""",
     "sidebar_markdown": """
         <div style="position: fixed; left:25px; bottom: 10px; height:110px; width: 300px; font-size: 14px; font-weight: bold; background-color: transparent;">
             <table style="border: 0; position: absolute; bottom: 5px;">
@@ -91,8 +91,8 @@ ui_data = {
     "current_chat_title": "Chat History :",
     "chat_ai_avatar": "src/static/kaiwu/logo.png",
     "chat_user_avatar": "src/static/kaiwu/user.png",
-    "chat_ai_welcome": "Hi **{username}**. What do you want to know?",
-    "chat_human_placeholder": "Send a message",
-    "sidebar_newchat_button_label": "New Chat",
-    "sidebar_delete_button_label": "Delete Chat",
+    "chat_ai_welcome": "Hi {username}! What do you want to know?",
+    "chat_human_placeholder": "Send a message in any language",
+    "sidebar_newchat_button_label": "➕ New Chat",
+    "sidebar_delete_button_label": "🗑️ Delete Chat",
 }
