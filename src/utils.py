@@ -1346,13 +1346,24 @@ def enable_chat_history(func):
         )
     # to show chat history on ui
     if "messages" not in st.session_state:
+        if "subscription" in st.session_state:
+            welcome_message = ui.chat_ai_welcome.format(
+                username=st.session_state["username"].split("@")[0],
+                subscription=st.session_state["subsription"],
+            )
+        else:
+            welcome_message = ui.chat_ai_welcome.format(
+                username="there", subscription="free"
+            )
+
         st.session_state["messages"] = [
             {
                 "role": "assistant",
                 "avatar": ui.chat_ai_avatar,
-                "content": ui.chat_ai_welcome,
+                "content": welcome_message,
             }
         ]
+
     for msg in st.session_state["messages"]:
         st.chat_message(msg["role"], avatar=msg["avatar"]).write(msg["content"])
 
