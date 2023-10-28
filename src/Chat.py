@@ -168,47 +168,89 @@ if "logged_in" in st.session_state:
 
         col_newchat, col_delete = st.columns([1, 1])
         with col_newchat:
+
+            def init_new_chat():
+                keys_to_delete = [
+                    "selected_chat_id",
+                    "timestamp",
+                    "first_run",
+                    "messages",
+                    "xata_history",
+                    "uploaded_files",
+                    "faiss_db",
+                ]
+                for key in keys_to_delete:
+                    try:
+                        del st.session_state[key]
+                    except:
+                        pass
+
             new_chat = st.button(
-                ui.sidebar_newchat_button_label, use_container_width=True
+                ui.sidebar_newchat_button_label,
+                use_container_width=True,
+                on_click=init_new_chat,
             )
-        if new_chat:
-            # avoid rerun for new random email,no use clear()
-            del st.session_state["selected_chat_id"]
-            del st.session_state["timestamp"]
-            del st.session_state["first_run"]
-            del st.session_state["messages"]
-            del st.session_state["xata_history"]
-            try:
-                del st.session_state["uploaded_files"]
-            except:
-                pass
-            try:
-                del st.session_state["faiss_db"]
-            except:
-                pass
-            st.rerun()
+        # if new_chat:
+        #     # avoid rerun for new random email,no use clear()
+        #     keys_to_delete = [
+        #         "selected_chat_id",
+        #         "timestamp",
+        #         "first_run",
+        #         "messages",
+        #         "xata_history",
+        #         "uploaded_files",
+        #         "faiss_db",
+        #     ]
+        #     for key in keys_to_delete:
+        #         try:
+        #             del st.session_state[key]
+        #         except:
+        #             pass
+
+        #     del new_chat
+        #     st.rerun()
 
         with col_delete:
+
+            def delete_chat():
+                delete_chat_history(st.session_state["selected_chat_id"])
+                keys_to_delete = [
+                    "selected_chat_id",
+                    "timestamp",
+                    "first_run",
+                    "messages",
+                    "xata_history",
+                    "uploaded_files",
+                    "faiss_db",
+                ]
+                for key in keys_to_delete:
+                    try:
+                        del st.session_state[key]
+                    except:
+                        pass
+
             delete_chat = st.button(
-                ui.sidebar_delete_button_label, use_container_width=True
+                ui.sidebar_delete_button_label,
+                use_container_width=True,
+                on_click=delete_chat,
             )
-        if delete_chat:
-            delete_chat_history(st.session_state["selected_chat_id"])
-            # avoid rerun for new random email, no use clear()
-            del st.session_state["selected_chat_id"]
-            del st.session_state["timestamp"]
-            del st.session_state["first_run"]
-            del st.session_state["messages"]
-            del st.session_state["xata_history"]
-            try:
-                del st.session_state["uploaded_files"]
-            except:
-                pass
-            try:
-                del st.session_state["faiss_db"]
-            except:
-                pass
-            st.rerun()
+        # if delete_chat:
+        #     delete_chat_history(st.session_state["selected_chat_id"])
+        #     # avoid rerun for new random email, no use clear()
+        #     del st.session_state["selected_chat_id"]
+        #     del st.session_state["timestamp"]
+        #     del st.session_state["first_run"]
+        #     del st.session_state["messages"]
+        #     del st.session_state["xata_history"]
+        #     try:
+        #         del st.session_state["uploaded_files"]
+        #     except:
+        #         pass
+        #     try:
+        #         del st.session_state["faiss_db"]
+        #     except:
+        #         pass
+        #     st.rerun()
 
         if "first_run" not in st.session_state:
             timestamp = time.time()
@@ -265,78 +307,86 @@ if "logged_in" in st.session_state:
 
     @utils.enable_chat_history
     def main():
-        user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
-
-        if user_query:
-            st.chat_message("user", avatar=ui.chat_user_avatar).markdown(user_query)
-            st.session_state["messages"].append({"role": "user", "content": user_query})
-            human_message = HumanMessage(
-                content=user_query,
-                additional_kwargs={"id": st.session_state["username"]},
-            )
-            st.session_state["xata_history"].add_message(human_message)
-
-            # check text sensitivity
-            answer = check_text_sensitivity(user_query)["answer"]
-            if answer is not None:
-                with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
-                    st.markdown(answer)
-                    st.session_state["messages"].append(
-                        {
-                            "role": "assistant",
-                            "content": answer,
-                        }
-                    )
-                    ai_message = AIMessage(
-                        content=answer,
-                        additional_kwargs={"id": st.session_state["username"]},
-                    )
-                    st.session_state["xata_history"].add_message(ai_message)
-            else:
-                chat_history_response = chat_history_chain()(
-                    {"input": st.session_state["xata_history"].messages[-6:]},
+        if "xata_history_refresh" not in st.session_state:
+            user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
+            if user_query:
+                st.chat_message("user", avatar=ui.chat_user_avatar).markdown(user_query)
+                st.session_state["messages"].append(
+                    {"role": "user", "content": user_query}
                 )
+                human_message = HumanMessage(
+                    content=user_query,
+                    additional_kwargs={"id": st.session_state["username"]},
+                )
+                st.session_state["xata_history"].add_message(human_message)
 
-                chat_history_recent = chat_history_response["text"]
-
-                func_calling_response = func_calling_chain().run(chat_history_recent)
-
-                query = func_calling_response.get("query")
-                arxiv_query = func_calling_response.get("arxiv_query")
-
-                try:
-                    created_at = json.loads(
-                        func_calling_response.get("created_at", None)
+                # check text sensitivity
+                answer = check_text_sensitivity(user_query)["answer"]
+                if answer is not None:
+                    with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
+                        st.markdown(answer)
+                        st.session_state["messages"].append(
+                            {
+                                "role": "assistant",
+                                "content": answer,
+                            }
+                        )
+                        ai_message = AIMessage(
+                            content=answer,
+                            additional_kwargs={"id": st.session_state["username"]},
+                        )
+                        st.session_state["xata_history"].add_message(ai_message)
+                else:
+                    chat_history_response = chat_history_chain()(
+                        {"input": st.session_state["xata_history"].messages[-6:]},
                     )
-                except TypeError:
-                    created_at = None
 
-                source = func_calling_response.get("source", None)
+                    chat_history_recent = chat_history_response["text"]
 
-                filters = {}
-                if created_at:
-                    filters["created_at"] = created_at
-                if source:
-                    filters["source"] = source
-
-                docs_response = []
-                docs_response.extend(
-                    search_pinecone(
-                        query=query,
-                        filters=filters,
-                        top_k=search_knowledge_base_top_k,
+                    func_calling_response = func_calling_chain().run(
+                        chat_history_recent
                     )
-                )
-                docs_response.extend(search_internet(query, top_k=search_online_top_k))
-                docs_response.extend(search_wiki(query, top_k=search_wikipedia_top_k))
-                docs_response.extend(
-                    search_arxiv_docs(arxiv_query, top_k=search_arxiv_top_k)
-                )
-                docs_response.extend(
-                    search_uploaded_docs(query, top_k=search_docs_top_k)
-                )
 
-                input = f""" You must:
+                    query = func_calling_response.get("query")
+                    arxiv_query = func_calling_response.get("arxiv_query")
+
+                    try:
+                        created_at = json.loads(
+                            func_calling_response.get("created_at", None)
+                        )
+                    except TypeError:
+                        created_at = None
+
+                    source = func_calling_response.get("source", None)
+
+                    filters = {}
+                    if created_at:
+                        filters["created_at"] = created_at
+                    if source:
+                        filters["source"] = source
+
+                    docs_response = []
+                    docs_response.extend(
+                        search_pinecone(
+                            query=query,
+                            filters=filters,
+                            top_k=search_knowledge_base_top_k,
+                        )
+                    )
+                    docs_response.extend(
+                        search_internet(query, top_k=search_online_top_k)
+                    )
+                    docs_response.extend(
+                        search_wiki(query, top_k=search_wikipedia_top_k)
+                    )
+                    docs_response.extend(
+                        search_arxiv_docs(arxiv_query, top_k=search_arxiv_top_k)
+                    )
+                    docs_response.extend(
+                        search_uploaded_docs(query, top_k=search_docs_top_k)
+                    )
+
+                    input = f"""You must:
     use "{chat_history_recent}" to decide the response more concise or more detailed;
     based on the "{docs_response}" and your own knowledge, provide a logical, clear, well-organized, and critically analyzed respond in the language of "{user_query}";
     use bullet points only when necessary;
@@ -346,29 +396,31 @@ if "logged_in" in st.session_state:
     You must not:
     include any duplicate or redundant information;
     translate reference to query's language;
-    return any prefix like "AI:".
-    """
+    return any prefix like "AI:"."""
 
-                with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
-                    st_cb = StreamHandler(st.empty())
-                    response = main_chain()(
-                        {"input": input},
-                        callbacks=[st_cb],
-                    )
+                    with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
+                        st_cb = StreamHandler(st.empty())
+                        response = main_chain()(
+                            {"input": input},
+                            callbacks=[st_cb],
+                        )
 
-                    st.session_state["messages"].append(
-                        {
-                            "role": "assistant",
-                            "content": response["text"],
-                        }
-                    )
-                    ai_message = AIMessage(
-                        content=response["text"],
-                        additional_kwargs={"id": st.session_state["username"]},
-                    )
-                    st.session_state["xata_history"].add_message(ai_message)
-            if len(st.session_state["messages"]) == 3:
-                st.rerun()
+                        st.session_state["messages"].append(
+                            {
+                                "role": "assistant",
+                                "content": response["text"],
+                            }
+                        )
+                        ai_message = AIMessage(
+                            content=response["text"],
+                            additional_kwargs={"id": st.session_state["username"]},
+                        )
+                        st.session_state["xata_history"].add_message(ai_message)
+                if len(st.session_state["messages"]) == 3:
+                    st.session_state["xata_history_refresh"] = True
+                    st.rerun()
+        else:
+            del st.session_state["xata_history_refresh"]
 
     if __name__ == "__main__":
         main()
