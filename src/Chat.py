@@ -420,6 +420,7 @@ if "logged_in" in st.session_state:
                     st.session_state["xata_history_refresh"] = True
                     st.rerun()
         else:
+            user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
             del st.session_state["xata_history_refresh"]
 
     if __name__ == "__main__":
