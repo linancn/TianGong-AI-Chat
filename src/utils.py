@@ -62,7 +62,7 @@ def random_email(domain="example.com"):
     :return: A randomly generated email address.
     :rtype: str
 
-    Function Behavior: 
+    Function Behavior:
         - This function generates a random email address with a random username. The username is composed of lowercase ASCII letters and digits.
     """
     # username length is 5 to 10
@@ -1358,7 +1358,7 @@ def enable_chat_history(func):
             _session_id=str(time.time())
         )
     # to show chat history on ui
-    if "messages" not in st.session_state:
+    if "messages" not in st.session_state or len(st.session_state["messages"]) == 1:
         if "subscription" in st.session_state:
             welcome_message = ui.chat_ai_welcome.format(
                 username=st.session_state["username"].split("@")[0],
@@ -1424,7 +1424,7 @@ def is_valid_email(email: str) -> bool:
 def fetch_chat_history(username: str):
     """
     Fetches the chat history from the Xata database, organizing it into a structured format for further use.
-    
+
     :param username: The username to filter chat history by.
     :type username: str
     :returns: A dictionary where each session ID is mapped to its corresponding chat history entry, formatted with date and content.
