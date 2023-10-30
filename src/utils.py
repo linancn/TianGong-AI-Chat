@@ -1360,12 +1360,12 @@ def enable_chat_history(func):
     # to show chat history on ui
     if "messages" not in st.session_state or len(st.session_state["messages"]) == 1:
         if "subscription" in st.session_state:
-            welcome_message = ui.chat_ai_welcome.format(
+            welcome_message_text = ui.chat_ai_welcome.format(
                 username=st.session_state["username"].split("@")[0],
                 subscription=st.session_state["subsription"],
             )
         else:
-            welcome_message = ui.chat_ai_welcome.format(
+            welcome_message_text = ui.chat_ai_welcome.format(
                 username="there", subscription="free"
             )
 
@@ -1373,7 +1373,7 @@ def enable_chat_history(func):
             {
                 "role": "assistant",
                 "avatar": ui.chat_ai_avatar,
-                "content": welcome_message,
+                "content": welcome_message_text,
             }
         ]
 
@@ -1542,14 +1542,24 @@ def initialize_messages(history):
     Exceptions:
         - Exceptions that may propagate from the `convert_history_to_message` function.
     """
-    # 将历史消息转换为消息格式
+    # convert history to message
     messages = [convert_history_to_message(message) for message in history]
 
-    # 在最前面加入欢迎消息
+    if "subscription" in st.session_state:
+        welcome_message_text = ui.chat_ai_welcome.format(
+            username=st.session_state["username"].split("@")[0],
+            subscription=st.session_state["subsription"],
+        )
+    else:
+        welcome_message_text = ui.chat_ai_welcome.format(
+            username="there", subscription="free"
+        )
+
+    # add welcome message
     welcome_message = {
         "role": "assistant",
         "avatar": ui.chat_ai_avatar,
-        "content": ui.chat_ai_welcome,
+        "content": welcome_message_text,
     }
     messages.insert(0, welcome_message)
 

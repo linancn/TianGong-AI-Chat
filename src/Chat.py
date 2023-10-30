@@ -190,25 +190,6 @@ if "logged_in" in st.session_state:
                 use_container_width=True,
                 on_click=init_new_chat,
             )
-        # if new_chat:
-        #     # avoid rerun for new random email,no use clear()
-        #     keys_to_delete = [
-        #         "selected_chat_id",
-        #         "timestamp",
-        #         "first_run",
-        #         "messages",
-        #         "xata_history",
-        #         "uploaded_files",
-        #         "faiss_db",
-        #     ]
-        #     for key in keys_to_delete:
-        #         try:
-        #             del st.session_state[key]
-        #         except:
-        #             pass
-
-        #     del new_chat
-        #     st.rerun()
 
         with col_delete:
 
@@ -234,23 +215,6 @@ if "logged_in" in st.session_state:
                 use_container_width=True,
                 on_click=delete_chat,
             )
-        # if delete_chat:
-        #     delete_chat_history(st.session_state["selected_chat_id"])
-        #     # avoid rerun for new random email, no use clear()
-        #     del st.session_state["selected_chat_id"]
-        #     del st.session_state["timestamp"]
-        #     del st.session_state["first_run"]
-        #     del st.session_state["messages"]
-        #     del st.session_state["xata_history"]
-        #     try:
-        #         del st.session_state["uploaded_files"]
-        #     except:
-        #         pass
-        #     try:
-        #         del st.session_state["faiss_db"]
-        #     except:
-        #         pass
-        #     st.rerun()
 
         if "first_run" not in st.session_state:
             timestamp = time.time()
