@@ -54,6 +54,17 @@ langchain_verbose = bool(os.environ.get("LANGCHAIN_VERBOSE", "True") == "True")
 
 
 def random_email(domain="example.com"):
+    """
+    Generates a random email address in the form of 'username@example.com'.
+
+    :param domain: The domain part of the email address. Defaults to 'example.com'.
+    :type domain: str
+    :return: A randomly generated email address.
+    :rtype: str
+
+    Function Behavior:
+        - This function generates a random email address with a random username. The username is composed of lowercase ASCII letters and digits.
+    """
     # username length is 5 to 10
     username_length = random.randint(5, 10)
     username = "".join(
@@ -84,6 +95,8 @@ def check_password():
     Note:
         - The "PASSWORD" environment variable must be set for password validation.
         - Deletes the entered password from the session state after validation.
+    Security:
+        - Ensure that the "PASSWORD" environment variable is securely set to avoid unauthorized access.
     """
 
     def password_entered():
@@ -116,7 +129,7 @@ def func_calling_chain():
     """
     Creates and returns a function calling chain for extracting query and filter information from a chat history.
 
-    :returns: An object representing the function calling chain, which is configured to generate structured output based on the provided JSON schema and chat prompt template.
+    :returns: An object representing the function calling chain configured to generate structured output based on the provided JSON schema and chat prompt template.
     :rtype: object
 
     Function Behavior:
@@ -246,7 +259,7 @@ def func_calling_chain():
 
     prompt_func_calling_msgs = [
         SystemMessage(
-            content="You are a world class algorithm for extracting the next query and filters for searching from a chat history. Make sure to answer in the correct structured format."
+            content="You are a world-class algorithm for extracting the next query and filters for searching from a chat history. Make sure to answer in the correct structured format."
         ),
         HumanMessage(content="The chat history:"),
         HumanMessagePromptTemplate.from_template("{input}"),
@@ -378,7 +391,7 @@ def wiki_query_func_calling_chain():
     """
     Identifies the language of a query for Wikipedia search and returns it as part of a structured output chain. This function relies on a specific JSON schema to define the structure of the output data.
 
-    :returns: The structured output chain that can identify the language of a query for Wikipedia search, based on a pre-defined JSON schema.
+    :returns: A structured output chain identifing the language of a query for Wikipedia search, based on a pre-defined JSON schema.
     :rtype: object
 
     Function Behavior:
@@ -735,7 +748,7 @@ def wiki_query_func_calling_chain():
 
     prompt_func_calling_msgs = [
         SystemMessage(
-            content="""You are a world class algorithm for accurately identifying the language of the query to search Wikipedia, strictly follow the language mapping: {"English": "en", "Spanish": "es", "French": "fr", "German": "de", "Russian": "ru", "Chinese": "zh", "Portuguese": "pt", "Arabic": "ar", "Italian": "it", "Japanese": "ja", "Turkish": "tr", "Indonesian": "id", "Simple English": "simple", "Dutch": "nl", "Polish": "pl", "Persian": "fa", "Hebrew": "he", "Vietnamese": "vi", "Swedish": "sv", "Korean": "ko", "Hindi": "hi", "Ukrainian": "uk", "Czech": "cs", "Romanian": "ro", "Norwegian": "no", "Finnish": "fi", "Hungarian": "hu", "Danish": "da", "Catalan": "ca", "Thai": "th", "Bangla": "bn", "Greek": "el", "Serbian": "sr", "Bulgarian": "bg", "Malay": "ms", "Croatian": "hr", "Azerbaijani": "az", "Cantonese": "zh-yue", "Slovak": "sk", "Slovenian": "sl", "Tamil": "ta", "Egyptian Arabic": "arz", "Esperanto": "eo", "Serbo-Croatian": "sh", "Estonian": "et", "Lithuanian": "lt", "Malayalam": "ml", "Latin": "la", "Urdu": "ur", "Afrikaans": "af", "Marathi": "mr", "Bosnian": "bs", "Albanian": "sq", "Georgian": "ka", "Basque": "eu", "Galician": "gl", "Armenian": "hy", "Tagalog": "tl", "Belarusian": "be", "Kazakh": "kk", "Norwegian Nynorsk": "nn", "Old English": "ang", "Telugu": "te", "Latvian": "lv", "Asturian": "ast", "Burmese": "my", "Macedonian": "mk", "Cebuano": "ceb", "Scots": "sco", "Uzbek": "uz", "Swiss German": "als", "Literary Chinese": "zh-classical", "Icelandic": "is", "Mongolian": "mn", "Wu Chinese": "wuu", "Welsh": "cy", "Kannada": "kn", "Belarusian (Taraškievica orthography)": "be-tarask", "Breton": "br", "Gujarati": "gu", "Aragonese": "an", "Bavarian": "bar", "Sinhala": "si", "Nepali": "ne", "Swahili": "sw", "Luxembourgish": "lb", "Min Nan Chinese": "zh-min-nan", "Javanese": "jv", "Central Kurdish": "ckb", "Irish": "ga", "Waray": "war", "Kurdish": "ku", "Occitan": "oc", "Low German": "nds", "Yiddish": "yi", "Interlingua": "ia", "Tatar": "tt", "Western Frisian": "fy", "Punjabi": "pa", "South Azerbaijani": "azb", "Amharic": "am", "Sicilian": "scn", "Lombard": "lmo", "Gan Chinese": "gan", "Khmer": "km", "Tajik": "tg", "Bashkir": "ba", "Assamese": "as", "Sanskrit": "sa", "Kyrgyz": "ky", "Ido": "io", "Somali": "so", "Western Punjabi": "pnb", "Chechen": "ce", "Venetian": "vec", "Volapük": "vo", "Mazanderani": "mzn", "Odia": "or", "Chuvash": "cv", "Bhojpuri": "bh", "Pennsylvania German": "pdc", "Fiji Hindi": "hif", "Hakka Chinese": "hak", "Malagasy": "mg", "Haitian Creole": "ht", "Pashto": "ps", "Sundanese": "su", "Neapolitan": "nap", "Quechua": "qu", "Faroese": "fo", "Tibetan": "bo", "Limburgish": "li", "Rusyn": "rue", "Northern Sami": "se", "Low Saxon": "nds-nl", "Scottish Gaelic": "gd", "Turkmen": "tk", "Yoruba": "yo", "Zazaki": "diq", "Piedmontese": "pms", "Newari": "new", "Achinese": "ace", "West Flemish": "vls", "Samogitian": "bat-smg", "Emiliano-Romagnolo": "eml", "Church Slavic": "cu", "Bishnupriya": "bpy", "Divehi": "dv", "Upper Sorbian": "hsb", "Yakut": "sah", "Ossetic": "os", "Cherokee": "chr", "Sardinian": "sc", "Walloon": "wa", "Silesian": "szl", "Hausa": "ha", "Colognian": "ksh", "Central Bikol": "bcl", "Nāhuatl": "nah", "Maltese": "mt", "Corsican": "co", "Uyghur": "ug", "Ladino": "lad", "Min Dong Chinese": "cdo", "Pampanga": "pam", "Aramaic": "arc", "Crimean Tatar": "crh", "Romansh": "rm", "Zulu": "zu", "Manx": "gv", "Northern Frisian": "frr", "Abkhazian": "ab", "Gothic": "got", "Inuktitut": "iu", "Interlingue": "ie", "Mingrelian": "xmf", "Cree": "cr", "Lower Sorbian": "dsb", "Māori": "mi", "Guarani": "gn", "Minangkabau": "min", "Lao": "lo", "Sindhi": "sd", "Vlax Romani": "rmy", "Picard": "pcd", "Iloko": "ilo", "Extremaduran": "ext", "Shona": "sn", "Igbo": "ig", "Navajo": "nv", "Hawaiian": "haw", "Kashubian": "csb", "Aymara": "ay", "Lojban": "jbo", "Arpitan": "frp", "Basa Banyumasan": "map-bms", "Ligurian": "lij", "Chamorro": "ch", "Veps": "vep", "Gilaki": "glk", "Twi": "tw", "Cornish": "kw", "Russia Buriat": "bxr", "Wolof": "wo", "Udmurt": "udm", "Avaric": "av", "Papiamento": "pap", "Ewe": "ee", "Chavacano": "cbk-zam", "Komi": "kv", "Friulian": "fur", "Eastern Mari": "mhr", "Võro": "fiu-vro", "Banjar": "bjn", "Aromanian": "roa-rup", "Gagauz": "gag", "Tok Pisin": "tpi", "Maithili": "mai", "Saterland Frisian": "stq", "Kabyle": "kab", "Buginese": "bug", "Kalaallisut": "kl", "Norman": "nrm", "Mirandese": "mwl", "Bislama": "bi", "Zeelandic": "zea", "Lingala": "ln", "Xhosa": "xh", "Erzya": "myv", "Kinyarwanda": "rw", "Novial": "nov", "Palatine German": "pfl", "Kara-Kalpak": "kaa", "Cheyenne": "chy", "Tarantino": "roa-tara", "Norfuk / Pitkern": "pih", "Lingua Franca Nova": "lfn", "Kongo": "kg", "Bambara": "bm", "Western Mari": "mrj", "Lezghian": "lez", "Zhuang": "za", "Oromo": "om", "Kashmiri": "ks", "Nyanja": "ny", "Karachay-Balkar": "krc", "Samoan": "sm", "Southern Sotho": "st", "Pontic": "pnt", "Dzongkha": "dz", "Tongan": "to", "Moroccan Arabic": "ary", "Tswana": "tn", "Kalmyk": "xal", "Goan Konkani": "gom", "Kabardian": "kbd", "Tsonga": "ts", "Rundi": "rn", "Tetum": "tet", "Moksha": "mdf", "Tigrinya": "ti", "Western Armenian": "hyw", "Fijian": "fj", "Tuvinian": "tyv", "Fula": "ff", "Kikuyu": "ki", "Inupiaq": "ik", "Komi-Permyak": "koi", "Lak": "lbe", "Jamaican Creole English": "jam", "Swati": "ss", "Ganda": "lg", "Pangasinan": "pag", "Tumbuka": "tum", "Venda": "ve", "Balinese": "ban", "Sranan Tongo": "srn", "Tahitian": "ty", "Latgalian": "ltg", "Pali": "pi", "Santali": "sat", "Adyghe": "ady", "Livvi-Karelian": "olo", "Northern Sotho": "nso", "Sango": "sg", "Doteli": "dty", "Dinka": "din", "Tulu": "tcy", "Gorontalo": "gor", "Kabiye": "kbp", "Kotava": "avk", "Ladin": "lld", "Atikamekw": "atj", "Ingush": "inh", "Shan": "shn", "N’Ko": "nqo", "Manipuri": "mni", "Inari Sami": "smn", "Mon": "mnw", "Dagbani": "dag", "Sakizaya": "szy", "Guianan Creole": "gcr", "Awadhi": "awa", "Southern Altai": "alt", "Tachelhit": "shi", "Madurese": "mad", "Saraiki": "skr", "Amis": "ami", "Taroko": "trv", "Nias": "nia", "Tayal": "tay", "Paiwan": "pwn", "Gun": "guw", "Nigerian Pidgin": "pcm", "Tyap": "kcg", "Pa"O": "blk", "Wayuu": "guc", "Angika": "anp", "Frafra": "gur", "Fanti": "fat", "Ghanaian Pidgin": "gpe"}"""
+            content="""You are a world-class algorithm for accurately identifying the language of the query to search Wikipedia, strictly follow the language mapping: {"English": "en", "Spanish": "es", "French": "fr", "German": "de", "Russian": "ru", "Chinese": "zh", "Portuguese": "pt", "Arabic": "ar", "Italian": "it", "Japanese": "ja", "Turkish": "tr", "Indonesian": "id", "Simple English": "simple", "Dutch": "nl", "Polish": "pl", "Persian": "fa", "Hebrew": "he", "Vietnamese": "vi", "Swedish": "sv", "Korean": "ko", "Hindi": "hi", "Ukrainian": "uk", "Czech": "cs", "Romanian": "ro", "Norwegian": "no", "Finnish": "fi", "Hungarian": "hu", "Danish": "da", "Catalan": "ca", "Thai": "th", "Bangla": "bn", "Greek": "el", "Serbian": "sr", "Bulgarian": "bg", "Malay": "ms", "Croatian": "hr", "Azerbaijani": "az", "Cantonese": "zh-yue", "Slovak": "sk", "Slovenian": "sl", "Tamil": "ta", "Egyptian Arabic": "arz", "Esperanto": "eo", "Serbo-Croatian": "sh", "Estonian": "et", "Lithuanian": "lt", "Malayalam": "ml", "Latin": "la", "Urdu": "ur", "Afrikaans": "af", "Marathi": "mr", "Bosnian": "bs", "Albanian": "sq", "Georgian": "ka", "Basque": "eu", "Galician": "gl", "Armenian": "hy", "Tagalog": "tl", "Belarusian": "be", "Kazakh": "kk", "Norwegian Nynorsk": "nn", "Old English": "ang", "Telugu": "te", "Latvian": "lv", "Asturian": "ast", "Burmese": "my", "Macedonian": "mk", "Cebuano": "ceb", "Scots": "sco", "Uzbek": "uz", "Swiss German": "als", "Literary Chinese": "zh-classical", "Icelandic": "is", "Mongolian": "mn", "Wu Chinese": "wuu", "Welsh": "cy", "Kannada": "kn", "Belarusian (Taraškievica orthography)": "be-tarask", "Breton": "br", "Gujarati": "gu", "Aragonese": "an", "Bavarian": "bar", "Sinhala": "si", "Nepali": "ne", "Swahili": "sw", "Luxembourgish": "lb", "Min Nan Chinese": "zh-min-nan", "Javanese": "jv", "Central Kurdish": "ckb", "Irish": "ga", "Waray": "war", "Kurdish": "ku", "Occitan": "oc", "Low German": "nds", "Yiddish": "yi", "Interlingua": "ia", "Tatar": "tt", "Western Frisian": "fy", "Punjabi": "pa", "South Azerbaijani": "azb", "Amharic": "am", "Sicilian": "scn", "Lombard": "lmo", "Gan Chinese": "gan", "Khmer": "km", "Tajik": "tg", "Bashkir": "ba", "Assamese": "as", "Sanskrit": "sa", "Kyrgyz": "ky", "Ido": "io", "Somali": "so", "Western Punjabi": "pnb", "Chechen": "ce", "Venetian": "vec", "Volapük": "vo", "Mazanderani": "mzn", "Odia": "or", "Chuvash": "cv", "Bhojpuri": "bh", "Pennsylvania German": "pdc", "Fiji Hindi": "hif", "Hakka Chinese": "hak", "Malagasy": "mg", "Haitian Creole": "ht", "Pashto": "ps", "Sundanese": "su", "Neapolitan": "nap", "Quechua": "qu", "Faroese": "fo", "Tibetan": "bo", "Limburgish": "li", "Rusyn": "rue", "Northern Sami": "se", "Low Saxon": "nds-nl", "Scottish Gaelic": "gd", "Turkmen": "tk", "Yoruba": "yo", "Zazaki": "diq", "Piedmontese": "pms", "Newari": "new", "Achinese": "ace", "West Flemish": "vls", "Samogitian": "bat-smg", "Emiliano-Romagnolo": "eml", "Church Slavic": "cu", "Bishnupriya": "bpy", "Divehi": "dv", "Upper Sorbian": "hsb", "Yakut": "sah", "Ossetic": "os", "Cherokee": "chr", "Sardinian": "sc", "Walloon": "wa", "Silesian": "szl", "Hausa": "ha", "Colognian": "ksh", "Central Bikol": "bcl", "Nāhuatl": "nah", "Maltese": "mt", "Corsican": "co", "Uyghur": "ug", "Ladino": "lad", "Min Dong Chinese": "cdo", "Pampanga": "pam", "Aramaic": "arc", "Crimean Tatar": "crh", "Romansh": "rm", "Zulu": "zu", "Manx": "gv", "Northern Frisian": "frr", "Abkhazian": "ab", "Gothic": "got", "Inuktitut": "iu", "Interlingue": "ie", "Mingrelian": "xmf", "Cree": "cr", "Lower Sorbian": "dsb", "Māori": "mi", "Guarani": "gn", "Minangkabau": "min", "Lao": "lo", "Sindhi": "sd", "Vlax Romani": "rmy", "Picard": "pcd", "Iloko": "ilo", "Extremaduran": "ext", "Shona": "sn", "Igbo": "ig", "Navajo": "nv", "Hawaiian": "haw", "Kashubian": "csb", "Aymara": "ay", "Lojban": "jbo", "Arpitan": "frp", "Basa Banyumasan": "map-bms", "Ligurian": "lij", "Chamorro": "ch", "Veps": "vep", "Gilaki": "glk", "Twi": "tw", "Cornish": "kw", "Russia Buriat": "bxr", "Wolof": "wo", "Udmurt": "udm", "Avaric": "av", "Papiamento": "pap", "Ewe": "ee", "Chavacano": "cbk-zam", "Komi": "kv", "Friulian": "fur", "Eastern Mari": "mhr", "Võro": "fiu-vro", "Banjar": "bjn", "Aromanian": "roa-rup", "Gagauz": "gag", "Tok Pisin": "tpi", "Maithili": "mai", "Saterland Frisian": "stq", "Kabyle": "kab", "Buginese": "bug", "Kalaallisut": "kl", "Norman": "nrm", "Mirandese": "mwl", "Bislama": "bi", "Zeelandic": "zea", "Lingala": "ln", "Xhosa": "xh", "Erzya": "myv", "Kinyarwanda": "rw", "Novial": "nov", "Palatine German": "pfl", "Kara-Kalpak": "kaa", "Cheyenne": "chy", "Tarantino": "roa-tara", "Norfuk / Pitkern": "pih", "Lingua Franca Nova": "lfn", "Kongo": "kg", "Bambara": "bm", "Western Mari": "mrj", "Lezghian": "lez", "Zhuang": "za", "Oromo": "om", "Kashmiri": "ks", "Nyanja": "ny", "Karachay-Balkar": "krc", "Samoan": "sm", "Southern Sotho": "st", "Pontic": "pnt", "Dzongkha": "dz", "Tongan": "to", "Moroccan Arabic": "ary", "Tswana": "tn", "Kalmyk": "xal", "Goan Konkani": "gom", "Kabardian": "kbd", "Tsonga": "ts", "Rundi": "rn", "Tetum": "tet", "Moksha": "mdf", "Tigrinya": "ti", "Western Armenian": "hyw", "Fijian": "fj", "Tuvinian": "tyv", "Fula": "ff", "Kikuyu": "ki", "Inupiaq": "ik", "Komi-Permyak": "koi", "Lak": "lbe", "Jamaican Creole English": "jam", "Swati": "ss", "Ganda": "lg", "Pangasinan": "pag", "Tumbuka": "tum", "Venda": "ve", "Balinese": "ban", "Sranan Tongo": "srn", "Tahitian": "ty", "Latgalian": "ltg", "Pali": "pi", "Santali": "sat", "Adyghe": "ady", "Livvi-Karelian": "olo", "Northern Sotho": "nso", "Sango": "sg", "Doteli": "dty", "Dinka": "din", "Tulu": "tcy", "Gorontalo": "gor", "Kabiye": "kbp", "Kotava": "avk", "Ladin": "lld", "Atikamekw": "atj", "Ingush": "inh", "Shan": "shn", "N’Ko": "nqo", "Manipuri": "mni", "Inari Sami": "smn", "Mon": "mnw", "Dagbani": "dag", "Sakizaya": "szy", "Guianan Creole": "gcr", "Awadhi": "awa", "Southern Altai": "alt", "Tachelhit": "shi", "Madurese": "mad", "Saraiki": "skr", "Amis": "ami", "Taroko": "trv", "Nias": "nia", "Tayal": "tay", "Paiwan": "pwn", "Gun": "guw", "Nigerian Pidgin": "pcm", "Tyap": "kcg", "Pa"O": "blk", "Wayuu": "guc", "Angika": "anp", "Frafra": "gur", "Fanti": "fat", "Ghanaian Pidgin": "gpe"}"""
         ),
         HumanMessage(content="The query:"),
         HumanMessagePromptTemplate.from_template("{input}"),
@@ -1272,7 +1285,7 @@ def main_chain():
         verbose=langchain_verbose,
     )
 
-    template = """You MUST ONLY responese to science-related quests.
+    template = """You MUST ONLY response to science-related quests.
     DO NOT return any information on politics, ethnicity, gender, national sovereignty, or other sensitive topics.
     {input}"""
 
@@ -1345,7 +1358,7 @@ def enable_chat_history(func):
             _session_id=str(time.time())
         )
     # to show chat history on ui
-    if "messages" not in st.session_state:
+    if "messages" not in st.session_state or len(st.session_state["messages"]) == 1:
         if "subscription" in st.session_state:
             welcome_message = ui.chat_ai_welcome.format(
                 username=st.session_state["username"].split("@")[0],
@@ -1412,6 +1425,8 @@ def fetch_chat_history(username: str):
     """
     Fetches the chat history from the Xata database, organizing it into a structured format for further use.
 
+    :param username: The username to filter chat history by.
+    :type username: str
     :returns: A dictionary where each session ID is mapped to its corresponding chat history entry, formatted with date and content.
     :rtype: dict
 
