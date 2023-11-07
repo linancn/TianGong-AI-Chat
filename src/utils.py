@@ -1240,7 +1240,7 @@ def chat_history_chain():
     """
 
     llm_chat_history = ChatOpenAI(
-        model=llm_model,
+        model="gpt-3.5-turbo",
         temperature=0,
         streaming=False,
         verbose=langchain_verbose,
