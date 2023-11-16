@@ -100,7 +100,7 @@ def get_member_access_token(code: str):
 
 def get_highest_active_subscription(orders):
     # Define priority levels
-    priority = {"Elite": 3, "Pro": 2, "Basic": 1}
+    priority = {"Elite": 3, "Pro": 2, "Beta test": 1}
 
     # Find all orders with "ACTIVE" status
     active_orders = [order for order in orders if order["status"] == "ACTIVE"]
