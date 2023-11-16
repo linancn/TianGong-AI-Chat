@@ -18,7 +18,7 @@ COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/default /etc/nginx/sites-enabled/default
 
 # Copy the requirements.txt into the container at /app/requirements.txt
-COPY requirements.txt requirements.txt
+COPY requirements_freeze.txt requirements.txt
 
 # Upgrade pip
 RUN pip install --upgrade pip
