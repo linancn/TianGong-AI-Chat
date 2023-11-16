@@ -4,7 +4,7 @@ faiss-cpu
 fastapi
 itsdangerous
 langchain
-openai
+openai==0.28.1
 pdfplumber
 pinecone-client
 requests

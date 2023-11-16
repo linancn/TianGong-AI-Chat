@@ -350,17 +350,17 @@ if "logged_in" in st.session_state:
                         search_uploaded_docs(query, top_k=search_docs_top_k)
                     )
 
-                    input = f"""You must:
-    use "{chat_history_recent}" to decide the response more concise or more detailed;
-    based on the "{docs_response}" and your own knowledge, provide a logical, clear, well-organized, and critically analyzed respond in the language of "{user_query}";
-    use bullet points only when necessary;
-    give in-text citations where relevant in Author-Date mode, NOT in Numeric mode;
-    list full reference information with hyperlinks at the end, for only those cited in the text.
+                    input = f"""You Must:
+- Respond to "{user_query}" by using information from "{docs_response}" (if available) and your own knowledge to provide a logical, clear, and critically analyzed reply in the same language.
+- Use the chat context from "{chat_history_recent}" (if available) to adjust the level of detail in your response.
+- Employ bullet points selectively, where they add clarity or organization.
+- Cite sources in-text using the Author-Date citation style where applicable.
+- Provide a list of full references, with hyperlinks, at the end for only the sources mentioned in the text.
 
-    You must not:
-    include any duplicate or redundant information;
-    translate reference to query's language;
-    return any prefix like "AI:"."""
+Avoid:
+- Repeating information or including redundancies.
+- Translating cited references into the query's language.
+- Prefacing responses with any designation such as "AI:"."""
 
                     with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
                         st_cb = StreamHandler(st.empty())

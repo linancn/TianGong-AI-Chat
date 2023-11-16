@@ -58,6 +58,7 @@ source .venv/bin/activate
 Install requirements:
 
 ```bash
+pip install --upgrade pip
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install -r requirements.txt --upgrade
 ```
