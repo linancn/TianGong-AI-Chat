@@ -102,7 +102,7 @@ if "logged_in" in st.session_state:
 
         with st.expander(ui.sidebar_expander_title, expanded=True):
             search_knowledge_base = st.toggle(
-                ui.search_knowledge_base_checkbox_label, value=False
+                ui.search_knowledge_base_checkbox_label, value=True
             )
             search_online = st.toggle(ui.search_internet_checkbox_label, value=True)
             search_wikipedia = st.toggle(
@@ -110,7 +110,7 @@ if "logged_in" in st.session_state:
             )
             search_arxiv = st.toggle(ui.search_arxiv_checkbox_label, value=False)
 
-            search_docs = st.toggle(ui.search_docs_checkbox_label, value=False)
+            search_docs = st.toggle(ui.search_docs_checkbox_label, value=False, disabled=True)
 
             # search_knowledge_base = True
             # search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
