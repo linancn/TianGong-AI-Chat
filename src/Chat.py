@@ -164,6 +164,9 @@ if "logged_in" in st.session_state:
 
         st.markdown(body=ui.sidebar_instructions)
 
+        st.markdown("""
+                    📚 **[Before Starting: Helpful Tips!](https://www.kaiwu.info/learning)**
+                    """)
         st.divider()
 
         col_newchat, col_delete = st.columns([1, 1])
