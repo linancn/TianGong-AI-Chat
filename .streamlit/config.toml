@@ -6,3 +6,6 @@ gatherUsageStats = false
 
 [server]
 enableStaticServing = true
+
+[client]
+showErrorDetails = false

@@ -60,6 +60,7 @@ class UI:
     chat_user_avatar: str
     chat_ai_welcome: str
     chat_human_placeholder: str
+    chat_error_message: str
 
 
 def create_ui_from_config():
