@@ -228,7 +228,8 @@ if "logged_in" in st.session_state:
             # add new chat to table_map
             table_map_new = {
                 str(timestamp): datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
-                + " : New Chat"
+                + " : "
+                + ui.sidebar_newchat_label
             }
 
             # Merge two dicts
@@ -236,7 +237,8 @@ if "logged_in" in st.session_state:
         except:  # if no chat history in xata
             table_map = {
                 str(timestamp): datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
-                + " : New Chat"
+                + " : "
+                + ui.sidebar_newchat_label
             }
 
         # Get all keys from table_map into a list
