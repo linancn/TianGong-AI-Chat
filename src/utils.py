@@ -1287,7 +1287,7 @@ def main_chain():
         verbose=langchain_verbose,
     )
 
-    template = """{input} DO NOT return any information on politics, ethnicity, gender, national sovereignty, or other sensitive topics."""
+    template = """You MUST ONLY response to science-related quests. DO NOT return any information on politics, ethnicity, gender, national sovereignty, or other sensitive topics. {input}"""
 
     prompt = PromptTemplate(
         input_variables=["input"],
