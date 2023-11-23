@@ -148,6 +148,12 @@ def check_wix_oauth() -> (bool, str, str):
                 use_container_width=True,
             )
 
+        if submit:
+            wix_access_token = wix_get_access_token()
+            st.session_state["wix_callback_url"] = wix_get_callback_url(
+                access_token=wix_access_token, username=username, password=password
+            )        
+
         if "wix_callback_url" in st.session_state:
             if st.session_state["wix_callback_url"] is not None:
                 wix_component = components.declare_component(
