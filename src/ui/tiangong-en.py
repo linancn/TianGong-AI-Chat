@@ -127,4 +127,5 @@ ui_data = {
     "sidebar_delete_button_label": "Delete Chat",
     "sidebar_newchat_label": "New Chat",
     "chat_error_message": "Oops, we are facing an extremely high traffic. Please try again later.",
+    "wix_login_wait": "Please wait..."
 }
