@@ -102,9 +102,9 @@ if "logged_in" in st.session_state:
 
         with st.expander(ui.sidebar_expander_title, expanded=True):
             search_knowledge_base = st.toggle(
-                ui.search_knowledge_base_checkbox_label, value=True
+                ui.search_knowledge_base_checkbox_label, value=False
             )
-            search_online = st.toggle(ui.search_internet_checkbox_label, value=True)
+            search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
             search_wikipedia = st.toggle(
                 ui.search_wikipedia_checkbox_label, value=False
             )
