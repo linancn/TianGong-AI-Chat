@@ -141,16 +141,18 @@ def check_wix_oauth() -> (bool, str, str):
                 submit = st.form_submit_button(
                     ui.wix_login_button_label, type="primary", use_container_width=True
                 )
+
+            if submit:
+                with st.spinner(ui.wix_login_wait):
+                    wix_access_token = wix_get_access_token()
+                    st.session_state["wix_callback_url"] = wix_get_callback_url(
+                        access_token=wix_access_token, username=username, password=password
+                    )          
+                        
             st.link_button(
                 label=ui.wix_signup_button_label,
                 url=ui.wix_signup_button_url,
                 use_container_width=True,
-            )
-
-        if submit:
-            wix_access_token = wix_get_access_token()
-            st.session_state["wix_callback_url"] = wix_get_callback_url(
-                access_token=wix_access_token, username=username, password=password
             )
 
         if "wix_callback_url" in st.session_state:

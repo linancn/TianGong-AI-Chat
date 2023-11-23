@@ -105,13 +105,17 @@ if "logged_in" in st.session_state:
                 search_knowledge_base = st.toggle(
                     ui.search_knowledge_base_checkbox_label, value=False
                 )
-                search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
+                search_online = st.toggle(
+                    ui.search_internet_checkbox_label, value=False
+                )
                 search_wikipedia = st.toggle(
                     ui.search_wikipedia_checkbox_label, value=False
                 )
                 search_arxiv = st.toggle(ui.search_arxiv_checkbox_label, value=False)
 
-                search_docs = st.toggle(ui.search_docs_checkbox_label, value=False, disabled=True)
+                search_docs = st.toggle(
+                    ui.search_docs_checkbox_label, value=False, disabled=True
+                )
 
                 # search_knowledge_base = True
                 # search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
@@ -167,9 +171,6 @@ if "logged_in" in st.session_state:
 
             st.markdown(body=ui.sidebar_instructions)
 
-            st.markdown("""
-                        📚 **[Before Starting: Helpful Tips!](https://www.kaiwu.info/learning)**
-                        """)
             st.divider()
 
             col_newchat, col_delete = st.columns([1, 1])
@@ -288,44 +289,70 @@ if "logged_in" in st.session_state:
         if "xata_history_refresh" not in st.session_state:
             user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
             if user_query:
-                try:
-                    st.chat_message("user", avatar=ui.chat_user_avatar).markdown(
-                        user_query
-                    )
-                    st.session_state["messages"].append(
-                        {"role": "user", "content": user_query}
-                    )
-                    human_message = HumanMessage(
-                        content=user_query,
-                        additional_kwargs={"id": st.session_state["username"]},
-                    )
-                    st.session_state["xata_history"].add_message(human_message)
+                st.chat_message("user", avatar=ui.chat_user_avatar).markdown(user_query)
+                st.session_state["messages"].append(
+                    {"role": "user", "content": user_query}
+                )
+                human_message = HumanMessage(
+                    content=user_query,
+                    additional_kwargs={"id": st.session_state["username"]},
+                )
+                st.session_state["xata_history"].add_message(human_message)
 
-                    # check text sensitivity
-                    answer = check_text_sensitivity(user_query)["answer"]
-                    if answer is not None:
-                        with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
-                            st.markdown(answer)
-                            st.session_state["messages"].append(
-                                {
-                                    "role": "assistant",
-                                    "content": answer,
-                                }
-                            )
-                            ai_message = AIMessage(
-                                content=answer,
-                                additional_kwargs={"id": st.session_state["username"]},
-                            )
-                            st.session_state["xata_history"].add_message(ai_message)
+                # check text sensitivity
+                answer = check_text_sensitivity(user_query)["answer"]
+                if answer is not None:
+                    with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
+                        st.markdown(answer)
+                        st.session_state["messages"].append(
+                            {
+                                "role": "assistant",
+                                "content": answer,
+                            }
+                        )
+                        ai_message = AIMessage(
+                            content=answer,
+                            additional_kwargs={"id": st.session_state["username"]},
+                        )
+                        st.session_state["xata_history"].add_message(ai_message)
+                else:
+                    if len(st.session_state["messages"]) == 2:
+                        chat_history_recent = ""
+                        chat_history_recent_neat = ""
+                        # chat_history_recent = str(st.session_state["messages"][-1:])
+                        # chat_history_recent_neat = str(
+                        #     st.session_state["messages"][-1:][:-1]
+                        #     if len(st.session_state["messages"][-1:]) > 1
+                        #     else []
+                        # )
                     else:
+                        current_message = st.session_state["messages"][-8:][1:][:-1]
+                        for item in current_message:
+                            item.pop("avatar", None)
+
                         chat_history_response = chat_history_chain()(
-                            {"input": st.session_state["xata_history"].messages[-6:]},
+                            {"input": current_message},
                         )
 
                         chat_history_recent = chat_history_response["text"]
+                        chat_history_recent_neat = chat_history_recent
 
+                    if (
+                        search_knowledge_base
+                        or search_online
+                        or search_wikipedia
+                        or search_arxiv
+                        or search_docs
+                    ):
+                        aa = (
+                            chat_history_recent
+                            + " Latest message: "
+                            + str(st.session_state["messages"][-1])
+                        )
                         func_calling_response = func_calling_chain().run(
                             chat_history_recent
+                            + " Latest message: "
+                            + str(st.session_state["messages"][-1])
                         )
 
                         query = func_calling_response.get("query")
@@ -368,41 +395,42 @@ if "logged_in" in st.session_state:
                         )
 
                         input = f"""You Must:
-    - Respond to "{user_query}" by using information from "{docs_response}" (if available) and your own knowledge to provide a logical, clear, and critically analyzed reply in the same language.
-    - Use the chat context from "{chat_history_recent}" (if available) to adjust the level of detail in your response.
-    - Employ bullet points selectively, where they add clarity or organization.
-    - Cite sources in-text using the Author-Date citation style where applicable.
-    - Provide a list of full references, with hyperlinks, at the end for only the sources mentioned in the text.
+- Respond to "{user_query}" by using information from "{docs_response}" (if available) and your own knowledge to provide a logical, clear, and critically analyzed reply in the same language.
+- Use the chat context from "{chat_history_recent}" (if available) to adjust the level of detail in your response.
+- Employ bullet points selectively, where they add clarity or organization.
+- Cite sources in-text using the Author-Date citation style where applicable.
+- Provide a list of full references, with hyperlinks, at the end for only the sources mentioned in the text.
 
-    Avoid:
-    - Repeating information or including redundancies.
-    - Translating cited references into the query's language.
-    - Prefacing responses with any designation such as "AI:"."""
+Avoid:
+- Repeating information or including redundancies.
+- Translating cited references into the query's language.
+- Prefacing responses with any designation such as "AI:"."""
+                        
+                    else:
+                        input = f"""Respond to "{user_query}" with the chat context from "{chat_history_recent_neat}" (if available)."""
 
-                        with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
-                            st_cb = StreamHandler(st.empty())
-                            response = main_chain()(
-                                {"input": input},
-                                callbacks=[st_cb],
-                            )
-
-                            st.session_state["messages"].append(
-                                {
-                                    "role": "assistant",
-                                    "content": response["text"],
-                                }
-                            )
-                            ai_message = AIMessage(
-                                content=response["text"],
-                                additional_kwargs={"id": st.session_state["username"]},
-                            )
-                            st.session_state["xata_history"].add_message(ai_message)
-                    if len(st.session_state["messages"]) == 3:
-                        st.session_state["xata_history_refresh"] = True
-                        st.rerun()
-                except:
                     with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
-                        st.markdown(ui.chat_error_message)
+                        st_cb = StreamHandler(st.empty())
+                        response = main_chain()(
+                            {"input": input},
+                            callbacks=[st_cb],
+                        )
+
+                        st.session_state["messages"].append(
+                            {
+                                "role": "assistant",
+                                "content": response["text"],
+                            }
+                        )
+                        ai_message = AIMessage(
+                            content=response["text"],
+                            additional_kwargs={"id": st.session_state["username"]},
+                        )
+                        st.session_state["xata_history"].add_message(ai_message)
+
+                if len(st.session_state["messages"]) == 3:
+                    st.session_state["xata_history_refresh"] = True
+                    st.rerun()
         else:
             user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
             del st.session_state["xata_history_refresh"]

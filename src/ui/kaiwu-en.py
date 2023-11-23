@@ -75,7 +75,7 @@ ui_data = {
             </table>
         </div>
         """,
-    "sidebar_expander_title": "Advanced Search Settings:",
+    "sidebar_expander_title": "Sources:",
     "search_knowledge_base_checkbox_label": "📂 Knowledge Base",
     "search_internet_checkbox_label": "Internet",
     "search_wikipedia_checkbox_label": "Wikipedia",
@@ -87,12 +87,21 @@ ui_data = {
     "sidebar_file_uploader_title": "Documents to analyze:",
     "sidebar_file_uploader_spinner": "Analyzing...",
     "sidebar_file_uploader_error": "None of the files can be analyzed, please check the format!",
-    "sidebar_instructions": """""",
+    "sidebar_instructions": """
+    📚 **[Before Starting: Helpful Tips!](https://www.kaiwu.info/learning)**
+
+    💾 Activate data sources to retrieve.
+
+    💡 Work as ChatGPT (GPT-4) if no source is active.
+    """,
     "current_chat_title": "Chat History :",
     "chat_ai_avatar": "src/static/kaiwu/logo.png",
     "chat_user_avatar": "src/static/kaiwu/user.png",
-    "chat_ai_welcome": "Hi {username}! What do you want to know?",
+    "chat_ai_welcome": "Hi {username}! How can I help?",
     "chat_human_placeholder": "Send a message in any language",
     "sidebar_newchat_button_label": "➕ New Chat",
     "sidebar_delete_button_label": "🗑️ Delete Chat",
+    "sidebar_newchat_label": "New Chat",
+    "chat_error_message": "Oops, we are facing an extremely high traffic. Please try again later.",
+    "wix_login_wait": "⏳ Please wait for authentication..."
 }

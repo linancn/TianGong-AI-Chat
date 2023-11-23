@@ -1248,7 +1248,7 @@ def chat_history_chain():
         verbose=langchain_verbose,
     )
 
-    template = """Return highly concise and well-organized chat history from: {input}"""
+    template = """Return highly concise and well-organized chat history from: {input}. Do not include any references."""
     prompt = PromptTemplate(
         input_variables=["input"],
         template=template,
@@ -1282,14 +1282,12 @@ def main_chain():
 
     llm_chat = ChatOpenAI(
         model=llm_model,
-        temperature=0,
+        temperature=0.2,
         streaming=True,
         verbose=langchain_verbose,
     )
 
-    template = """You MUST ONLY response to science-related quests.
-    DO NOT return any information on politics, ethnicity, gender, national sovereignty, or other sensitive topics.
-    {input}"""
+    template = """{input} DO NOT return any information on politics, ethnicity, gender, national sovereignty, or other sensitive topics."""
 
     prompt = PromptTemplate(
         input_variables=["input"],
