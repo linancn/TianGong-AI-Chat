@@ -141,6 +141,7 @@ def check_wix_oauth() -> (bool, str, str):
                 submit = st.form_submit_button(
                     ui.wix_login_button_label, type="primary", use_container_width=True
                 )
+            st.info(ui.wix_login_wait)
             st.link_button(
                 label=ui.wix_signup_button_label,
                 url=ui.wix_signup_button_url,
@@ -176,15 +177,19 @@ def check_wix_oauth() -> (bool, str, str):
                     member_access_token = get_member_access_token(
                         code=st.session_state["wix_return_data"]
                     )
-                    subsription = get_subscription(
+                    subscription = get_subscription(
                         member_access_token=member_access_token
                     )
 
-                    auth = True
-
-                    placeholder.empty()
-
-                    return auth, username, subsription
+                    # Check if the subscription is not None (i.e., user has an active subscription)
+                    if subscription is not None:
+                        auth = True
+                        placeholder.empty()
+                        return auth, username, subscription
+                    else:
+                        with col_center:
+                            st.error("Login failed: No active subscription found.", icon="🚫")
+                        return False, None, None
             else:
                 with col_center:
                     st.error(ui.wix_login_error_text, icon=ui.wix_login_error_icon)
