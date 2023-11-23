@@ -66,10 +66,10 @@ ui_data = {
             <table style="border: 0; position: absolute; bottom: 5px;">
                 <tr style="border: 0;">
                     <td style="border: 0; text-align: left; padding: 0; width: 210px"><p style="margin: 0; opacity: 0.5;">
-                        <a href="https://www.tiangonglca.org/ai">Forked from TianGong AI</a></p>
+                        <a href="https://www.tiangonglca.org/ai">Based on TianGong AI</a></p>
                     </td>
                     <td style="border: 0; text-align: right; padding: 0; width: 100px;"><p style="margin: 0; opacity: 0.5;">
-                        <a href="mailto:service@kaiwu.info">Contact Kaiwu</a></p>
+                        <a href="https://www.kaiwu.info">Visit Kaiwu</a></p>
                     </td>
                 </tr>
             </table>
@@ -103,5 +103,5 @@ ui_data = {
     "sidebar_delete_button_label": "🗑️ Delete Chat",
     "sidebar_newchat_label": "New Chat",
     "chat_error_message": "Oops, we are facing an extremely high traffic. Please try again later.",
-    "wix_login_wait": "⏳ Please wait for authentication..."
+    "wix_login_wait": "⏳Please wait a moment after pressing the button."
 }

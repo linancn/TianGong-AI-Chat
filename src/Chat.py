@@ -103,7 +103,7 @@ if "logged_in" in st.session_state:
 
             with st.expander(ui.sidebar_expander_title, expanded=True):
                 search_knowledge_base = st.toggle(
-                    ui.search_knowledge_base_checkbox_label, value=False
+                    ui.search_knowledge_base_checkbox_label, value=True
                 )
                 search_online = st.toggle(
                     ui.search_internet_checkbox_label, value=False
@@ -319,12 +319,6 @@ if "logged_in" in st.session_state:
                     if len(st.session_state["messages"]) == 2:
                         chat_history_recent = ""
                         chat_history_recent_neat = ""
-                        # chat_history_recent = str(st.session_state["messages"][-1:])
-                        # chat_history_recent_neat = str(
-                        #     st.session_state["messages"][-1:][:-1]
-                        #     if len(st.session_state["messages"][-1:]) > 1
-                        #     else []
-                        # )
                     else:
                         current_message = st.session_state["messages"][-8:][1:][:-1]
                         for item in current_message:
@@ -344,11 +338,6 @@ if "logged_in" in st.session_state:
                         or search_arxiv
                         or search_docs
                     ):
-                        aa = (
-                            chat_history_recent
-                            + " Latest message: "
-                            + str(st.session_state["messages"][-1])
-                        )
                         func_calling_response = func_calling_chain().run(
                             chat_history_recent
                             + " Latest message: "
@@ -407,7 +396,7 @@ Avoid:
 - Prefacing responses with any designation such as "AI:"."""
                         
                     else:
-                        input = f"""Respond to "{user_query}" with the chat context from "{chat_history_recent_neat}" (if available)."""
+                        input = f"""Respond to "{user_query}". If "{chat_history_recent_neat}" is not empty, use it as chat context."""
 
                     with st.chat_message("assistant", avatar=ui.chat_ai_avatar):
                         st_cb = StreamHandler(st.empty())
