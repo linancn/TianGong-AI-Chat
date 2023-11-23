@@ -19,6 +19,7 @@ os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
 os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
 os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
 os.environ["LLM_MODEL"] = st.secrets["llm_model"]
+os.environ["LLM_MODEL_CHEAP"] = st.secrets["llm_model_cheap"]
 os.environ["LANGCHAIN_VERBOSE"] = str(st.secrets["langchain_verbose"])
 os.environ["PASSWORD"] = st.secrets["password"]
 os.environ["PINECONE_API_KEY"] = st.secrets["pinecone_api_key"]
@@ -50,6 +51,7 @@ ui = ui_config.create_ui_from_config()
 
 
 llm_model = os.environ["LLM_MODEL"]
+llm_model_cheap = os.environ["LLM_MODEL_CHEAP"]
 langchain_verbose = bool(os.environ.get("LANGCHAIN_VERBOSE", "True") == "True")
 
 
@@ -1240,7 +1242,7 @@ def chat_history_chain():
     """
 
     llm_chat_history = ChatOpenAI(
-        model="gpt-3.5-turbo",
+        model=llm_model_cheap,
         temperature=0,
         streaming=False,
         verbose=langchain_verbose,
