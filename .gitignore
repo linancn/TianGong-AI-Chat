@@ -146,4 +146,4 @@ dmypy.json
 # pytype static type analyzer
 .pytype/
 
-.streamlit/secrets.toml
+.streamlit/secrets*
