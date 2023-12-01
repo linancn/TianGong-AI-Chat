@@ -4,7 +4,7 @@ faiss-cpu
 fastapi
 itsdangerous
 langchain
-openai==0.28.1
+openai
 pdfplumber
 pinecone-client
 requests
@@ -15,7 +15,7 @@ streamlit
 tenacity
 tiktoken
 toml
-unstructured[local-inference]
+unstructured[all-docs]
 uvicorn[standard]
 wikipedia
 xata
