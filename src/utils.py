@@ -327,16 +327,19 @@ def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
 
     docs_list = []
     for doc in docs:
-        date = datetime.fromtimestamp(doc.metadata["created_at"])
-        formatted_date = date.strftime("%Y-%m")  # Format date as 'YYYY-MM'
-        source_entry = "[{}. {}. {}. {}.]({})".format(
-            doc.metadata["source_id"],
-            doc.metadata["source"],
-            doc.metadata["author"],
-            formatted_date,
-            doc.metadata["url"],
-        )
-        docs_list.append({"content": doc.page_content, "source": source_entry})
+        try:
+            date = datetime.fromtimestamp(doc.metadata["created_at"])
+            formatted_date = date.strftime("%Y-%m")  # Format date as 'YYYY-MM'
+            source_entry = "[{}. {}. {}. {}.]({})".format(
+                doc.metadata["source_id"],
+                doc.metadata["source"],
+                doc.metadata["author"],
+                formatted_date,
+                doc.metadata["url"],
+            )
+            docs_list.append({"content": doc.page_content, "source": source_entry})
+        except:
+            docs_list.append({"content": doc.page_content, "source": doc.metadata["source"]})
 
     return docs_list
 
