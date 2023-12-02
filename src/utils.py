@@ -153,7 +153,7 @@ def func_calling_chain():
         "properties": {
             "query": {
                 "title": "Query",
-                "description": "The next query extracted for a vector database semantic search from a chat history",
+                "description": "The next query extracted for a vector database semantic search from a chat history. Translate the query into accurate English if it is not already in English.",
                 "type": "string",
             },
             "arxiv_query": {
@@ -163,7 +163,7 @@ def func_calling_chain():
             },
             "source": {
                 "title": "Source Filter",
-                "description": "Journal Name or Source extracted for a vector database semantic search, MUST be in upper case",
+                "description": "Journal Name or Source extracted for a vector database semantic search, MUST be in upper case.",
                 "type": "string",
                 "enum": [
                     "AGRICULTURE, ECOSYSTEMS & ENVIRONMENT",
@@ -339,7 +339,9 @@ def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
             )
             docs_list.append({"content": doc.page_content, "source": source_entry})
         except:
-            docs_list.append({"content": doc.page_content, "source": doc.metadata["source"]})
+            docs_list.append(
+                {"content": doc.page_content, "source": doc.metadata["source"]}
+            )
 
     return docs_list
 
