@@ -389,6 +389,7 @@ if "logged_in" in st.session_state:
 - Employ bullet points selectively, where they add clarity or organization.
 - Cite sources in-text using the Author-Date citation style where applicable.
 - Provide a list of full references, with hyperlinks, at the end for only the sources mentioned in the text.
+- Use LaTeX quoted by '$' or '$$' within markdown to render mathematical formulas.
 
 Avoid:
 - Repeating information or including redundancies.
