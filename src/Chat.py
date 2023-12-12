@@ -387,8 +387,8 @@ if "logged_in" in st.session_state:
 - Respond to "{user_query}" by using information from "{docs_response}" (if available) and your own knowledge to provide a logical, clear, and critically analyzed reply in the same language.
 - Use the chat context from "{chat_history_recent}" (if available) to adjust the level of detail in your response.
 - Employ bullet points selectively, where they add clarity or organization.
-- Cite sources in-text using the Author-Date citation style where applicable.
-- Provide a list of full references, with hyperlinks, at the end for only the sources mentioned in the text.
+- Cite sources in main text using the Author-Date citation style where applicable.
+- Provide a list of full references with hyperlinks, at the end for only the sources mentioned in the text.
 - Use LaTeX quoted by '$' or '$$' within markdown to render mathematical formulas.
 
 Avoid:
