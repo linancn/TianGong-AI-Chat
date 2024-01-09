@@ -12,7 +12,6 @@ ui = ui_config.create_ui_from_config()
 
 CLIENT_ID = st.secrets["wix_client_id"]
 
-
 def generate_code_challenge(code_verifier):
     # SHA-256
     hashed_verifier = hashlib.sha256(code_verifier.encode()).digest()
@@ -111,14 +110,14 @@ def get_highest_active_subscription(orders):
     # Get the order with the highest level
     highest_order = max(active_orders, key=lambda x: priority.get(x["planName"], 0))
 
-    return highest_order["planName"]
-
+    return highest_order
 
 def get_subscription(member_access_token: str) -> str:
     orders_response = requests.get(
         "https://www.wixapis.com/pricing-plans/v2/member/orders",
         headers={"authorization": member_access_token},
     )
+
     orders = json.loads(orders_response.text)["orders"]
 
     subscription = get_highest_active_subscription(orders)
@@ -126,7 +125,7 @@ def get_subscription(member_access_token: str) -> str:
     return subscription
 
 
-def check_wix_oauth() -> (bool, str, str):
+def check_wix_oauth() -> (bool, str, str, object):
     component_url = st.secrets["component_url"]
     placeholder = st.empty()
 
@@ -185,14 +184,14 @@ def check_wix_oauth() -> (bool, str, str):
                     if subscription is not None:
                         auth = True
                         placeholder.empty()
-                        return auth, username, subscription
+                        return auth, username, subscription["planName"], subscription
                     else:
                         with col_center:
                             st.error("Login failed: No active subscription found.", icon="🚫")
-                        return False, None, None
+                        return False, None, None, {}
             else:
                 with col_center:
                     st.error(ui.wix_login_error_text, icon=ui.wix_login_error_icon)
-                return False, None, None
+                return False, None, None, {}
         else:
-            return False, None, None
+            return False, None, None, {}

@@ -19,6 +19,7 @@ from utils import (
     check_password,
     delete_chat_history,
     fetch_chat_history,
+    count_chat_history,
     func_calling_chain,
     get_faiss_db,
     initialize_messages,
@@ -53,6 +54,7 @@ if "username" not in st.session_state or st.session_state["username"] is None:
                 auth,
                 st.session_state["username"],
                 st.session_state["subsription"],
+                subsription_ms,
             ) = wix_oauth.check_wix_oauth()
         except:
             pass
@@ -243,6 +245,7 @@ if "logged_in" in st.session_state:
 
                 # Merge two dicts
                 table_map = table_map_new | table_map
+                
             except:  # if no chat history in xata
                 table_map = {
                     str(timestamp): datetime.fromtimestamp(timestamp).strftime(
@@ -281,6 +284,12 @@ if "logged_in" in st.session_state:
                 st.session_state["messages"] = initialize_messages(
                     st.session_state["xata_history"].messages
                 )
+    
+            st.divider()
+
+            count_ch = count_chat_history(st.session_state["username"])
+            subsription_message = subsription_ms['planName'] + ': ' + subsription_ms['startDate'] + ', ' + str(count_ch)
+            st.markdown(subsription_message)
     except:
         st.warning(ui.chat_error_message)
 
