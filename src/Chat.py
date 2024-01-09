@@ -287,8 +287,10 @@ if "logged_in" in st.session_state:
     
             st.divider()
 
-            count_ch = count_chat_history(st.session_state["username"])
-            subsription_message = subsription_ms['planName'] + ': ' + subsription_ms['startDate'] + ', ' + str(count_ch)
+            count_ch = count_chat_history(st.session_state["username"], subsription_ms['startDate'])
+            
+            startDate = datetime.strptime(subsription_ms['startDate'], "%Y-%m-%dT%H:%M:%S.%fZ")
+            subsription_message = subsription_ms['planName'] + ': ' + startDate.strftime('%Y-%m-%d %H:%M:%S') + ', ' + str(count_ch)
             st.markdown(subsription_message)
     except:
         st.warning(ui.chat_error_message)

@@ -1571,13 +1571,13 @@ def initialize_messages(history):
     return messages
 
 
-def count_chat_history(username: str):
+def count_chat_history(username: str, startDate: str):
     if is_valid_email(username):
         client = XataClient()
         response = client.sql().query(
             f"""SELECT count(*) as c
     FROM "tiangong_memory"
-    WHERE "additionalKwargs"->>'id' = '{username}' and "xata.createdAt" > '2023-12-01' and "type" = 'ai'
+    WHERE "additionalKwargs"->>'id' = '{username}' and "xata.createdAt" > '{startDate}' and "type" = 'ai'
     """
         )
         records = response["records"]
