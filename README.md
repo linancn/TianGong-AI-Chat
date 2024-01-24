@@ -28,11 +28,11 @@ pip freeze > requirements_freeze.txt
 
 ```bash
 sudo apt install python3.11-dev
-sudo apt install libmagic-dev
-sudo apt install poppler-utils
-sudo apt install tesseract-ocr
-sudo apt install libreoffice
-sudo apt install pandoc
+sudo apt-get -y install libmagic-dev
+sudo apt-get -y  install poppler-utils
+sudo apt-get -y  install tesseract-ocr
+sudo apt-get -y  install libreoffice
+sudo apt-get -y  install pandoc
 ```
 
 Install Cuda (optional):

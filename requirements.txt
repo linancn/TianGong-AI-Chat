@@ -4,6 +4,8 @@ faiss-cpu
 fastapi
 itsdangerous
 langchain
+langchain-community
+langchain-openai
 openai
 pdfplumber
 pinecone-client
