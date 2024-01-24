@@ -184,14 +184,14 @@ def check_wix_oauth() -> (bool, str, str, object):
                     if subscription is not None:
                         auth = True
                         placeholder.empty()
-                        return auth, username, subscription["planName"], subscription
+                        return auth, username, subscription["planName"], subscription["startDate"]
                     else:
                         with col_center:
                             st.error("Login failed: No active subscription found.", icon="🚫")
-                        return False, None, None, {}
+                        return False, None, None, None
             else:
                 with col_center:
                     st.error(ui.wix_login_error_text, icon=ui.wix_login_error_icon)
-                return False, None, None, {}
+                return False, None, None, None
         else:
-            return False, None, None, {}
+            return False, None, None, None

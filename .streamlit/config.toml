@@ -6,6 +6,8 @@ gatherUsageStats = false
 
 [server]
 enableStaticServing = true
+maxUploadSize = 50
+maxMessageSize = 200
 
 [client]
 showErrorDetails = false

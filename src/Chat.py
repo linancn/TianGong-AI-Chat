@@ -54,7 +54,8 @@ if "username" not in st.session_state or st.session_state["username"] is None:
                 auth,
                 st.session_state["username"],
                 st.session_state["subsription"],
-                subsription_ms,
+                st.session_state["startDate"],
+                # st.session_state["planName"],
             ) = wix_oauth.check_wix_oauth()
         except:
             pass
@@ -81,219 +82,223 @@ except:
     pass
 
 if "logged_in" in st.session_state:
-    try:
+    # try:
         # SIDEBAR
-        with st.sidebar:
+    with st.sidebar:
+        st.markdown(
+            ui.sidebar_markdown,
+            unsafe_allow_html=True,
+        )
+        col_image, col_text = st.columns([1, 4])
+        with col_image:
+            st.image(ui.sidebar_image)
+        with col_text:
+            st.title(ui.sidebar_title)
+        st.subheader(ui.sidebar_subheader)
+
+        if "subsription" in st.session_state:
             st.markdown(
-                ui.sidebar_markdown,
-                unsafe_allow_html=True,
-            )
-            col_image, col_text = st.columns([1, 4])
-            with col_image:
-                st.image(ui.sidebar_image)
-            with col_text:
-                st.title(ui.sidebar_title)
-            st.subheader(ui.sidebar_subheader)
-
-            if "subsription" in st.session_state:
-                st.markdown(
-                    ui.sidebar_welcome_text.format(
-                        username=st.session_state["username"].split("@")[0],
-                        subscription=st.session_state["subsription"],
-                    )
+                ui.sidebar_welcome_text.format(
+                    username=st.session_state["username"].split("@")[0],
+                    subscription=st.session_state["subsription"],
                 )
-
-            with st.expander(ui.sidebar_expander_title, expanded=True):
-                search_knowledge_base = st.toggle(
-                    ui.search_knowledge_base_checkbox_label, value=True
-                )
-                search_online = st.toggle(
-                    ui.search_internet_checkbox_label, value=False
-                )
-                search_wikipedia = st.toggle(
-                    ui.search_wikipedia_checkbox_label, value=False
-                )
-                search_arxiv = st.toggle(ui.search_arxiv_checkbox_label, value=False)
-
-                search_docs = st.toggle(
-                    ui.search_docs_checkbox_label, value=False, disabled=True
-                )
-
-                # search_knowledge_base = True
-                # search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
-                # search_wikipedia = False
-                # search_arxiv = False
-                # search_docs = False
-
-                search_docs_option = None
-
-                if search_docs:
-                    search_docs_option = st.radio(
-                        label=ui.search_docs_options,
-                        options=(
-                            ui.search_docs_options_combined,
-                            ui.search_docs_options_isolated,
-                        ),
-                        horizontal=True,
-                    )
-                    uploaded_files = st.file_uploader(
-                        ui.sidebar_file_uploader_title,
-                        accept_multiple_files=True,
-                        type=None,
-                    )
-
-                    if uploaded_files != [] and uploaded_files != st.session_state.get(
-                        "uploaded_files"
-                    ):
-                        st.session_state["uploaded_files"] = uploaded_files
-                        with st.spinner(ui.sidebar_file_uploader_spinner):
-                            st.session_state["faiss_db"] = get_faiss_db(uploaded_files)
-
-                current_top_k_mappings = f"{search_knowledge_base}_{search_online}_{search_wikipedia}_{search_arxiv}_{search_docs_option}"
-
-                top_k_values = top_k_mappings.get(current_top_k_mappings)
-
-                # override search_docs_top_k if search_docs_option is isolated
-                if top_k_values is None:
-                    search_knowledge_base_top_k = 0
-                    search_online_top_k = 0
-                    search_wikipedia_top_k = 0
-                    search_arxiv_top_k = 0
-                    search_docs_top_k = 16
-                else:
-                    search_knowledge_base_top_k = top_k_values.get(
-                        "search_knowledge_base_top_k", 0
-                    )
-                    search_online_top_k = top_k_values.get("search_online_top_k", 0)
-                    search_wikipedia_top_k = top_k_values.get(
-                        "search_wikipedia_top_k", 0
-                    )
-                    search_arxiv_top_k = top_k_values.get("search_arxiv_top_k", 0)
-                    search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
-
-            st.markdown(body=ui.sidebar_instructions)
-
-            st.divider()
-
-            col_newchat, col_delete = st.columns([1, 1])
-            with col_newchat:
-
-                def init_new_chat():
-                    keys_to_delete = [
-                        "selected_chat_id",
-                        "timestamp",
-                        "first_run",
-                        "messages",
-                        "xata_history",
-                        "uploaded_files",
-                        "faiss_db",
-                    ]
-                    for key in keys_to_delete:
-                        try:
-                            del st.session_state[key]
-                        except:
-                            pass
-
-                new_chat = st.button(
-                    ui.sidebar_newchat_button_label,
-                    use_container_width=True,
-                    on_click=init_new_chat,
-                )
-
-            with col_delete:
-
-                def delete_chat():
-                    delete_chat_history(st.session_state["selected_chat_id"])
-                    keys_to_delete = [
-                        "selected_chat_id",
-                        "timestamp",
-                        "first_run",
-                        "messages",
-                        "xata_history",
-                        "uploaded_files",
-                        "faiss_db",
-                    ]
-                    for key in keys_to_delete:
-                        try:
-                            del st.session_state[key]
-                        except:
-                            pass
-
-                delete_chat = st.button(
-                    ui.sidebar_delete_button_label,
-                    use_container_width=True,
-                    on_click=delete_chat,
-                )
-
-            if "first_run" not in st.session_state:
-                timestamp = time.time()
-                st.session_state["timestamp"] = timestamp
-            else:
-                timestamp = st.session_state["timestamp"]
-
-            try:  # fetch chat history from xata
-                table_map = fetch_chat_history(st.session_state["username"])
-
-                # add new chat to table_map
-                table_map_new = {
-                    str(timestamp): datetime.fromtimestamp(timestamp).strftime(
-                        "%Y-%m-%d"
-                    )
-                    + " : "
-                    + ui.sidebar_newchat_label
-                }
-
-                # Merge two dicts
-                table_map = table_map_new | table_map
-                
-            except:  # if no chat history in xata
-                table_map = {
-                    str(timestamp): datetime.fromtimestamp(timestamp).strftime(
-                        "%Y-%m-%d"
-                    )
-                    + " : "
-                    + ui.sidebar_newchat_label
-                }
-
-            # Get all keys from table_map into a list
-            entries = list(table_map.keys())
-            # Check if selected_chat_id exists in session_state, if not set default as the first entry
-            if "selected_chat_id" not in st.session_state:
-                st.session_state["selected_chat_id"] = entries[0]
-
-            # Update the selectbox with the current selected_chat_id value
-            current_chat_id = st.selectbox(
-                label=ui.current_chat_title,
-                label_visibility="collapsed",
-                options=entries,
-                format_func=lambda x: table_map[x],
             )
 
-            # Save the selected value back to session state
-            st.session_state["selected_chat_id"] = current_chat_id
+        with st.expander(ui.sidebar_expander_title, expanded=True):
+            search_knowledge_base = st.toggle(
+                ui.search_knowledge_base_checkbox_label, value=True
+            )
+            search_online = st.toggle(
+                ui.search_internet_checkbox_label, value=False
+            )
+            search_wikipedia = False
+            # search_wikipedia = st.toggle(
+            #     ui.search_wikipedia_checkbox_label, value=False
+            # )
+            search_arxiv = False
+            # search_arxiv = st.toggle(ui.search_arxiv_checkbox_label, value=False)
 
-            if "first_run" not in st.session_state:
-                st.session_state["xata_history"] = xata_chat_history(
-                    _session_id=current_chat_id
+            search_docs = st.toggle(
+                ui.search_docs_checkbox_label, value=False, disabled=False
+            )
+
+            # search_knowledge_base = True
+            # search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
+            # search_wikipedia = False
+            # search_arxiv = False
+
+            # search_docs = False
+
+            search_docs_option = None
+
+            if search_docs:
+                search_docs_option = ui.search_docs_options_isolated
+                # search_docs_option = st.radio(
+                #     label=ui.search_docs_options,
+                #     options=(
+                #         ui.search_docs_options_combined,
+                #         ui.search_docs_options_isolated,
+                #     ),
+                #     horizontal=True,
+                # )
+                uploaded_files = st.file_uploader(
+                    ui.sidebar_file_uploader_title,
+                    accept_multiple_files=True,
+                    type=None,
                 )
-                st.session_state["first_run"] = True
+
+                if uploaded_files != [] and uploaded_files != st.session_state.get(
+                    "uploaded_files"
+                ):
+                    st.session_state["uploaded_files"] = uploaded_files
+                    with st.spinner(ui.sidebar_file_uploader_spinner):
+                        st.session_state["faiss_db"] = get_faiss_db(uploaded_files)
+
+            current_top_k_mappings = f"{search_knowledge_base}_{search_online}_{search_wikipedia}_{search_arxiv}_{search_docs_option}"
+
+            top_k_values = top_k_mappings.get(current_top_k_mappings)
+
+            # override search_docs_top_k if search_docs_option is isolated
+            if top_k_values is None:
+                search_knowledge_base_top_k = 0
+                search_online_top_k = 0
+                search_wikipedia_top_k = 0
+                search_arxiv_top_k = 0
+                search_docs_top_k = 16
             else:
-                st.session_state["xata_history"] = xata_chat_history(
-                    _session_id=current_chat_id
+                search_knowledge_base_top_k = top_k_values.get(
+                    "search_knowledge_base_top_k", 0
                 )
-                st.session_state["messages"] = initialize_messages(
-                    st.session_state["xata_history"].messages
+                search_online_top_k = top_k_values.get("search_online_top_k", 0)
+                search_wikipedia_top_k = top_k_values.get(
+                    "search_wikipedia_top_k", 0
                 )
-    
-            st.divider()
+                search_arxiv_top_k = top_k_values.get("search_arxiv_top_k", 0)
+                search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
 
-            count_ch = count_chat_history(st.session_state["username"], subsription_ms['startDate'])
+        st.markdown(body=ui.sidebar_instructions)
+
+        st.divider()
+
+        col_newchat, col_delete = st.columns([1, 1])
+        with col_newchat:
+
+            def init_new_chat():
+                keys_to_delete = [
+                    "selected_chat_id",
+                    "timestamp",
+                    "first_run",
+                    "messages",
+                    "xata_history",
+                    "uploaded_files",
+                    "faiss_db",
+                ]
+                for key in keys_to_delete:
+                    try:
+                        del st.session_state[key]
+                    except:
+                        pass
+
+            new_chat = st.button(
+                ui.sidebar_newchat_button_label,
+                use_container_width=True,
+                on_click=init_new_chat,
+            )
+
+        with col_delete:
+
+            def delete_chat():
+                delete_chat_history(st.session_state["selected_chat_id"])
+                keys_to_delete = [
+                    "selected_chat_id",
+                    "timestamp",
+                    "first_run",
+                    "messages",
+                    "xata_history",
+                    "uploaded_files",
+                    "faiss_db",
+                ]
+                for key in keys_to_delete:
+                    try:
+                        del st.session_state[key]
+                    except:
+                        pass
+
+            delete_chat = st.button(
+                ui.sidebar_delete_button_label,
+                use_container_width=True,
+                on_click=delete_chat,
+            )
+
+        if "first_run" not in st.session_state:
+            timestamp = time.time()
+            st.session_state["timestamp"] = timestamp
+        else:
+            timestamp = st.session_state["timestamp"]
+
+        try:  # fetch chat history from xata
+            table_map = fetch_chat_history(st.session_state["username"])
+
+            # add new chat to table_map
+            table_map_new = {
+                str(timestamp): datetime.fromtimestamp(timestamp).strftime(
+                    "%Y-%m-%d"
+                )
+                + " : "
+                + ui.sidebar_newchat_label
+            }
+
+            # Merge two dicts
+            table_map = table_map_new | table_map
             
-            startDate = datetime.strptime(subsription_ms['startDate'], "%Y-%m-%dT%H:%M:%S.%fZ")
-            subsription_message = subsription_ms['planName'] + ': ' + startDate.strftime('%Y-%m-%d %H:%M:%S') + ', ' + str(count_ch)
-            st.markdown(subsription_message)
-    except:
-        st.warning(ui.chat_error_message)
+        except:  # if no chat history in xata
+            table_map = {
+                str(timestamp): datetime.fromtimestamp(timestamp).strftime(
+                    "%Y-%m-%d"
+                )
+                + " : "
+                + ui.sidebar_newchat_label
+            }
+
+        # Get all keys from table_map into a list
+        entries = list(table_map.keys())
+        # Check if selected_chat_id exists in session_state, if not set default as the first entry
+        if "selected_chat_id" not in st.session_state:
+            st.session_state["selected_chat_id"] = entries[0]
+
+        # Update the selectbox with the current selected_chat_id value
+        current_chat_id = st.selectbox(
+            label=ui.current_chat_title,
+            label_visibility="collapsed",
+            options=entries,
+            format_func=lambda x: table_map[x],
+        )
+
+        # Save the selected value back to session state
+        st.session_state["selected_chat_id"] = current_chat_id
+
+        if "first_run" not in st.session_state:
+            st.session_state["xata_history"] = xata_chat_history(
+                _session_id=current_chat_id
+            )
+            st.session_state["first_run"] = True
+        else:
+            st.session_state["xata_history"] = xata_chat_history(
+                _session_id=current_chat_id
+            )
+            st.session_state["messages"] = initialize_messages(
+                st.session_state["xata_history"].messages
+            )
+
+        # st.divider()
+
+        # count_ch = count_chat_history(st.session_state["username"], st.session_state["startDate"])
+        
+        # startDate = datetime.strptime(st.session_state["startDate"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        # subsription_message = st.session_state["subsription"] + ': ' + startDate.strftime('%Y-%m-%d %H:%M:%S') + ', ' + str(count_ch)
+        # st.markdown(subsription_message)
+    # except:
+    #     st.warning(ui.chat_error_message)
 
     @utils.enable_chat_history
     def main():

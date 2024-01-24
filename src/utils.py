@@ -11,7 +11,7 @@ from datetime import datetime
 
 import arxiv
 import pdfplumber
-import pinecone
+from pinecone import Pinecone
 import requests
 import streamlit as st
 
@@ -31,7 +31,7 @@ from langchain.chains import LLMChain
 from langchain.chains.openai_functions import create_structured_output_chain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredFileLoader, WikipediaLoader
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.memory import XataChatMessageHistory
 from langchain.prompts import (
     ChatPromptTemplate,
@@ -41,7 +41,7 @@ from langchain.prompts import (
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import DuckDuckGoSearchResults
-from langchain.vectorstores import FAISS, Pinecone
+from langchain.vectorstores import FAISS, Pinecone as LC_Pinecone
 from tenacity import retry, stop_after_attempt, wait_fixed
 from xata.client import XataClient
 
@@ -312,11 +312,26 @@ def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
         return []
 
     embeddings = OpenAIEmbeddings()
-    pinecone.init(
-        api_key=os.environ["PINECONE_API_KEY"],
-        environment=os.environ["PINECONE_ENVIRONMENT"],
+    # pinecone.init(
+    #     api_key=os.environ["PINECONE_API_KEY"],
+    #     environment=os.environ["PINECONE_ENVIRONMENT"],
+    # )
+
+    pinecone = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
     )
-    vectorstore = Pinecone.from_existing_index(
+
+    # pc.create_index(
+    #     name='my_index', 
+    #     dimension=1536, 
+    #     metric='euclidean',
+    #     spec=ServerlessSpec(
+    #         cloud='aws',
+    #         region='us-west-2'
+    #     )
+    # )
+
+    vectorstore = LC_Pinecone.from_existing_index(
         index_name=os.environ["PINECONE_INDEX"],
         embedding=embeddings,
     )
