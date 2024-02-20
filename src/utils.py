@@ -1,4 +1,5 @@
 """utilities used in the app"""
+
 import io
 import os
 import random
@@ -29,9 +30,6 @@ os.environ["PINECONE_INDEX"] = st.secrets["pinecone_index"]
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import LLMChain
 from langchain.chains.openai_functions import create_structured_output_chain
-from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import UnstructuredFileLoader, WikipediaLoader
-from langchain.embeddings import OpenAIEmbeddings
 from langchain.memory import XataChatMessageHistory
 from langchain.prompts import (
     ChatPromptTemplate,
@@ -40,8 +38,11 @@ from langchain.prompts import (
 )
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.tools import DuckDuckGoSearchResults
-from langchain.vectorstores import FAISS, Pinecone
+from langchain_community.chat_models import ChatOpenAI
+from langchain_community.document_loaders import UnstructuredFileLoader, WikipediaLoader
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.tools import DuckDuckGoSearchResults
+from langchain_community.vectorstores import FAISS, Pinecone
 from tenacity import retry, stop_after_attempt, wait_fixed
 from xata.client import XataClient
 
