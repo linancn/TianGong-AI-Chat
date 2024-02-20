@@ -12,7 +12,6 @@ from datetime import datetime
 
 import arxiv
 import pdfplumber
-import pinecone
 import requests
 import streamlit as st
 
@@ -29,7 +28,7 @@ os.environ["PINECONE_INDEX"] = st.secrets["pinecone_index"]
 
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import LLMChain
-from langchain.chains.openai_functions import create_structured_output_chain
+from langchain.chains.openai_functions import create_structured_output_runnable
 from langchain.memory import XataChatMessageHistory
 from langchain.prompts import (
     ChatPromptTemplate,
@@ -38,11 +37,11 @@ from langchain.prompts import (
 )
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.chat_models import ChatOpenAI
 from langchain_community.document_loaders import UnstructuredFileLoader, WikipediaLoader
-from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.tools import DuckDuckGoSearchResults
-from langchain_community.vectorstores import FAISS, Pinecone
+from langchain_community.vectorstores import FAISS
+from langchain_community.vectorstores import Pinecone as LC_Pinecone
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from tenacity import retry, stop_after_attempt, wait_fixed
 from xata.client import XataClient
 
@@ -139,7 +138,7 @@ def func_calling_chain():
         - Defines a JSON schema for structured output that includes query information and date filters.
         - Creates a chat prompt template to instruct the underlying language model on how to generate the desired structured output.
         - Utilizes a language model for structured output generation.
-        - Creates the function calling chain with 'create_structured_output_chain', passing the JSON schema, language model, and chat prompt template as arguments.
+        - Creates the function calling chain with 'create_structured_output_runnable', passing the JSON schema, language model, and chat prompt template as arguments.
 
     Exceptions:
         - This function depends on external modules and classes like 'SystemMessage', 'HumanMessage', 'ChatPromptTemplate', etc. Exceptions may arise if these dependencies encounter issues.
@@ -272,11 +271,10 @@ def func_calling_chain():
 
     llm_func_calling = ChatOpenAI(model_name=llm_model, temperature=0, streaming=False)
 
-    func_calling_chain = create_structured_output_chain(
+    func_calling_chain = create_structured_output_runnable(
         output_schema=func_calling_json_schema,
         llm=llm_func_calling,
         prompt=prompt_func_calling,
-        verbose=langchain_verbose,
     )
 
     return func_calling_chain
@@ -312,15 +310,13 @@ def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
     if top_k == 0:
         return []
 
-    embeddings = OpenAIEmbeddings()
-    pinecone.init(
-        api_key=os.environ["PINECONE_API_KEY"],
-        environment=os.environ["PINECONE_ENVIRONMENT"],
-    )
-    vectorstore = Pinecone.from_existing_index(
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+
+    vectorstore = LC_Pinecone.from_existing_index(
         index_name=os.environ["PINECONE_INDEX"],
         embedding=embeddings,
     )
+
     if filters:
         docs = vectorstore.similarity_search(query, k=top_k, filter=filters)
     else:
@@ -409,7 +405,7 @@ def wiki_query_func_calling_chain():
         - Returns the structured output chain, which can be executed later to obtain the language identifier for a Wikipedia search query.
 
     Exceptions:
-        - This function relies on the create_structured_output_chain function, so any exceptions that occur in that function could propagate.
+        - This function relies on the create_structured_output_runnable function, so any exceptions that occur in that function could propagate.
         - TypeError could be raised if internal components like llm_func_calling or prompt_func_calling do not match the expected types.
 
     Note:
@@ -766,11 +762,10 @@ def wiki_query_func_calling_chain():
 
     llm_func_calling = ChatOpenAI(model_name=llm_model, temperature=0, streaming=False)
 
-    query_func_calling_chain = create_structured_output_chain(
+    query_func_calling_chain = create_structured_output_runnable(
         output_schema=func_calling_json_schema,
         llm=llm_func_calling,
         prompt=prompt_func_calling,
-        verbose=langchain_verbose,
     )
 
     return query_func_calling_chain
@@ -825,7 +820,7 @@ def search_wiki(query: str, top_k=16) -> list:
         )
         chunks.extend(chunk)
 
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
     faiss_db = FAISS.from_documents(chunks, embeddings)
 
     result_docs = faiss_db.similarity_search(query, k=top_k)
@@ -1133,7 +1128,7 @@ def search_arxiv_docs(query: str, top_k=16) -> list:
     if chunks == []:
         return []
 
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
     faiss_db = FAISS.from_documents(chunks, embeddings)
 
     result_docs = faiss_db.similarity_search(query, k=top_k)
@@ -1189,7 +1184,7 @@ def get_faiss_db(uploaded_files):
         except:
             pass
     if chunks != []:
-        embeddings = OpenAIEmbeddings()
+        embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
         faiss_db = FAISS.from_documents(chunks, embeddings)
     else:
         st.warning(ui.sidebar_file_uploader_error)
@@ -1230,43 +1225,43 @@ def search_uploaded_docs(query, top_k=16):
     return docs_list
 
 
-def chat_history_chain():
-    """
-    Creates and returns a Large Language Model (LLM) chain configured to produce highly concise and well-organized chat history.
+# def chat_history_chain():
+#     """
+#     Creates and returns a Large Language Model (LLM) chain configured to produce highly concise and well-organized chat history.
 
-    :return: A configured LLM chain object for producing concise chat histories.
-    :rtype: Object
+#     :return: A configured LLM chain object for producing concise chat histories.
+#     :rtype: Object
 
-    Function Behavior:
-        - Initializes a ChatOpenAI instance for a specific language model.
-        - Configures a prompt template asking for a highly concise and well-organized chat history.
-        - Constructs and returns an LLMChain instance, which uses the configured language model and prompt template.
+#     Function Behavior:
+#         - Initializes a ChatOpenAI instance for a specific language model.
+#         - Configures a prompt template asking for a highly concise and well-organized chat history.
+#         - Constructs and returns an LLMChain instance, which uses the configured language model and prompt template.
 
-    Exceptions:
-        - Exceptions could propagate from underlying dependencies like the ChatOpenAI or LLMChain classes.
-        - TypeError could be raised if internal configurations within the function do not match the expected types.
-    """
+#     Exceptions:
+#         - Exceptions could propagate from underlying dependencies like the ChatOpenAI or LLMChain classes.
+#         - TypeError could be raised if internal configurations within the function do not match the expected types.
+#     """
 
-    llm_chat_history = ChatOpenAI(
-        model=llm_model_cheap,
-        temperature=0,
-        streaming=False,
-        verbose=langchain_verbose,
-    )
+#     llm_chat_history = ChatOpenAI(
+#         model=llm_model_cheap,
+#         temperature=0,
+#         streaming=False,
+#         verbose=langchain_verbose,
+#     )
 
-    template = """Return highly concise and well-organized chat history from: {input}. Do not include any references."""
-    prompt = PromptTemplate(
-        input_variables=["input"],
-        template=template,
-    )
+#     template = """Return highly concise and well-organized chat history from: {input}. Do not include any references."""
+#     prompt = PromptTemplate(
+#         input_variables=["input"],
+#         template=template,
+#     )
 
-    chat_history_chain = LLMChain(
-        llm=llm_chat_history,
-        prompt=prompt,
-        verbose=langchain_verbose,
-    )
+#     chat_history_chain = LLMChain(
+#         llm=llm_chat_history,
+#         prompt=prompt,
+#         verbose=langchain_verbose,
+#     )
 
-    return chat_history_chain
+#     return chat_history_chain
 
 
 def main_chain():
@@ -1377,7 +1372,7 @@ def enable_chat_history(func):
 
         st.session_state["messages"] = [
             {
-                "role": "assistant",
+                "role": "ai",
                 "avatar": ui.chat_ai_avatar,
                 "content": welcome_message_text,
             }
@@ -1516,17 +1511,17 @@ def convert_history_to_message(history):
 
     Function Behavior:
         - Checks the type of the incoming history object.
-        - Transforms it into a dictionary containing the role ('user' or 'assistant') and the content of the message.
+        - Transforms it into a dictionary containing the role ('human' or 'ai') and the content of the message.
     """
     if isinstance(history, HumanMessage):
         return {
-            "role": "user",
+            "role": "human",
             "avatar": ui.chat_user_avatar,
             "content": history.content,
         }
     elif isinstance(history, AIMessage):
         return {
-            "role": "assistant",
+            "role": "ai",
             "avatar": ui.chat_ai_avatar,
             "content": history.content,
         }
@@ -1563,7 +1558,7 @@ def initialize_messages(history):
 
     # add welcome message
     welcome_message = {
-        "role": "assistant",
+        "role": "ai",
         "avatar": ui.chat_ai_avatar,
         "content": welcome_message_text,
     }
