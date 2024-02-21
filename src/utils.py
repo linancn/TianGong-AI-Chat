@@ -22,11 +22,10 @@ os.environ["LLM_MODEL"] = st.secrets["llm_model"]
 os.environ["LANGCHAIN_VERBOSE"] = str(st.secrets["langchain_verbose"])
 os.environ["PASSWORD"] = st.secrets["password"]
 os.environ["PINECONE_API_KEY"] = st.secrets["pinecone_api_key"]
-os.environ["PINECONE_ENVIRONMENT"] = st.secrets["pinecone_environment"]
-os.environ["PINECONE_INDEX"] = st.secrets["pinecone_index"]
-os.environ["PINECOE_EMBEDDING_MODEL"] = st.secrets["pinecone_embedding_model"]
+os.environ["PINECONE_INDEX_NAME"] = st.secrets["pinecone_index_name"]
+os.environ["PINECONE_EMBEDDING_MODEL"] = st.secrets["pinecone_embedding_model"]
 
-from langchain.callbacks.base import BaseCallbackHandler
+
 from langchain.chains import LLMChain
 from langchain.chains.openai_functions import create_structured_output_runnable
 from langchain.memory import XataChatMessageHistory
@@ -40,8 +39,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import UnstructuredFileLoader, WikipediaLoader
 from langchain_community.tools import DuckDuckGoSearchResults
 from langchain_community.vectorstores import FAISS
-from langchain_community.vectorstores import Pinecone as LC_Pinecone
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_pinecone import Pinecone
 from tenacity import retry, stop_after_attempt, wait_fixed
 from xata.client import XataClient
 
@@ -309,31 +308,60 @@ def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
     if top_k == 0:
         return []
 
-    embeddings = OpenAIEmbeddings(model=os.environ["PINECOE_EMBEDDING_MODEL"])
+    embeddings = OpenAIEmbeddings(model=os.environ["PINECONE_EMBEDDING_MODEL"])
 
-    vectorstore = LC_Pinecone.from_existing_index(
-        index_name=os.environ["PINECONE_INDEX"],
-        embedding=embeddings,
-    )
+    vectorstore = Pinecone(embedding=embeddings, namespace="sci")
 
     if filters:
         docs = vectorstore.similarity_search(query, k=top_k, filter=filters)
     else:
         docs = vectorstore.similarity_search(query, k=top_k)
 
+    doi_set = set()
+    for doc in docs:
+        doi_set.add(doc.metadata["doi"])
+
+    xata_docs = XataClient(db_url=st.secrets["xata_docs_url"])
+
+    xata_response = xata_docs.data().query(
+        "journals",
+        {
+            "columns": ["doi", "title", "authors"],
+            "filter": {
+                "doi": {"$any": list(doi_set)},
+            },
+        },
+    )
+    records = xata_response.get("records", [])
+    records_dict = {record["doi"]: record for record in records}
+
     docs_list = []
     for doc in docs:
         try:
-            date = datetime.fromtimestamp(doc.metadata["created_at"])
+            record = records_dict.get(doc.metadata["doi"], {})
+            authors = ", ".join(record["authors"]) if record.get("authors") else ""
+            date = datetime.fromtimestamp(doc.metadata["date"])
             formatted_date = date.strftime("%Y-%m")  # Format date as 'YYYY-MM'
+            url = "https://doi.org/{}".format(doc.metadata["doi"])
             source_entry = "[{}. {}. {}. {}.]({})".format(
-                doc.metadata["source_id"],
-                doc.metadata["source"],
-                doc.metadata["author"],
+                record["title"],
+                doc.metadata["journal"],
+                authors,
                 formatted_date,
-                doc.metadata["url"],
+                url,
             )
             docs_list.append({"content": doc.page_content, "source": source_entry})
+
+            # date = datetime.fromtimestamp(doc.metadata["created_at"])
+            # formatted_date = date.strftime("%Y-%m")  # Format date as 'YYYY-MM'
+            # source_entry = "[{}. {}. {}. {}.]({})".format(
+            #     doc.metadata["source_id"],
+            #     doc.metadata["source"],
+            #     doc.metadata["author"],
+            #     formatted_date,
+            #     doc.metadata["url"],
+            # )
+            # docs_list.append({"content": doc.page_content, "source": source_entry})
         except:
             docs_list.append(
                 {"content": doc.page_content, "source": doc.metadata["source"]}
@@ -819,7 +847,7 @@ def search_wiki(query: str, top_k=16) -> list:
         )
         chunks.extend(chunk)
 
-    embeddings = OpenAIEmbeddings(model=os.environ["PINECOE_EMBEDDING_MODEL"])
+    embeddings = OpenAIEmbeddings(model=os.environ["PINECONE_EMBEDDING_MODEL"])
     faiss_db = FAISS.from_documents(chunks, embeddings)
 
     result_docs = faiss_db.similarity_search(query, k=top_k)
@@ -1127,7 +1155,7 @@ def search_arxiv_docs(query: str, top_k=16) -> list:
     if chunks == []:
         return []
 
-    embeddings = OpenAIEmbeddings(model=os.environ["PINECOE_EMBEDDING_MODEL"])
+    embeddings = OpenAIEmbeddings(model=os.environ["PINECONE_EMBEDDING_MODEL"])
     faiss_db = FAISS.from_documents(chunks, embeddings)
 
     result_docs = faiss_db.similarity_search(query, k=top_k)
@@ -1183,7 +1211,7 @@ def get_faiss_db(uploaded_files):
         except:
             pass
     if chunks != []:
-        embeddings = OpenAIEmbeddings(model=os.environ["PINECOE_EMBEDDING_MODEL"])
+        embeddings = OpenAIEmbeddings(model=os.environ["PINECONE_EMBEDDING_MODEL"])
         faiss_db = FAISS.from_documents(chunks, embeddings)
     else:
         st.warning(ui.sidebar_file_uploader_error)
@@ -1222,7 +1250,6 @@ def search_uploaded_docs(query, top_k=16):
         docs_list.append({"content": doc.page_content, "source": source_entry})
 
     return docs_list
-
 
 
 def main_chain():

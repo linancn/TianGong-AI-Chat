@@ -5,6 +5,7 @@ fastapi
 itsdangerous
 langchain
 langchain-openai
+langchain-pinecone
 openai
 pdfplumber
 pinecone-client
