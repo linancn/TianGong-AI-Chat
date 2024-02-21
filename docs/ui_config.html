@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ui_config module &mdash; TianGong-AI-Chat  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=aabb00ec" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -56,10 +58,11 @@
 <li><a class="reference internal" href="#ui_config.UI"><code class="docutils literal notranslate"><span class="pre">UI</span></code></a><ul>
 <li><a class="reference internal" href="#ui_config.UI.chat_ai_avatar"><code class="docutils literal notranslate"><span class="pre">UI.chat_ai_avatar</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.chat_ai_welcome"><code class="docutils literal notranslate"><span class="pre">UI.chat_ai_welcome</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.chat_error_message"><code class="docutils literal notranslate"><span class="pre">UI.chat_error_message</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.chat_human_placeholder"><code class="docutils literal notranslate"><span class="pre">UI.chat_human_placeholder</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.chat_user_avatar"><code class="docutils literal notranslate"><span class="pre">UI.chat_user_avatar</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.current_chat_title"><code class="docutils literal notranslate"><span class="pre">UI.current_chat_title</span></code></a></li>
-<li><a class="reference internal" href="#ui_config.UI.need_passwd"><code class="docutils literal notranslate"><span class="pre">UI.need_passwd</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.need_fixed_passwd"><code class="docutils literal notranslate"><span class="pre">UI.need_fixed_passwd</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.page_icon"><code class="docutils literal notranslate"><span class="pre">UI.page_icon</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.page_markdown"><code class="docutils literal notranslate"><span class="pre">UI.page_markdown</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.page_title"><code class="docutils literal notranslate"><span class="pre">UI.page_title</span></code></a></li>
@@ -77,11 +80,23 @@
 <li><a class="reference internal" href="#ui_config.UI.sidebar_file_uploader_spinner"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_file_uploader_spinner</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.sidebar_file_uploader_title"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_file_uploader_title</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.sidebar_image"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_image</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.sidebar_instructions"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_instructions</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.sidebar_markdown"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_markdown</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.sidebar_newchat_button_label"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_newchat_button_label</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.sidebar_newchat_label"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_newchat_label</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.sidebar_subheader"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_subheader</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.sidebar_title"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_title</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.sidebar_welcome_text"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_welcome_text</span></code></a></li>
 <li><a class="reference internal" href="#ui_config.UI.theme"><code class="docutils literal notranslate"><span class="pre">UI.theme</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.wix_login_button_label"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_button_label</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.wix_login_error_icon"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_error_icon</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.wix_login_error_text"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_error_text</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.wix_login_password_label"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_password_label</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.wix_login_title"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_title</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.wix_login_username_label"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_username_label</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.wix_login_wait"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_wait</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.wix_signup_button_label"><code class="docutils literal notranslate"><span class="pre">UI.wix_signup_button_label</span></code></a></li>
+<li><a class="reference internal" href="#ui_config.UI.wix_signup_button_url"><code class="docutils literal notranslate"><span class="pre">UI.wix_signup_button_url</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ui_config.create_ui_from_config"><code class="docutils literal notranslate"><span class="pre">create_ui_from_config()</span></code></a></li>
@@ -153,7 +168,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="ui_config.UI">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui_config.</span></span><span class="sig-name descname"><span class="pre">UI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">need_passwd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ui_config.Theme" title="ui_config.Theme"><span class="pre">ui_config.Theme</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_markdown</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_subheader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_markdown</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_expander_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_knowledge_base_checkbox_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_internet_checkbox_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_wikipedia_checkbox_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_arxiv_checkbox_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_docs_checkbox_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_docs_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_docs_options_isolated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_docs_options_combined</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_file_uploader_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_file_uploader_spinner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_file_uploader_error</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_newchat_button_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_delete_button_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_chat_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chat_ai_avatar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chat_user_avatar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chat_ai_welcome</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chat_human_placeholder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ui_config.UI" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui_config.</span></span><span class="sig-name descname"><span class="pre">UI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">need_fixed_passwd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wix_login_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wix_login_username_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wix_login_password_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wix_login_button_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wix_signup_button_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wix_signup_button_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wix_login_error_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wix_login_error_icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ui_config.Theme" title="ui_config.Theme"><span class="pre">ui_config.Theme</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_markdown</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_subheader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_welcome_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_markdown</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_expander_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_knowledge_base_checkbox_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_internet_checkbox_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_wikipedia_checkbox_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_arxiv_checkbox_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_docs_checkbox_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_docs_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_docs_options_isolated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_docs_options_combined</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_file_uploader_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_file_uploader_spinner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_file_uploader_error</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_instructions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_newchat_button_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_delete_button_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidebar_newchat_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_chat_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chat_ai_avatar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chat_user_avatar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chat_ai_welcome</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chat_human_placeholder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chat_error_message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wix_login_wait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ui_config.UI" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="ui_config.UI.chat_ai_avatar">
@@ -163,6 +178,11 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="ui_config.UI.chat_ai_welcome">
 <span class="sig-name descname"><span class="pre">chat_ai_welcome</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.chat_ai_welcome" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.chat_error_message">
+<span class="sig-name descname"><span class="pre">chat_error_message</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.chat_error_message" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -181,8 +201,8 @@
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="ui_config.UI.need_passwd">
-<span class="sig-name descname"><span class="pre">need_passwd</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ui_config.UI.need_passwd" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="ui_config.UI.need_fixed_passwd">
+<span class="sig-name descname"><span class="pre">need_fixed_passwd</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ui_config.UI.need_fixed_passwd" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -271,6 +291,11 @@
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.sidebar_instructions">
+<span class="sig-name descname"><span class="pre">sidebar_instructions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.sidebar_instructions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="ui_config.UI.sidebar_markdown">
 <span class="sig-name descname"><span class="pre">sidebar_markdown</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.sidebar_markdown" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -278,6 +303,11 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="ui_config.UI.sidebar_newchat_button_label">
 <span class="sig-name descname"><span class="pre">sidebar_newchat_button_label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.sidebar_newchat_button_label" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.sidebar_newchat_label">
+<span class="sig-name descname"><span class="pre">sidebar_newchat_label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.sidebar_newchat_label" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -291,8 +321,58 @@
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.sidebar_welcome_text">
+<span class="sig-name descname"><span class="pre">sidebar_welcome_text</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.sidebar_welcome_text" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="ui_config.UI.theme">
 <span class="sig-name descname"><span class="pre">theme</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#ui_config.Theme" title="ui_config.Theme"><span class="pre">Theme</span></a></em><a class="headerlink" href="#ui_config.UI.theme" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.wix_login_button_label">
+<span class="sig-name descname"><span class="pre">wix_login_button_label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.wix_login_button_label" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.wix_login_error_icon">
+<span class="sig-name descname"><span class="pre">wix_login_error_icon</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.wix_login_error_icon" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.wix_login_error_text">
+<span class="sig-name descname"><span class="pre">wix_login_error_text</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.wix_login_error_text" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.wix_login_password_label">
+<span class="sig-name descname"><span class="pre">wix_login_password_label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.wix_login_password_label" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.wix_login_title">
+<span class="sig-name descname"><span class="pre">wix_login_title</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.wix_login_title" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.wix_login_username_label">
+<span class="sig-name descname"><span class="pre">wix_login_username_label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.wix_login_username_label" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.wix_login_wait">
+<span class="sig-name descname"><span class="pre">wix_login_wait</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.wix_login_wait" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.wix_signup_button_label">
+<span class="sig-name descname"><span class="pre">wix_signup_button_label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.wix_signup_button_label" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui_config.UI.wix_signup_button_url">
+<span class="sig-name descname"><span class="pre">wix_signup_button_url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ui_config.UI.wix_signup_button_url" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

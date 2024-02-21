@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>src &mdash; TianGong-AI-Chat  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=aabb00ec" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -74,6 +76,15 @@
 <h1>src<a class="headerlink" href="#src" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="main.html#main.redirect_to_streamlit"><code class="docutils literal notranslate"><span class="pre">redirect_to_streamlit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="main.html#main.verify_credentials"><code class="docutils literal notranslate"><span class="pre">verify_credentials()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sensitivity_checker.html">sensitivity_checker module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sensitivity_checker.html#sensitivity_checker.check_text_sensitivity"><code class="docutils literal notranslate"><span class="pre">check_text_sensitivity()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="top_k_mappings.html">top_k_mappings module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ui.html">ui package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ui.html#submodules">Submodules</a></li>
@@ -94,10 +105,11 @@
 <li class="toctree-l2"><a class="reference internal" href="ui_config.html#ui_config.UI"><code class="docutils literal notranslate"><span class="pre">UI</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.chat_ai_avatar"><code class="docutils literal notranslate"><span class="pre">UI.chat_ai_avatar</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.chat_ai_welcome"><code class="docutils literal notranslate"><span class="pre">UI.chat_ai_welcome</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.chat_error_message"><code class="docutils literal notranslate"><span class="pre">UI.chat_error_message</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.chat_human_placeholder"><code class="docutils literal notranslate"><span class="pre">UI.chat_human_placeholder</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.chat_user_avatar"><code class="docutils literal notranslate"><span class="pre">UI.chat_user_avatar</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.current_chat_title"><code class="docutils literal notranslate"><span class="pre">UI.current_chat_title</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.need_passwd"><code class="docutils literal notranslate"><span class="pre">UI.need_passwd</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.need_fixed_passwd"><code class="docutils literal notranslate"><span class="pre">UI.need_fixed_passwd</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.page_icon"><code class="docutils literal notranslate"><span class="pre">UI.page_icon</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.page_markdown"><code class="docutils literal notranslate"><span class="pre">UI.page_markdown</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.page_title"><code class="docutils literal notranslate"><span class="pre">UI.page_title</span></code></a></li>
@@ -115,11 +127,23 @@
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.sidebar_file_uploader_spinner"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_file_uploader_spinner</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.sidebar_file_uploader_title"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_file_uploader_title</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.sidebar_image"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_image</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.sidebar_instructions"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_instructions</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.sidebar_markdown"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_markdown</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.sidebar_newchat_button_label"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_newchat_button_label</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.sidebar_newchat_label"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_newchat_label</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.sidebar_subheader"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_subheader</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.sidebar_title"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_title</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.sidebar_welcome_text"><code class="docutils literal notranslate"><span class="pre">UI.sidebar_welcome_text</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.theme"><code class="docutils literal notranslate"><span class="pre">UI.theme</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.wix_login_button_label"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_button_label</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.wix_login_error_icon"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_error_icon</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.wix_login_error_text"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_error_text</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.wix_login_password_label"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_password_label</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.wix_login_title"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_title</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.wix_login_username_label"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_username_label</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.wix_login_wait"><code class="docutils literal notranslate"><span class="pre">UI.wix_login_wait</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.wix_signup_button_label"><code class="docutils literal notranslate"><span class="pre">UI.wix_signup_button_label</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ui_config.html#ui_config.UI.wix_signup_button_url"><code class="docutils literal notranslate"><span class="pre">UI.wix_signup_button_url</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ui_config.html#ui_config.create_ui_from_config"><code class="docutils literal notranslate"><span class="pre">create_ui_from_config()</span></code></a></li>
@@ -130,7 +154,6 @@
 <li class="toctree-l3"><a class="reference internal" href="utils.html#utils.StreamHandler.on_llm_new_token"><code class="docutils literal notranslate"><span class="pre">StreamHandler.on_llm_new_token()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#utils.chat_history_chain"><code class="docutils literal notranslate"><span class="pre">chat_history_chain()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#utils.check_password"><code class="docutils literal notranslate"><span class="pre">check_password()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#utils.convert_history_to_message"><code class="docutils literal notranslate"><span class="pre">convert_history_to_message()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#utils.delete_chat_history"><code class="docutils literal notranslate"><span class="pre">delete_chat_history()</span></code></a></li>
@@ -151,6 +174,16 @@
 <li class="toctree-l2"><a class="reference internal" href="utils.html#utils.search_wiki"><code class="docutils literal notranslate"><span class="pre">search_wiki()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#utils.wiki_query_func_calling_chain"><code class="docutils literal notranslate"><span class="pre">wiki_query_func_calling_chain()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#utils.xata_chat_history"><code class="docutils literal notranslate"><span class="pre">xata_chat_history()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="wix_oauth.html">wix_oauth module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="wix_oauth.html#wix_oauth.check_wix_oauth"><code class="docutils literal notranslate"><span class="pre">check_wix_oauth()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="wix_oauth.html#wix_oauth.generate_code_challenge"><code class="docutils literal notranslate"><span class="pre">generate_code_challenge()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="wix_oauth.html#wix_oauth.get_highest_active_subscription"><code class="docutils literal notranslate"><span class="pre">get_highest_active_subscription()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="wix_oauth.html#wix_oauth.get_member_access_token"><code class="docutils literal notranslate"><span class="pre">get_member_access_token()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="wix_oauth.html#wix_oauth.get_subscription"><code class="docutils literal notranslate"><span class="pre">get_subscription()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="wix_oauth.html#wix_oauth.wix_get_access_token"><code class="docutils literal notranslate"><span class="pre">wix_get_access_token()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="wix_oauth.html#wix_oauth.wix_get_callback_url"><code class="docutils literal notranslate"><span class="pre">wix_get_callback_url()</span></code></a></li>
 </ul>
 </li>
 </ul>

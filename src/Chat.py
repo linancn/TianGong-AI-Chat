@@ -6,7 +6,6 @@ from datetime import datetime
 
 import streamlit as st
 from langchain.schema import AIMessage, HumanMessage
-from langchain_community.callbacks import StreamlitCallbackHandler
 from streamlit.web.server.websocket_headers import _get_websocket_headers
 
 import ui_config
@@ -15,6 +14,7 @@ import wix_oauth as wix_oauth
 from sensitivity_checker import check_text_sensitivity
 from top_k_mappings import top_k_mappings
 from utils import (
+    StreamHandler,
     check_password,
     delete_chat_history,
     fetch_chat_history,
@@ -398,7 +398,7 @@ Must Avoid:
                         input = f"""Respond to "{user_query}". If "{chat_history_recent}" is not empty, use it as chat context."""
 
                     with st.chat_message("ai", avatar=ui.chat_ai_avatar):
-                        st_callback = StreamlitCallbackHandler(st.container())
+                        st_callback = StreamHandler(st.empty())
                         response = main_chain().invoke(
                             {"input": input},
                             {"callbacks": [st_callback]},

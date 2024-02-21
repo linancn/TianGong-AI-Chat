@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Index &mdash; TianGong-AI-Chat  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=aabb00ec" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -84,6 +86,7 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  | <a href="#X"><strong>X</strong></a>
  
@@ -107,15 +110,19 @@
 </li>
       <li><a href="ui_config.html#ui_config.UI.chat_ai_welcome">chat_ai_welcome (ui_config.UI attribute)</a>
 </li>
-      <li><a href="utils.html#utils.chat_history_chain">chat_history_chain() (in module utils)</a>
+      <li><a href="ui_config.html#ui_config.UI.chat_error_message">chat_error_message (ui_config.UI attribute)</a>
 </li>
       <li><a href="ui_config.html#ui_config.UI.chat_human_placeholder">chat_human_placeholder (ui_config.UI attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ui_config.html#ui_config.UI.chat_user_avatar">chat_user_avatar (ui_config.UI attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils.html#utils.check_password">check_password() (in module utils)</a>
+</li>
+      <li><a href="sensitivity_checker.html#sensitivity_checker.check_text_sensitivity">check_text_sensitivity() (in module sensitivity_checker)</a>
+</li>
+      <li><a href="wix_oauth.html#wix_oauth.check_wix_oauth">check_wix_oauth() (in module wix_oauth)</a>
 </li>
       <li><a href="utils.html#utils.convert_history_to_message">convert_history_to_message() (in module utils)</a>
 </li>
@@ -163,7 +170,17 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="wix_oauth.html#wix_oauth.generate_code_challenge">generate_code_challenge() (in module wix_oauth)</a>
+</li>
       <li><a href="utils.html#utils.get_faiss_db">get_faiss_db() (in module utils)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="wix_oauth.html#wix_oauth.get_highest_active_subscription">get_highest_active_subscription() (in module wix_oauth)</a>
+</li>
+      <li><a href="wix_oauth.html#wix_oauth.get_member_access_token">get_member_access_token() (in module wix_oauth)</a>
+</li>
+      <li><a href="wix_oauth.html#wix_oauth.get_subscription">get_subscription() (in module wix_oauth)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -183,12 +200,23 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    main
+
+      <ul>
+        <li><a href="main.html#module-main">module</a>
+</li>
+      </ul></li>
       <li><a href="utils.html#utils.main_chain">main_chain() (in module utils)</a>
 </li>
       <li>
     module
 
       <ul>
+        <li><a href="main.html#module-main">main</a>
+</li>
+        <li><a href="sensitivity_checker.html#module-sensitivity_checker">sensitivity_checker</a>
+</li>
         <li><a href="top_k_mappings.html#module-top_k_mappings">top_k_mappings</a>
 </li>
         <li><a href="ui.html#module-ui">ui</a>
@@ -197,6 +225,8 @@
 </li>
         <li><a href="utils.html#module-utils">utils</a>
 </li>
+        <li><a href="wix_oauth.html#module-wix_oauth">wix_oauth</a>
+</li>
       </ul></li>
   </ul></td>
 </tr></table>
@@ -204,7 +234,7 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ui_config.html#ui_config.UI.need_passwd">need_passwd (ui_config.UI attribute)</a>
+      <li><a href="ui_config.html#ui_config.UI.need_fixed_passwd">need_fixed_passwd (ui_config.UI attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -241,6 +271,10 @@
       <li><a href="utils.html#utils.random_email">random_email() (in module utils)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="main.html#main.redirect_to_streamlit">redirect_to_streamlit() (in module main)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="S">S</h2>
@@ -270,12 +304,19 @@
 </li>
       <li><a href="utils.html#utils.search_wiki">search_wiki() (in module utils)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ui_config.html#ui_config.UI.search_wikipedia_checkbox_label">search_wikipedia_checkbox_label (ui_config.UI attribute)</a>
 </li>
       <li><a href="ui_config.html#ui_config.Theme.secondaryBackgroundColor">secondaryBackgroundColor (ui_config.Theme attribute)</a>
 </li>
+      <li>
+    sensitivity_checker
+
+      <ul>
+        <li><a href="sensitivity_checker.html#module-sensitivity_checker">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ui_config.html#ui_config.UI.sidebar_delete_button_label">sidebar_delete_button_label (ui_config.UI attribute)</a>
 </li>
       <li><a href="ui_config.html#ui_config.UI.sidebar_expander_title">sidebar_expander_title (ui_config.UI attribute)</a>
@@ -288,13 +329,19 @@
 </li>
       <li><a href="ui_config.html#ui_config.UI.sidebar_image">sidebar_image (ui_config.UI attribute)</a>
 </li>
+      <li><a href="ui_config.html#ui_config.UI.sidebar_instructions">sidebar_instructions (ui_config.UI attribute)</a>
+</li>
       <li><a href="ui_config.html#ui_config.UI.sidebar_markdown">sidebar_markdown (ui_config.UI attribute)</a>
 </li>
       <li><a href="ui_config.html#ui_config.UI.sidebar_newchat_button_label">sidebar_newchat_button_label (ui_config.UI attribute)</a>
 </li>
+      <li><a href="ui_config.html#ui_config.UI.sidebar_newchat_label">sidebar_newchat_label (ui_config.UI attribute)</a>
+</li>
       <li><a href="ui_config.html#ui_config.UI.sidebar_subheader">sidebar_subheader (ui_config.UI attribute)</a>
 </li>
       <li><a href="ui_config.html#ui_config.UI.sidebar_title">sidebar_title (ui_config.UI attribute)</a>
+</li>
+      <li><a href="ui_config.html#ui_config.UI.sidebar_welcome_text">sidebar_welcome_text (ui_config.UI attribute)</a>
 </li>
       <li><a href="utils.html#utils.StreamHandler">StreamHandler (class in utils)</a>
 </li>
@@ -353,10 +400,49 @@
   </ul></td>
 </tr></table>
 
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="main.html#main.verify_credentials">verify_credentials() (in module main)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils.html#utils.wiki_query_func_calling_chain">wiki_query_func_calling_chain() (in module utils)</a>
+</li>
+      <li><a href="wix_oauth.html#wix_oauth.wix_get_access_token">wix_get_access_token() (in module wix_oauth)</a>
+</li>
+      <li><a href="wix_oauth.html#wix_oauth.wix_get_callback_url">wix_get_callback_url() (in module wix_oauth)</a>
+</li>
+      <li><a href="ui_config.html#ui_config.UI.wix_login_button_label">wix_login_button_label (ui_config.UI attribute)</a>
+</li>
+      <li><a href="ui_config.html#ui_config.UI.wix_login_error_icon">wix_login_error_icon (ui_config.UI attribute)</a>
+</li>
+      <li><a href="ui_config.html#ui_config.UI.wix_login_error_text">wix_login_error_text (ui_config.UI attribute)</a>
+</li>
+      <li><a href="ui_config.html#ui_config.UI.wix_login_password_label">wix_login_password_label (ui_config.UI attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ui_config.html#ui_config.UI.wix_login_title">wix_login_title (ui_config.UI attribute)</a>
+</li>
+      <li><a href="ui_config.html#ui_config.UI.wix_login_username_label">wix_login_username_label (ui_config.UI attribute)</a>
+</li>
+      <li><a href="ui_config.html#ui_config.UI.wix_login_wait">wix_login_wait (ui_config.UI attribute)</a>
+</li>
+      <li>
+    wix_oauth
+
+      <ul>
+        <li><a href="wix_oauth.html#module-wix_oauth">module</a>
+</li>
+      </ul></li>
+      <li><a href="ui_config.html#ui_config.UI.wix_signup_button_label">wix_signup_button_label (ui_config.UI attribute)</a>
+</li>
+      <li><a href="ui_config.html#ui_config.UI.wix_signup_button_url">wix_signup_button_url (ui_config.UI attribute)</a>
 </li>
   </ul></td>
 </tr></table>
