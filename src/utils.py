@@ -19,7 +19,6 @@ os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
 os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
 os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
 os.environ["LLM_MODEL"] = st.secrets["llm_model"]
-os.environ["LLM_MODEL_CHEAP"] = st.secrets["llm_model_cheap"]
 os.environ["LANGCHAIN_VERBOSE"] = str(st.secrets["langchain_verbose"])
 os.environ["PASSWORD"] = st.secrets["password"]
 os.environ["PINECONE_API_KEY"] = st.secrets["pinecone_api_key"]
@@ -52,7 +51,6 @@ ui = ui_config.create_ui_from_config()
 
 
 llm_model = os.environ["LLM_MODEL"]
-llm_model_cheap = os.environ["LLM_MODEL_CHEAP"]
 langchain_verbose = bool(os.environ.get("LANGCHAIN_VERBOSE", "True") == "True")
 
 
@@ -1225,44 +1223,6 @@ def search_uploaded_docs(query, top_k=16):
 
     return docs_list
 
-
-# def chat_history_chain():
-#     """
-#     Creates and returns a Large Language Model (LLM) chain configured to produce highly concise and well-organized chat history.
-
-#     :return: A configured LLM chain object for producing concise chat histories.
-#     :rtype: Object
-
-#     Function Behavior:
-#         - Initializes a ChatOpenAI instance for a specific language model.
-#         - Configures a prompt template asking for a highly concise and well-organized chat history.
-#         - Constructs and returns an LLMChain instance, which uses the configured language model and prompt template.
-
-#     Exceptions:
-#         - Exceptions could propagate from underlying dependencies like the ChatOpenAI or LLMChain classes.
-#         - TypeError could be raised if internal configurations within the function do not match the expected types.
-#     """
-
-#     llm_chat_history = ChatOpenAI(
-#         model=llm_model_cheap,
-#         temperature=0,
-#         streaming=False,
-#         verbose=langchain_verbose,
-#     )
-
-#     template = """Return highly concise and well-organized chat history from: {input}. Do not include any references."""
-#     prompt = PromptTemplate(
-#         input_variables=["input"],
-#         template=template,
-#     )
-
-#     chat_history_chain = LLMChain(
-#         llm=llm_chat_history,
-#         prompt=prompt,
-#         verbose=langchain_verbose,
-#     )
-
-#     return chat_history_chain
 
 
 def main_chain():
