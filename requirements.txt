@@ -19,5 +19,6 @@ tiktoken
 toml
 unstructured[all-docs]
 uvicorn[standard]
+weaviate-client
 wikipedia
 xata

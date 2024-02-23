@@ -26,6 +26,7 @@ from utils import (
     search_arxiv_docs,
     search_internet,
     search_pinecone,
+    search_weaviate,
     search_uploaded_docs,
     search_wiki,
     xata_chat_history,
@@ -367,6 +368,12 @@ if "logged_in" in st.session_state:
                                 top_k=search_knowledge_base_top_k,
                             )
                         )
+                        # docs_response.extend(
+                        #     search_weaviate(
+                        #         query=query,
+                        #         top_k=search_knowledge_base_top_k,
+                        #     )
+                        # )
                         docs_response.extend(
                             search_internet(query, top_k=search_online_top_k)
                         )

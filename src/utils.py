@@ -26,6 +26,7 @@ os.environ["PINECONE_INDEX_NAME"] = st.secrets["pinecone_index_name"]
 os.environ["PINECONE_EMBEDDING_MODEL"] = st.secrets["pinecone_embedding_model"]
 
 
+import weaviate
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import LLMChain
 from langchain.chains.openai_functions import create_structured_output_runnable
@@ -367,6 +368,56 @@ def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
             docs_list.append(
                 {"content": doc.page_content, "source": doc.metadata["source"]}
             )
+
+    return docs_list
+
+
+def search_weaviate(query: str, top_k: int = 16):
+    """
+    Performs a similarity search on Weaviate's vector database based on a given query and returns a list of relevant documents.
+
+    :param query: The query to be used for similarity search in Weaviate's vector database.
+    :type query: str
+    :param top_k: The number of top matching documents to return. Defaults to 16.
+    :type top_k: int or None
+    :returns: A list of dictionaries, each containing the content and source of the matched documents. The function returns an empty list if 'top_k' is set to 0.
+    :rtype: list of dicts
+
+    Function Behavior:
+        - Initializes Weaviate with the specified API key and environment.
+        - Conducts a similarity search based on the provided query.
+        - Extracts and formats the relevant document information before returning.
+
+    Exceptions:
+        - This function relies on Weaviate and Python's os library. Exceptions could propagate if there are issues related to API keys, environment variables, or Weaviate initialization.
+        - TypeError could be raised if the types of 'query' or 'top_k' do not match the expected types.
+
+    Note:
+        - Ensure the Weaviate API key and environment variables are set before running this function.
+        - The function uses 'OpenAIEmbeddings' to initialize Weaviate's vector store, which should be compatible with the embeddings in the Weaviate index.
+    """
+
+    if top_k == 0:
+        return []
+
+    client = weaviate.connect_to_local(host="localhost")
+
+    try:
+        water = client.collections.get("Water")
+        response = water.query.near_text(
+        query=query,
+        limit=top_k
+    )
+    
+    finally:
+        client.close()
+
+
+    docs_list = []
+    for doc in response.objects:
+        docs_list.append(
+            {"content": doc.properties["answer"], "source": doc.properties["source"]}
+        )
 
     return docs_list
 
