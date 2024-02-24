@@ -17,7 +17,8 @@ from utils import (StreamHandler, check_password, delete_chat_history,
                    fetch_chat_history, func_calling_chain, get_faiss_db,
                    initialize_messages, main_chain, random_email,
                    search_arxiv_docs, search_internet, search_pinecone,
-                   search_uploaded_docs, search_wiki, xata_chat_history)
+                   search_uploaded_docs, search_weaviate, search_wiki,
+                   xata_chat_history)
 
 ui = ui_config.create_ui_from_config()
 st.set_page_config(page_title=ui.page_title, layout="wide", page_icon=ui.page_icon)
@@ -274,7 +275,7 @@ if "logged_in" in st.session_state:
                 st.session_state["messages"] = initialize_messages(
                     st.session_state["xata_history"].messages
                 )
-
+                
             # st.divider()
 
             # count_ch = count_chat_history(st.session_state["username"], st.session_state["startDate"])
@@ -369,6 +370,12 @@ if "logged_in" in st.session_state:
                                 top_k=search_knowledge_base_top_k,
                             )
                         )
+                        # docs_response.extend(
+                        #     search_weaviate(
+                        #         query=query,
+                        #         top_k=search_knowledge_base_top_k,
+                        #     )
+                        # )
                         docs_response.extend(
                             search_internet(query, top_k=search_online_top_k)
                         )

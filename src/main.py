@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Depends, HTTPException, Response, status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import secrets
+
+from fastapi import Depends, FastAPI, HTTPException, Response, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 app = FastAPI()
 

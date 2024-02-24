@@ -4,8 +4,8 @@ faiss-cpu
 fastapi
 itsdangerous
 langchain
-langchain-community
 langchain-openai
+langchain-pinecone
 openai
 pdfplumber
 pinecone-client
@@ -19,5 +19,6 @@ tiktoken
 toml
 unstructured[all-docs]
 uvicorn[standard]
+weaviate-client
 wikipedia
 xata

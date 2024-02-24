@@ -61,7 +61,7 @@ class UI:
     chat_ai_welcome: str
     chat_human_placeholder: str
     chat_error_message: str
-    wix_login_wait: str
+    wix_login_wait:str
 
 
 def create_ui_from_config():
