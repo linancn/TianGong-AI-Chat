@@ -12,6 +12,7 @@ ui = ui_config.create_ui_from_config()
 
 CLIENT_ID = st.secrets["wix_client_id"]
 
+
 def generate_code_challenge(code_verifier):
     # SHA-256
     hashed_verifier = hashlib.sha256(code_verifier.encode()).digest()
@@ -99,7 +100,7 @@ def get_member_access_token(code: str):
 
 def get_highest_active_subscription(orders):
     # Define priority levels
-    priority = {"Elite": 3, "Pro": 2, "Beta test": 1}
+    priority = {"Elite": 3, "Pro": 2, "Basic": 1}
 
     # Find all orders with "ACTIVE" status
     active_orders = [order for order in orders if order["status"] == "ACTIVE"]
@@ -112,12 +113,12 @@ def get_highest_active_subscription(orders):
 
     return highest_order
 
+
 def get_subscription(member_access_token: str) -> str:
     orders_response = requests.get(
         "https://www.wixapis.com/pricing-plans/v2/member/orders",
         headers={"authorization": member_access_token},
     )
-
     orders = json.loads(orders_response.text)["orders"]
 
     subscription = get_highest_active_subscription(orders)
@@ -125,7 +126,7 @@ def get_subscription(member_access_token: str) -> str:
     return subscription
 
 
-def check_wix_oauth() -> (bool, str, str, object):
+def check_wix_oauth() -> (bool, str, str, str): # type: ignore
     component_url = st.secrets["component_url"]
     placeholder = st.empty()
 
@@ -151,7 +152,7 @@ def check_wix_oauth() -> (bool, str, str, object):
             wix_access_token = wix_get_access_token()
             st.session_state["wix_callback_url"] = wix_get_callback_url(
                 access_token=wix_access_token, username=username, password=password
-            )        
+            )
 
         if "wix_callback_url" in st.session_state:
             if st.session_state["wix_callback_url"] is not None:

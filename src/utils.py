@@ -1,4 +1,5 @@
 """utilities used in the app"""
+
 import io
 import os
 import random
@@ -11,7 +12,6 @@ from datetime import datetime
 
 import arxiv
 import pdfplumber
-from pinecone import Pinecone
 import requests
 import streamlit as st
 
@@ -19,29 +19,27 @@ os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
 os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
 os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
 os.environ["LLM_MODEL"] = st.secrets["llm_model"]
-os.environ["LLM_MODEL_CHEAP"] = st.secrets["llm_model_cheap"]
 os.environ["LANGCHAIN_VERBOSE"] = str(st.secrets["langchain_verbose"])
 os.environ["PASSWORD"] = st.secrets["password"]
 os.environ["PINECONE_API_KEY"] = st.secrets["pinecone_api_key"]
-os.environ["PINECONE_ENVIRONMENT"] = st.secrets["pinecone_environment"]
-os.environ["PINECONE_INDEX"] = st.secrets["pinecone_index"]
+os.environ["PINECONE_INDEX_NAME"] = st.secrets["pinecone_index_name"]
+os.environ["PINECONE_EMBEDDING_MODEL"] = st.secrets["pinecone_embedding_model"]
+
 
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import LLMChain
-from langchain.chains.openai_functions import create_structured_output_chain
-from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import UnstructuredFileLoader, WikipediaLoader
-from langchain_openai import OpenAIEmbeddings
+from langchain.chains.openai_functions import create_structured_output_runnable
 from langchain.memory import XataChatMessageHistory
-from langchain.prompts import (
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    PromptTemplate,
-)
+from langchain.prompts import (ChatPromptTemplate, HumanMessagePromptTemplate,
+                               PromptTemplate)
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.tools import DuckDuckGoSearchResults
-from langchain.vectorstores import FAISS, Pinecone as LC_Pinecone
+from langchain_community.document_loaders import (UnstructuredFileLoader,
+                                                  WikipediaLoader)
+from langchain_community.tools import DuckDuckGoSearchResults
+from langchain_community.vectorstores import FAISS
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_pinecone import Pinecone
 from tenacity import retry, stop_after_attempt, wait_fixed
 from xata.client import XataClient
 
@@ -51,7 +49,6 @@ ui = ui_config.create_ui_from_config()
 
 
 llm_model = os.environ["LLM_MODEL"]
-llm_model_cheap = os.environ["LLM_MODEL_CHEAP"]
 langchain_verbose = bool(os.environ.get("LANGCHAIN_VERBOSE", "True") == "True")
 
 
@@ -138,7 +135,7 @@ def func_calling_chain():
         - Defines a JSON schema for structured output that includes query information and date filters.
         - Creates a chat prompt template to instruct the underlying language model on how to generate the desired structured output.
         - Utilizes a language model for structured output generation.
-        - Creates the function calling chain with 'create_structured_output_chain', passing the JSON schema, language model, and chat prompt template as arguments.
+        - Creates the function calling chain with 'create_structured_output_runnable', passing the JSON schema, language model, and chat prompt template as arguments.
 
     Exceptions:
         - This function depends on external modules and classes like 'SystemMessage', 'HumanMessage', 'ChatPromptTemplate', etc. Exceptions may arise if these dependencies encounter issues.
@@ -271,11 +268,10 @@ def func_calling_chain():
 
     llm_func_calling = ChatOpenAI(model_name=llm_model, temperature=0, streaming=False)
 
-    func_calling_chain = create_structured_output_chain(
+    func_calling_chain = create_structured_output_runnable(
         output_schema=func_calling_json_schema,
         llm=llm_func_calling,
         prompt=prompt_func_calling,
-        verbose=langchain_verbose,
     )
 
     return func_calling_chain
@@ -311,48 +307,60 @@ def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
     if top_k == 0:
         return []
 
-    embeddings = OpenAIEmbeddings()
-    # pinecone.init(
-    #     api_key=os.environ["PINECONE_API_KEY"],
-    #     environment=os.environ["PINECONE_ENVIRONMENT"],
-    # )
+    embeddings = OpenAIEmbeddings(model=os.environ["PINECONE_EMBEDDING_MODEL"])
 
-    pinecone = Pinecone(
-        api_key=os.environ.get("PINECONE_API_KEY")
-    )
+    vectorstore = Pinecone(embedding=embeddings, namespace="sci")
 
-    # pc.create_index(
-    #     name='my_index', 
-    #     dimension=1536, 
-    #     metric='euclidean',
-    #     spec=ServerlessSpec(
-    #         cloud='aws',
-    #         region='us-west-2'
-    #     )
-    # )
-
-    vectorstore = LC_Pinecone.from_existing_index(
-        index_name=os.environ["PINECONE_INDEX"],
-        embedding=embeddings,
-    )
     if filters:
         docs = vectorstore.similarity_search(query, k=top_k, filter=filters)
     else:
         docs = vectorstore.similarity_search(query, k=top_k)
 
+    doi_set = set()
+    for doc in docs:
+        doi_set.add(doc.metadata["doi"])
+
+    xata_docs = XataClient(db_url=st.secrets["xata_docs_url"])
+
+    xata_response = xata_docs.data().query(
+        "journals",
+        {
+            "columns": ["doi", "title", "authors"],
+            "filter": {
+                "doi": {"$any": list(doi_set)},
+            },
+        },
+    )
+    records = xata_response.get("records", [])
+    records_dict = {record["doi"]: record for record in records}
+
     docs_list = []
     for doc in docs:
         try:
-            date = datetime.fromtimestamp(doc.metadata["created_at"])
+            record = records_dict.get(doc.metadata["doi"], {})
+            authors = ", ".join(record["authors"]) if record.get("authors") else ""
+            date = datetime.fromtimestamp(doc.metadata["date"])
             formatted_date = date.strftime("%Y-%m")  # Format date as 'YYYY-MM'
+            url = "https://doi.org/{}".format(doc.metadata["doi"])
             source_entry = "[{}. {}. {}. {}.]({})".format(
-                doc.metadata["source_id"],
-                doc.metadata["source"],
-                doc.metadata["author"],
+                record["title"],
+                doc.metadata["journal"],
+                authors,
                 formatted_date,
-                doc.metadata["url"],
+                url,
             )
             docs_list.append({"content": doc.page_content, "source": source_entry})
+
+            # date = datetime.fromtimestamp(doc.metadata["created_at"])
+            # formatted_date = date.strftime("%Y-%m")  # Format date as 'YYYY-MM'
+            # source_entry = "[{}. {}. {}. {}.]({})".format(
+            #     doc.metadata["source_id"],
+            #     doc.metadata["source"],
+            #     doc.metadata["author"],
+            #     formatted_date,
+            #     doc.metadata["url"],
+            # )
+            # docs_list.append({"content": doc.page_content, "source": source_entry})
         except:
             docs_list.append(
                 {"content": doc.page_content, "source": doc.metadata["source"]}
@@ -423,7 +431,7 @@ def wiki_query_func_calling_chain():
         - Returns the structured output chain, which can be executed later to obtain the language identifier for a Wikipedia search query.
 
     Exceptions:
-        - This function relies on the create_structured_output_chain function, so any exceptions that occur in that function could propagate.
+        - This function relies on the create_structured_output_runnable function, so any exceptions that occur in that function could propagate.
         - TypeError could be raised if internal components like llm_func_calling or prompt_func_calling do not match the expected types.
 
     Note:
@@ -780,11 +788,10 @@ def wiki_query_func_calling_chain():
 
     llm_func_calling = ChatOpenAI(model_name=llm_model, temperature=0, streaming=False)
 
-    query_func_calling_chain = create_structured_output_chain(
+    query_func_calling_chain = create_structured_output_runnable(
         output_schema=func_calling_json_schema,
         llm=llm_func_calling,
         prompt=prompt_func_calling,
-        verbose=langchain_verbose,
     )
 
     return query_func_calling_chain
@@ -839,7 +846,7 @@ def search_wiki(query: str, top_k=16) -> list:
         )
         chunks.extend(chunk)
 
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(model=os.environ["PINECONE_EMBEDDING_MODEL"])
     faiss_db = FAISS.from_documents(chunks, embeddings)
 
     result_docs = faiss_db.similarity_search(query, k=top_k)
@@ -1147,7 +1154,7 @@ def search_arxiv_docs(query: str, top_k=16) -> list:
     if chunks == []:
         return []
 
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(model=os.environ["PINECONE_EMBEDDING_MODEL"])
     faiss_db = FAISS.from_documents(chunks, embeddings)
 
     result_docs = faiss_db.similarity_search(query, k=top_k)
@@ -1203,7 +1210,7 @@ def get_faiss_db(uploaded_files):
         except:
             pass
     if chunks != []:
-        embeddings = OpenAIEmbeddings()
+        embeddings = OpenAIEmbeddings(model=os.environ["PINECONE_EMBEDDING_MODEL"])
         faiss_db = FAISS.from_documents(chunks, embeddings)
     else:
         st.warning(ui.sidebar_file_uploader_error)
@@ -1244,45 +1251,6 @@ def search_uploaded_docs(query, top_k=16):
     return docs_list
 
 
-def chat_history_chain():
-    """
-    Creates and returns a Large Language Model (LLM) chain configured to produce highly concise and well-organized chat history.
-
-    :return: A configured LLM chain object for producing concise chat histories.
-    :rtype: Object
-
-    Function Behavior:
-        - Initializes a ChatOpenAI instance for a specific language model.
-        - Configures a prompt template asking for a highly concise and well-organized chat history.
-        - Constructs and returns an LLMChain instance, which uses the configured language model and prompt template.
-
-    Exceptions:
-        - Exceptions could propagate from underlying dependencies like the ChatOpenAI or LLMChain classes.
-        - TypeError could be raised if internal configurations within the function do not match the expected types.
-    """
-
-    llm_chat_history = ChatOpenAI(
-        model=llm_model_cheap,
-        temperature=0,
-        streaming=False,
-        verbose=langchain_verbose,
-    )
-
-    template = """Return highly concise and well-organized chat history from: {input}. Do not include any references."""
-    prompt = PromptTemplate(
-        input_variables=["input"],
-        template=template,
-    )
-
-    chat_history_chain = LLMChain(
-        llm=llm_chat_history,
-        prompt=prompt,
-        verbose=langchain_verbose,
-    )
-
-    return chat_history_chain
-
-
 def main_chain():
     """
     Creates and returns a main Large Language Model (LLM) chain configured to produce responses only to science-related queries while avoiding sensitive topics.
@@ -1307,7 +1275,7 @@ def main_chain():
         verbose=langchain_verbose,
     )
 
-    template = """{input} DO NOT return any information on politics, ethnicity, gender, national sovereignty, or other sensitive topics."""
+    template = """You MUST ONLY response to science-related quests. DO NOT return any information on politics, ethnicity, gender, national sovereignty, or other sensitive topics. {input}"""
 
     prompt = PromptTemplate(
         input_variables=["input"],
@@ -1321,6 +1289,26 @@ def main_chain():
     )
 
     return chain
+
+
+class StreamHandler(BaseCallbackHandler):
+    """
+    A handler class for streaming text to a Streamlit container during the Language Learning Model (LLM) operation.
+    """
+
+    def __init__(self, container, initial_text=""):
+        self.container = container
+        self.text = initial_text
+
+    def on_llm_new_token(self, token: str, **kwargs):
+        """
+        Callback function for when a new token is generated by the LLM.
+        :param token: The newly generated token.
+        :type token: str
+        :param kwargs: Additional keyword arguments, if any.
+        """
+        self.text += token
+        self.container.markdown(self.text)
 
 
 def xata_chat_history(_session_id: str):
@@ -1391,7 +1379,7 @@ def enable_chat_history(func):
 
         st.session_state["messages"] = [
             {
-                "role": "assistant",
+                "role": "ai",
                 "avatar": ui.chat_ai_avatar,
                 "content": welcome_message_text,
             }
@@ -1404,27 +1392,6 @@ def enable_chat_history(func):
         func(*args, **kwargs)
 
     return execute
-
-
-class StreamHandler(BaseCallbackHandler):
-    """
-    A handler class for streaming text to a Streamlit container during the Language Learning Model (LLM) operation.
-    """
-
-    def __init__(self, container, initial_text=""):
-        self.container = container
-        self.text = initial_text
-
-    def on_llm_new_token(self, token: str, **kwargs):
-        """
-        Callback function for when a new token is generated by the LLM.
-
-        :param token: The newly generated token.
-        :type token: str
-        :param kwargs: Additional keyword arguments, if any.
-        """
-        self.text += token
-        self.container.markdown(self.text)
 
 
 def is_valid_email(email: str) -> bool:
@@ -1530,17 +1497,17 @@ def convert_history_to_message(history):
 
     Function Behavior:
         - Checks the type of the incoming history object.
-        - Transforms it into a dictionary containing the role ('user' or 'assistant') and the content of the message.
+        - Transforms it into a dictionary containing the role ('human' or 'ai') and the content of the message.
     """
     if isinstance(history, HumanMessage):
         return {
-            "role": "user",
+            "role": "human",
             "avatar": ui.chat_user_avatar,
             "content": history.content,
         }
     elif isinstance(history, AIMessage):
         return {
-            "role": "assistant",
+            "role": "ai",
             "avatar": ui.chat_ai_avatar,
             "content": history.content,
         }
@@ -1577,14 +1544,13 @@ def initialize_messages(history):
 
     # add welcome message
     welcome_message = {
-        "role": "assistant",
+        "role": "ai",
         "avatar": ui.chat_ai_avatar,
         "content": welcome_message_text,
     }
     messages.insert(0, welcome_message)
 
     return messages
-
 
 def count_chat_history(username: str, startDate: str):
     if is_valid_email(username):
