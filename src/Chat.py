@@ -106,9 +106,14 @@ if "logged_in" in st.session_state:
                 search_arxiv = False
                 # search_arxiv = st.toggle(ui.search_arxiv_checkbox_label, value=False)
 
-                search_docs = st.toggle(
-                    ui.search_docs_checkbox_label, value=False, disabled=True
-                )
+                if "subsription" in st.session_state and st.session_state["subsription"] == "Elite":
+                    search_docs = st.toggle(
+                        ui.search_docs_checkbox_label, value=False, disabled=False
+                    )
+                else:
+                    search_docs = st.toggle(
+                        ui.search_docs_checkbox_label, value=False, disabled=True
+                    )
 
                 # search_knowledge_base = True
                 # search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
