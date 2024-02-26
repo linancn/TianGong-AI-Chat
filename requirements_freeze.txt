@@ -29,7 +29,7 @@ cffi==1.16.0
 chardet==4.0.0
 charset-normalizer==3.3.0
 cleo==0.8.1
-cliapp==1.20180812.1
+cliapp==1.0.9
 click==8.1.7
 clikit==0.6.2
 cloud-init==19.1.23
