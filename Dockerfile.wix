@@ -1,4 +1,4 @@
-FROM python:3.11.5-bullseye
+FROM python:3.11-bullseye
 
 # Install dependencies
 RUN apt-get update
@@ -24,7 +24,7 @@ COPY requirements_freeze.txt requirements.txt
 RUN pip install --upgrade pip
 
 # Install pip packages
-RUN pip install -r requirements.txt --upgrade
+RUN pip install -r requirements.txt
 
 # Copy the current directory contents into the container at /app
 COPY .streamlit/  ./.streamlit/

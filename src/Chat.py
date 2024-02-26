@@ -41,7 +41,7 @@ if "username" not in st.session_state or st.session_state["username"] is None:
                 auth,
                 st.session_state["username"],
                 st.session_state["subsription"],  # planName
-                st.session_state["startDate"],
+                st.session_state["startDate"]
             ) = wix_oauth.check_wix_oauth()
         except:
             pass

@@ -1,7 +1,7 @@
-ui\_config module
+wix\_oauth module
 =================
 
-.. automodule:: ui_config
+.. automodule:: wix_oauth
    :members:
    :undoc-members:
    :show-inheritance:

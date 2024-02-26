@@ -4,6 +4,14 @@ ui package
 Submodules
 ----------
 
+ui.kaiwu\-en module
+-------------------
+
+.. automodule:: ui.kaiwu-en
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ui.tiangong\-en module
 ----------------------
 
