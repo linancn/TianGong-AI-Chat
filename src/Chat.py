@@ -26,8 +26,8 @@ from utils import (
     search_arxiv_docs,
     search_internet,
     search_pinecone,
-    search_weaviate,
     search_uploaded_docs,
+    search_weaviate,
     search_wiki,
     xata_chat_history,
 )
@@ -264,10 +264,8 @@ if "logged_in" in st.session_state:
                 label_visibility="collapsed",
                 options=entries,
                 format_func=lambda x: table_map[x],
+                key="selected_chat_id",
             )
-
-            # Save the selected value back to session state
-            st.session_state["selected_chat_id"] = current_chat_id
 
             if "first_run" not in st.session_state:
                 st.session_state["xata_history"] = xata_chat_history(
@@ -392,12 +390,11 @@ if "logged_in" in st.session_state:
 - Use the chat context from "{chat_history_recent}" (if available) to adjust the level of detail in your response.
 - Employ bullet points selectively, where they add clarity or organization.
 - Cite sources in main text using the Author-Date citation style where applicable.
-- Provide a list of full references with hyperlinks, at the end for only the sources mentioned in the text.
+- Provide a list of references in markdown format of [title.journal.authors.date.](hyperlinks) at the end (journal, authors, date are optional), only for the references mentioned in the generated text.
 - Use LaTeX quoted by '$' or '$$' within markdown to render mathematical formulas.
 
 Must Avoid:
 - Repeat the human's query.
-- Repeat information or including redundancies.
 - Translate cited references into the query's language.
 - Preface responses with any designation such as "AI:"."""
 

@@ -42,7 +42,7 @@ from langchain_community.document_loaders import UnstructuredFileLoader, Wikiped
 from langchain_community.tools import DuckDuckGoSearchResults
 from langchain_community.vectorstores import FAISS
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_pinecone import Pinecone
+from langchain_pinecone import PineconeVectorStore
 from tenacity import retry, stop_after_attempt, wait_fixed
 from xata.client import XataClient
 
@@ -312,7 +312,7 @@ def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
 
     embeddings = OpenAIEmbeddings(model=os.environ["PINECONE_EMBEDDING_MODEL"])
 
-    vectorstore = Pinecone(embedding=embeddings, namespace="sci")
+    vectorstore = PineconeVectorStore(embedding=embeddings, namespace="sci")
 
     if filters:
         docs = vectorstore.similarity_search(query, k=top_k, filter=filters)
@@ -1323,12 +1323,12 @@ def main_chain():
 
     llm_chat = ChatOpenAI(
         model=llm_model,
-        temperature=0.2,
+        temperature=0,
         streaming=True,
         verbose=langchain_verbose,
     )
 
-    template = """You MUST ONLY response to science-related quests. DO NOT return any information on politics, ethnicity, gender, national sovereignty, or other sensitive topics. {input}"""
+    template = """{input}"""
 
     prompt = PromptTemplate(
         input_variables=["input"],
