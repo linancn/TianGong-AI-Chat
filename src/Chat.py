@@ -41,7 +41,6 @@ if "username" not in st.session_state or st.session_state["username"] is None:
                 auth,
                 st.session_state["username"],
                 st.session_state["subsription"],  # planName
-                st.session_state["startDate"]
             ) = wix_oauth.check_wix_oauth()
         except:
             pass
@@ -171,9 +170,6 @@ if "logged_in" in st.session_state:
 
             st.markdown(body=ui.sidebar_instructions)
             
-            # if "subsription" not in st.session_state or st.session_state["subsription"] == None:
-            #     st.markdown("<font color='red'><b>You don't have a valid subscription plan.</b></font> You can subscribe to the program <a href='https://www.kaiwu.info/zh/plans-pricing'>here</a>.", unsafe_allow_html=True)
-
             st.divider()
 
             col_newchat, col_delete = st.columns([1, 1])

@@ -8,13 +8,15 @@ ui_data = {
         Welcome to Kaiwu Chat
     </p>
     """,
-    "wix_login_username_label": "Email Address",
-    "wix_login_password_label": "Password",
-    "wix_login_button_label": "Log in",
-    "wix_signup_button_label": "Sign up on Kaiwu.info 🌐",
-    "wix_login_error_text": "Login failed, please check your username and password.",
-    "wix_signup_button_url": "https://www.kaiwu.info/",
+    "wix_login_username_label": "Email Address / 电子邮箱",
+    "wix_login_password_label": "Password / 密码",
+    "wix_login_button_label": "Login / 登录",
+    "wix_signup_button_label": "Subscribe / 付费订阅 🌐",
+    "wix_signup_button_url": "https://www.kaiwu.info/zh/plans-pricing",
     "wix_login_error_icon": "🚨",
+    "wix_login_error_text": "Login failed, please check your username and password.",
+    "wix_login_no_active_subscription_icon": "🚫",
+    "wix_login_no_active_subscription_text": "Login failed: No active subscription found. (您没有生效的订阅。)",
     "theme": {
         "primaryColor": "#1499E3",
     },
@@ -75,12 +77,12 @@ ui_data = {
             </table>
         </div>
         """,
-    "sidebar_expander_title": "Sources:",
-    "search_knowledge_base_checkbox_label": "📂 Knowledge Base",
-    "search_internet_checkbox_label": "Internet",
+    "sidebar_expander_title": "Sources / 数据源:",
+    "search_knowledge_base_checkbox_label": "📂 Knowledge Base / 知识库",
+    "search_internet_checkbox_label": "Internet / 互联网",
     "search_wikipedia_checkbox_label": "Wikipedia",
     "search_arxiv_checkbox_label": "arXiv",
-    "search_docs_checkbox_label": "Documents",
+    "search_docs_checkbox_label": "Documents / 文档",
     "search_docs_options": "Options:",
     "search_docs_options_isolated": "Isolated",
     "search_docs_options_combined": "Combined",
