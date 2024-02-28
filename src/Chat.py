@@ -13,9 +13,9 @@ import utils
 import wix_oauth as wix_oauth
 from sensitivity_checker import check_text_sensitivity
 from top_k_mappings import top_k_mappings
-from utils import (StreamHandler, check_password, delete_chat_history,
-                   fetch_chat_history, func_calling_chain, get_faiss_db,
-                   initialize_messages, main_chain, random_email,
+from utils import (StreamHandler, check_password, count_chat_history,
+                   delete_chat_history, fetch_chat_history, func_calling_chain,
+                   get_faiss_db, initialize_messages, main_chain, random_email,
                    search_arxiv_docs, search_internet, search_pinecone,
                    search_uploaded_docs, search_weaviate, search_wiki,
                    xata_chat_history)
@@ -89,6 +89,7 @@ if "logged_in" in st.session_state:
                         subscription=st.session_state["subsription"],
                     )
                 )
+                st.session_state["count_chat_history"] = count_chat_history(st.session_state["username"])
 
             with st.expander(ui.sidebar_expander_title, expanded=True):
                 search_knowledge_base = st.toggle(
@@ -169,6 +170,9 @@ if "logged_in" in st.session_state:
                     search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
 
             st.markdown(body=ui.sidebar_instructions)
+            
+            # if "subsription" not in st.session_state or st.session_state["subsription"] == None:
+            #     st.markdown("<font color='red'><b>You don't have a valid subscription plan.</b></font> You can subscribe to the program <a href='https://www.kaiwu.info/zh/plans-pricing'>here</a>.", unsafe_allow_html=True)
 
             st.divider()
 
@@ -263,10 +267,8 @@ if "logged_in" in st.session_state:
                 label_visibility="collapsed",
                 options=entries,
                 format_func=lambda x: table_map[x],
+                key="selected_chat_id",
             )
-
-            # Save the selected value back to session state
-            st.session_state["selected_chat_id"] = current_chat_id
 
             if "first_run" not in st.session_state:
                 st.session_state["xata_history"] = xata_chat_history(
@@ -280,14 +282,11 @@ if "logged_in" in st.session_state:
                 st.session_state["messages"] = initialize_messages(
                     st.session_state["xata_history"].messages
                 )
-                
-            # st.divider()
 
-            # count_ch = count_chat_history(st.session_state["username"], st.session_state["startDate"])
-            
-            # startDate = datetime.strptime(st.session_state["startDate"], "%Y-%m-%dT%H:%M:%S.%fZ")
-            # subsription_message = st.session_state["subsription"] + ': ' + startDate.strftime('%Y-%m-%d %H:%M:%S') + ', ' + str(count_ch)
-            # st.markdown(subsription_message)
+            # count_ch = count_chat_history(st.session_state["username"])
+            # st.markdown("The Subscription Plan: " + st.session_state["subsription"])
+            # subsription_message = "Usage Times in This Time Range: " + str(count_ch)
+            # st.markdown("Usage Times in This Time Range: " + str(st.session_state["count_chat_history"]))
     except:
         st.warning(ui.chat_error_message)
 
@@ -399,12 +398,11 @@ if "logged_in" in st.session_state:
 - Use the chat context from "{chat_history_recent}" (if available) to adjust the level of detail in your response.
 - Employ bullet points selectively, where they add clarity or organization.
 - Cite sources in main text using the Author-Date citation style where applicable.
-- Provide a list of full references with hyperlinks, at the end for only the sources mentioned in the text.
+- Provide a list of references in markdown format of [title.journal.authors.date.](hyperlinks) at the end (journal, authors, date are optional), only for the references mentioned in the generated text.
 - Use LaTeX quoted by '$' or '$$' within markdown to render mathematical formulas.
 
 Must Avoid:
 - Repeat the human's query.
-- Repeat information or including redundancies.
 - Translate cited references into the query's language.
 - Preface responses with any designation such as "AI:"."""
 

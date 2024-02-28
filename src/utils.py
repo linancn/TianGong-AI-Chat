@@ -12,12 +12,15 @@ from datetime import datetime
 
 import arxiv
 import pdfplumber
+import pytz
 import requests
 import streamlit as st
 
 os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
 os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
+os.environ["XATA_DOCS_API_KEY"] = st.secrets["xata_docs_api_key"]
 os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
+os.environ["XATA_DOCS_URL"] = st.secrets["xata_docs_url"]
 os.environ["LLM_MODEL"] = st.secrets["llm_model"]
 os.environ["LANGCHAIN_VERBOSE"] = str(st.secrets["langchain_verbose"])
 os.environ["PASSWORD"] = st.secrets["password"]
@@ -40,7 +43,7 @@ from langchain_community.document_loaders import (UnstructuredFileLoader,
 from langchain_community.tools import DuckDuckGoSearchResults
 from langchain_community.vectorstores import FAISS
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_pinecone import Pinecone
+from langchain_pinecone import PineconeVectorStore
 from tenacity import retry, stop_after_attempt, wait_fixed
 from xata.client import XataClient
 
@@ -310,7 +313,7 @@ def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
 
     embeddings = OpenAIEmbeddings(model=os.environ["PINECONE_EMBEDDING_MODEL"])
 
-    vectorstore = Pinecone(embedding=embeddings, namespace="sci")
+    vectorstore = PineconeVectorStore(embedding=embeddings, namespace="sci")
 
     if filters:
         docs = vectorstore.similarity_search(query, k=top_k, filter=filters)
@@ -321,7 +324,9 @@ def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
     for doc in docs:
         doi_set.add(doc.metadata["doi"])
 
-    xata_docs = XataClient(db_url=st.secrets["xata_docs_url"])
+    xata_docs = XataClient(
+        api_key=os.environ["XATA_DOCS_API_KEY"], db_url=os.environ["XATA_DOCS_URL"]
+    )
 
     xata_response = xata_docs.data().query(
         "journals",
@@ -402,14 +407,10 @@ def search_weaviate(query: str, top_k: int = 16):
 
     try:
         water = client.collections.get("Water")
-        response = water.query.near_text(
-        query=query,
-        limit=top_k
-    )
-    
+        response = water.query.near_text(query=query, limit=top_k)
+
     finally:
         client.close()
-
 
     docs_list = []
     for doc in response.objects:
@@ -1321,12 +1322,12 @@ def main_chain():
 
     llm_chat = ChatOpenAI(
         model=llm_model,
-        temperature=0.2,
+        temperature=0,
         streaming=True,
         verbose=langchain_verbose,
     )
 
-    template = """You MUST ONLY response to science-related quests. DO NOT return any information on politics, ethnicity, gender, national sovereignty, or other sensitive topics. {input}"""
+    template = """{input}"""
 
     prompt = PromptTemplate(
         input_variables=["input"],
@@ -1603,16 +1604,20 @@ def initialize_messages(history):
 
     return messages
 
-# def count_chat_history(username: str, startDate: str):
-#     if is_valid_email(username):
-#         client = XataClient()
-#         response = client.sql().query(
-#             f"""SELECT count(*) as c
-#     FROM "tiangong_memory"
-#     WHERE "additionalKwargs"->>'id' = '{username}' and "xata.createdAt" > '{startDate}' and "type" = 'ai'
-#     """
-#         )
-#         records = response["records"]
-#         return records[0]['c']
-#     else:
-#         return 0
+
+def count_chat_history(username: str):
+    if is_valid_email(username):
+        now = datetime.now(pytz.UTC)
+        beginHour = (now.hour // 3) * 3
+        beginDatetime = datetime(now.year, now.month, now.day, beginHour)
+        client = XataClient()
+        response = client.sql().query(
+            f"""SELECT count(*) as c
+    FROM "tiangong_memory"
+    WHERE "additionalKwargs"->>'id' = '{username}' and "xata.createdAt" > '{beginDatetime.strftime("%Y-%m-%d %H:%M:%S")}' and "type" = 'ai'
+    """
+        )
+        records = response["records"]
+        return records[0]["c"]
+    else:
+        return 0
