@@ -17,7 +17,9 @@ import streamlit as st
 
 os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
 os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
+os.environ["XATA_DOCS_API_KEY"] = st.secrets["xata_docs_api_key"]
 os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
+os.environ["XATA_DOCS_URL"] = st.secrets["xata_docs_url"]
 os.environ["LLM_MODEL"] = st.secrets["llm_model"]
 os.environ["LANGCHAIN_VERBOSE"] = str(st.secrets["langchain_verbose"])
 os.environ["PASSWORD"] = st.secrets["password"]
@@ -323,7 +325,9 @@ def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
     for doc in docs:
         doi_set.add(doc.metadata["doi"])
 
-    xata_docs = XataClient(db_url=st.secrets["xata_docs_url"])
+    xata_docs = XataClient(
+        api_key=os.environ["XATA_DOCS_API_KEY"], db_url=os.environ["XATA_DOCS_URL"]
+    )
 
     xata_response = xata_docs.data().query(
         "journals",
@@ -404,14 +408,10 @@ def search_weaviate(query: str, top_k: int = 16):
 
     try:
         water = client.collections.get("Water")
-        response = water.query.near_text(
-        query=query,
-        limit=top_k
-    )
-    
+        response = water.query.near_text(query=query, limit=top_k)
+
     finally:
         client.close()
-
 
     docs_list = []
     for doc in response.objects:
