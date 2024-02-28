@@ -15,10 +15,10 @@ from sensitivity_checker import check_text_sensitivity
 from top_k_mappings import top_k_mappings
 from utils import (StreamHandler, check_password, count_chat_history,
                    delete_chat_history, fetch_chat_history, func_calling_chain,
-                   get_faiss_db, initialize_messages, main_chain, random_email,
-                   search_arxiv_docs, search_internet, search_pinecone,
-                   search_uploaded_docs, search_weaviate, search_wiki,
-                   xata_chat_history)
+                   get_begin_datetime, get_faiss_db, initialize_messages,
+                   main_chain, random_email, search_arxiv_docs,
+                   search_internet, search_pinecone, search_uploaded_docs,
+                   search_weaviate, search_wiki, xata_chat_history)
 
 ui = ui_config.create_ui_from_config()
 st.set_page_config(page_title=ui.page_title, layout="wide", page_icon=ui.page_icon)
@@ -88,7 +88,6 @@ if "logged_in" in st.session_state:
                         subscription=st.session_state["subsription"],
                     )
                 )
-                st.session_state["count_chat_history"] = count_chat_history(st.session_state["username"])
 
             with st.expander(ui.sidebar_expander_title, expanded=True):
                 search_knowledge_base = st.toggle(
@@ -279,10 +278,6 @@ if "logged_in" in st.session_state:
                     st.session_state["xata_history"].messages
                 )
 
-            # count_ch = count_chat_history(st.session_state["username"])
-            # st.markdown("The Subscription Plan: " + st.session_state["subsription"])
-            # subsription_message = "Usage Times in This Time Range: " + str(count_ch)
-            # st.markdown("Usage Times in This Time Range: " + str(st.session_state["count_chat_history"]))
     except:
         st.warning(ui.chat_error_message)
 
@@ -291,142 +286,160 @@ if "logged_in" in st.session_state:
         if "xata_history_refresh" not in st.session_state:
             user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
             if user_query:
-                st.chat_message("human", avatar=ui.chat_user_avatar).markdown(
-                    user_query
-                )
-                st.session_state["messages"].append(
-                    {"role": "human", "content": user_query}
-                )
-                human_message = HumanMessage(
-                    content=user_query,
-                    additional_kwargs={"id": st.session_state["username"]},
-                )
-                st.session_state["xata_history"].add_message(human_message)
-
-                # check text sensitivity
-                answer = check_text_sensitivity(user_query)["answer"]
-                if answer is not None:
-                    with st.chat_message("ai", avatar=ui.chat_ai_avatar):
-                        st.markdown(answer)
-                        st.session_state["messages"].append(
-                            {
-                                "role": "ai",
-                                "content": answer,
-                            }
-                        )
-                        ai_message = AIMessage(
-                            content=answer,
-                            additional_kwargs={"id": st.session_state["username"]},
-                        )
-                        st.session_state["xata_history"].add_message(ai_message)
+                beginDatetime = get_begin_datetime()
+                if "count_chat_history" not in st.session_state or "begin_hour" not in st.session_state:
+                    st.session_state["begin_hour"] = beginDatetime.hour
+                    st.session_state["count_chat_history"] = count_chat_history(st.session_state["username"], beginDatetime)
                 else:
-                    current_message = st.session_state["messages"][-8:][1:][:-1]
-                    for item in current_message:
-                        item.pop("avatar", None)
+                    if st.session_state["begin_hour"] != beginDatetime.hour or st.session_state["count_chat_history"] % 10 == 0:
+                        st.session_state["begin_hour"] = beginDatetime.hour
+                        st.session_state["count_chat_history"] = count_chat_history(st.session_state["username"], beginDatetime)
 
-                    chat_history_recent = str(current_message)
+                if (not ("subsription" in st.session_state and st.session_state["subsription"] == "Elite")) and st.session_state["count_chat_history"] > 39:
+                    time_range_str = str(beginDatetime.hour) + ":00 - " + str(beginDatetime.hour + 3) + ":00"
+                    st.chat_message("ai", avatar=ui.chat_ai_avatar).markdown(
+                        "You have reached the usage limit for this time range (UTC " + time_range_str + "). Please try again later. (您已达到 UTC " + time_range_str + " 时间范围的使用限制，请稍后再试。)"
+                    )
 
-                    if (
-                        search_knowledge_base
-                        or search_online
-                        or search_wikipedia
-                        or search_arxiv
-                        or search_docs
-                    ):
-                        formatted_messages = str(
-                            [
-                                (msg["role"], msg["content"])
-                                for msg in st.session_state["messages"][1:]
-                            ]
-                        )
+                else:
+                    st.chat_message("human", avatar=ui.chat_user_avatar).markdown(
+                        user_query
+                    )
+                    st.session_state["messages"].append(
+                        {"role": "human", "content": user_query}
+                    )
+                    human_message = HumanMessage(
+                        content=user_query,
+                        additional_kwargs={"id": st.session_state["username"]},
+                    )
+                    st.session_state["xata_history"].add_message(human_message)
 
-                        func_calling_response = func_calling_chain().invoke(
-                            {"input": formatted_messages}
-                        )
-
-                        query = func_calling_response.get("query")
-                        arxiv_query = func_calling_response.get("arxiv_query")
-
-                        try:
-                            created_at = json.loads(
-                                func_calling_response.get("created_at", None)
+                    # check text sensitivity
+                    answer = check_text_sensitivity(user_query)["answer"]
+                    if answer is not None:
+                        with st.chat_message("ai", avatar=ui.chat_ai_avatar):
+                            st.markdown(answer)
+                            st.session_state["messages"].append(
+                                {
+                                    "role": "ai",
+                                    "content": answer,
+                                }
                             )
-                        except TypeError:
-                            created_at = None
-
-                        source = func_calling_response.get("source", None)
-
-                        filters = {}
-                        if created_at:
-                            filters["created_at"] = created_at
-                        if source:
-                            filters["source"] = source
-
-                        docs_response = []
-                        docs_response.extend(
-                            search_pinecone(
-                                query=query,
-                                filters=filters,
-                                top_k=search_knowledge_base_top_k,
+                            ai_message = AIMessage(
+                                content=answer,
+                                additional_kwargs={"id": st.session_state["username"]},
                             )
-                        )
-                        # docs_response.extend(
-                        #     search_weaviate(
-                        #         query=query,
-                        #         top_k=search_knowledge_base_top_k,
-                        #     )
-                        # )
-                        docs_response.extend(
-                            search_internet(query, top_k=search_online_top_k)
-                        )
-                        docs_response.extend(
-                            search_wiki(query, top_k=search_wikipedia_top_k)
-                        )
-                        docs_response.extend(
-                            search_arxiv_docs(arxiv_query, top_k=search_arxiv_top_k)
-                        )
-                        docs_response.extend(
-                            search_uploaded_docs(query, top_k=search_docs_top_k)
-                        )
-
-                        input = f"""Must Follow:
-- Respond to "{user_query}" by using information from "{docs_response}" (if available) and your own knowledge to provide a logical, clear, and critically analyzed reply in the same language.
-- Use the chat context from "{chat_history_recent}" (if available) to adjust the level of detail in your response.
-- Employ bullet points selectively, where they add clarity or organization.
-- Cite sources in main text using the Author-Date citation style where applicable.
-- Provide a list of references in markdown format of [title.journal.authors.date.](hyperlinks) at the end (journal, authors, date are optional), only for the references mentioned in the generated text.
-- Use LaTeX quoted by '$' or '$$' within markdown to render mathematical formulas.
-
-Must Avoid:
-- Repeat the human's query.
-- Translate cited references into the query's language.
-- Preface responses with any designation such as "AI:"."""
-
+                            st.session_state["xata_history"].add_message(ai_message)
+                            st.session_state["count_chat_history"] += 1
                     else:
-                        input = f"""Respond to "{user_query}". If "{chat_history_recent}" is not empty, use it as chat context."""
+                        current_message = st.session_state["messages"][-8:][1:][:-1]
+                        for item in current_message:
+                            item.pop("avatar", None)
 
-                    with st.chat_message("ai", avatar=ui.chat_ai_avatar):
-                        st_callback = StreamHandler(st.empty())
-                        response = main_chain().invoke(
-                            {"input": input},
-                            {"callbacks": [st_callback]},
-                        )
+                        chat_history_recent = str(current_message)
 
-                        st.session_state["messages"].append(
-                            {
-                                "role": "ai",
-                                "content": response["text"],
-                            }
-                        )
-                        ai_message = AIMessage(
-                            content=response["text"],
-                            additional_kwargs={"id": st.session_state["username"]},
-                        )
-                        st.session_state["xata_history"].add_message(ai_message)
+                        if (
+                            search_knowledge_base
+                            or search_online
+                            or search_wikipedia
+                            or search_arxiv
+                            or search_docs
+                        ):
+                            formatted_messages = str(
+                                [
+                                    (msg["role"], msg["content"])
+                                    for msg in st.session_state["messages"][1:]
+                                ]
+                            )
 
-                if len(st.session_state["messages"]) == 3:
-                    st.session_state["xata_history_refresh"] = True
-                    st.rerun()
+                            func_calling_response = func_calling_chain().invoke(
+                                {"input": formatted_messages}
+                            )
+
+                            query = func_calling_response.get("query")
+                            arxiv_query = func_calling_response.get("arxiv_query")
+
+                            try:
+                                created_at = json.loads(
+                                    func_calling_response.get("created_at", None)
+                                )
+                            except TypeError:
+                                created_at = None
+
+                            source = func_calling_response.get("source", None)
+
+                            filters = {}
+                            if created_at:
+                                filters["created_at"] = created_at
+                            if source:
+                                filters["source"] = source
+
+                            docs_response = []
+                            docs_response.extend(
+                                search_pinecone(
+                                    query=query,
+                                    filters=filters,
+                                    top_k=search_knowledge_base_top_k,
+                                )
+                            )
+                            # docs_response.extend(
+                            #     search_weaviate(
+                            #         query=query,
+                            #         top_k=search_knowledge_base_top_k,
+                            #     )
+                            # )
+                            docs_response.extend(
+                                search_internet(query, top_k=search_online_top_k)
+                            )
+                            docs_response.extend(
+                                search_wiki(query, top_k=search_wikipedia_top_k)
+                            )
+                            docs_response.extend(
+                                search_arxiv_docs(arxiv_query, top_k=search_arxiv_top_k)
+                            )
+                            docs_response.extend(
+                                search_uploaded_docs(query, top_k=search_docs_top_k)
+                            )
+
+                            input = f"""Must Follow:
+    - Respond to "{user_query}" by using information from "{docs_response}" (if available) and your own knowledge to provide a logical, clear, and critically analyzed reply in the same language.
+    - Use the chat context from "{chat_history_recent}" (if available) to adjust the level of detail in your response.
+    - Employ bullet points selectively, where they add clarity or organization.
+    - Cite sources in main text using the Author-Date citation style where applicable.
+    - Provide a list of references in markdown format of [title.journal.authors.date.](hyperlinks) at the end (journal, authors, date are optional), only for the references mentioned in the generated text.
+    - Use LaTeX quoted by '$' or '$$' within markdown to render mathematical formulas.
+
+    Must Avoid:
+    - Repeat the human's query.
+    - Translate cited references into the query's language.
+    - Preface responses with any designation such as "AI:"."""
+
+                        else:
+                            input = f"""Respond to "{user_query}". If "{chat_history_recent}" is not empty, use it as chat context."""
+
+                        with st.chat_message("ai", avatar=ui.chat_ai_avatar):
+                            st_callback = StreamHandler(st.empty())
+                            response = main_chain().invoke(
+                                {"input": input},
+                                {"callbacks": [st_callback]},
+                            )
+
+                            st.session_state["messages"].append(
+                                {
+                                    "role": "ai",
+                                    "content": response["text"],
+                                }
+                            )
+                            ai_message = AIMessage(
+                                content=response["text"],
+                                additional_kwargs={"id": st.session_state["username"]},
+                            )
+                            st.session_state["xata_history"].add_message(ai_message)
+                            st.session_state["count_chat_history"] += 1
+
+                    if len(st.session_state["messages"]) == 3:
+                        st.session_state["xata_history_refresh"] = True
+                        st.rerun()
         else:
             user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
             del st.session_state["xata_history_refresh"]

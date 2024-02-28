@@ -1604,12 +1604,13 @@ def initialize_messages(history):
 
     return messages
 
+def get_begin_datetime():
+    now = datetime.now(pytz.UTC)
+    beginHour = (now.hour // 3) * 3
+    return datetime(now.year, now.month, now.day, beginHour)
 
-def count_chat_history(username: str):
+def count_chat_history(username: str, beginDatetime: datetime):
     if is_valid_email(username):
-        now = datetime.now(pytz.UTC)
-        beginHour = (now.hour // 3) * 3
-        beginDatetime = datetime(now.year, now.month, now.day, beginHour)
         client = XataClient()
         response = client.sql().query(
             f"""SELECT count(*) as c
