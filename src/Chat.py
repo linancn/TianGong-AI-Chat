@@ -13,14 +13,13 @@ import utils
 import wix_oauth as wix_oauth
 from sensitivity_checker import check_text_sensitivity
 from top_k_mappings import top_k_mappings
+from utils import check_password  # get_faiss_db_api,
 from utils import (
     StreamHandler,
-    check_password,
     delete_chat_history,
     fetch_chat_history,
     func_calling_chain,
     get_faiss_db,
-    # get_faiss_db_api,
     initialize_messages,
     main_chain,
     random_email,
@@ -103,50 +102,67 @@ if "logged_in" in st.session_state:
                 )
 
             with st.expander(ui.sidebar_expander_title, expanded=True):
+                if "search_option_disabled" not in st.session_state:
+                    st.session_state["search_option_disabled"] = False
+
                 search_knowledge_base = st.toggle(
-                    ui.search_knowledge_base_checkbox_label, value=False
+                    ui.search_knowledge_base_checkbox_label,
+                    value=False,
+                    disabled=st.session_state["search_option_disabled"],
                 )
                 search_online = st.toggle(
-                    ui.search_internet_checkbox_label, value=False
+                    ui.search_internet_checkbox_label,
+                    value=False,
+                    disabled=st.session_state["search_option_disabled"],
                 )
-                search_wikipedia = st.toggle(
-                    ui.search_wikipedia_checkbox_label, value=False
-                )
-                search_arxiv = st.toggle(ui.search_arxiv_checkbox_label, value=False)
+                # search_wikipedia = st.toggle(
+                #     ui.search_wikipedia_checkbox_label, value=False
+                # )
+                # search_arxiv = st.toggle(ui.search_arxiv_checkbox_label, value=False)
 
                 search_docs = st.toggle(
-                    ui.search_docs_checkbox_label, value=False, disabled=True
+                    ui.search_docs_checkbox_label,
+                    value=False,
+                    disabled=False,
+                    key="search_option_disabled",
                 )
 
                 # search_knowledge_base = True
                 # search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
-                # search_wikipedia = False
-                # search_arxiv = False
+                search_wikipedia = False
+                search_arxiv = False
                 # search_docs = False
 
                 search_docs_option = None
 
                 if search_docs:
-                    search_docs_option = st.radio(
-                        label=ui.search_docs_options,
-                        options=(
-                            ui.search_docs_options_combined,
-                            ui.search_docs_options_isolated,
-                        ),
-                        horizontal=True,
-                    )
+                    # search_docs_option = st.radio(
+                    #     label=ui.search_docs_options,
+                    #     options=(
+                    #         ui.search_docs_options_combined,
+                    #         ui.search_docs_options_isolated,
+                    #     ),
+                    #     horizontal=True,
+                    # )
+
+                    search_docs_option = ui.search_docs_options_isolated
                     uploaded_files = st.file_uploader(
                         ui.sidebar_file_uploader_title,
                         accept_multiple_files=True,
                         type=None,
                     )
 
-                    if uploaded_files != [] and uploaded_files != st.session_state.get(
-                        "uploaded_files"
-                    ):
-                        st.session_state["uploaded_files"] = uploaded_files
-                        with st.spinner(ui.sidebar_file_uploader_spinner):
-                            st.session_state["faiss_db"] = get_faiss_db(uploaded_files)
+                    if uploaded_files != []:
+                        st.session_state["chat_disabled"] = False
+                        if uploaded_files != st.session_state.get("uploaded_files"):
+                            st.session_state["uploaded_files"] = uploaded_files
+                            with st.spinner(ui.sidebar_file_uploader_spinner):
+                                st.session_state["faiss_db"] = get_faiss_db(
+                                    uploaded_files
+                                )
+
+                    else:
+                        st.session_state["chat_disabled"] = True
 
                 current_top_k_mappings = f"{search_knowledge_base}_{search_online}_{search_wikipedia}_{search_arxiv}_{search_docs_option}"
 
@@ -285,8 +301,14 @@ if "logged_in" in st.session_state:
 
     @utils.enable_chat_history
     def main():
+        if "chat_disabled" not in st.session_state:
+            st.session_state["chat_disabled"] = False
+
         if "xata_history_refresh" not in st.session_state:
-            user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
+            user_query = st.chat_input(
+                placeholder=ui.chat_human_placeholder,
+                disabled=st.session_state["chat_disabled"],
+            )
             if user_query:
                 st.chat_message("human", avatar=ui.chat_user_avatar).markdown(
                     user_query
@@ -425,7 +447,10 @@ Must Avoid:
                     st.session_state["xata_history_refresh"] = True
                     st.rerun()
         else:
-            user_query = st.chat_input(placeholder=ui.chat_human_placeholder)
+            user_query = st.chat_input(
+                placeholder=ui.chat_human_placeholder,
+                disabled=st.session_state["chat_disabled"],
+            )
             del st.session_state["xata_history_refresh"]
 
     if __name__ == "__main__":
