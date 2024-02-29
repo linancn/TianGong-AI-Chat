@@ -77,7 +77,7 @@ ui_data = {
             </table>
         </div>
         """,
-    "sidebar_expander_title": "Sources / 数据源:",
+    "sidebar_expander_title": "Sources / 信息来源:",
     "search_knowledge_base_checkbox_label": "📂 Knowledge Base / 知识库",
     "search_internet_checkbox_label": "Internet / 互联网",
     "search_wikipedia_checkbox_label": "Wikipedia",
@@ -90,11 +90,12 @@ ui_data = {
     "sidebar_file_uploader_spinner": "Analyzing...",
     "sidebar_file_uploader_error": "None of the files can be analyzed, please check the format!",
     "sidebar_instructions": """
-    📚 **[Before Starting: Helpful Tips!](https://www.kaiwu.info/learning)**
-
-    💾 Activate data sources to retrieve.
-
-    💡 Work as ChatGPT (GPT-4) if no source is active.
+    <span style='font-size: 14px;'>📚 **[Before Starting: Helpful Tips!](https://www.kaiwu.info/learning)**</span><br />
+    <span style='font-size: 12px;padding-left:20px;'>**[(开始之前：提示!)](https://www.kaiwu.info/zh/learning)**</span><br />
+    <span style='font-size: 14px;'>💾 Activate data sources to retrieve.</span><br />
+    <span style='font-size: 12px;padding-left:20px;'>  (打开所需的信息来源。)</span><br />
+    <span style='font-size: 14px;'>💡 Work as ChatGPT (GPT-4) if no source is active.</span><br />
+    <span style='font-size: 12px;padding-left:20px;'>  (关闭所有来源就是ChatGPT的GPT-4。)</span>
     """,
     "current_chat_title": "Chat History :",
     "chat_ai_avatar": "src/static/kaiwu/logo.png",
@@ -105,5 +106,5 @@ ui_data = {
     "sidebar_delete_button_label": "🗑️ Delete Chat",
     "sidebar_newchat_label": "New Chat",
     "chat_error_message": "Oops, we are facing an extremely high traffic. Please try again later.",
-    "wix_login_wait": "⏳Please wait a moment after pressing the button."
+    "wix_login_wait": "⏳Please wait a moment after pressing the button. (点击登录按钮后，请等候网络连接。)",
 }

@@ -167,7 +167,7 @@ if "logged_in" in st.session_state:
                     search_arxiv_top_k = top_k_values.get("search_arxiv_top_k", 0)
                     search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
 
-            st.markdown(body=ui.sidebar_instructions)
+            st.markdown(body=ui.sidebar_instructions, unsafe_allow_html=True)
             
             st.divider()
 

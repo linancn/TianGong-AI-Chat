@@ -126,7 +126,7 @@ def get_subscription(member_access_token: str) -> str:
     return subscription
 
 
-def check_wix_oauth() -> (bool, str, str, str): # type: ignore
+def check_wix_oauth() -> (bool, str, str): # type: ignore
     component_url = st.secrets["component_url"]
     placeholder = st.empty()
 
