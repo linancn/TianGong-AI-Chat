@@ -20,6 +20,7 @@ from utils import (
     fetch_chat_history,
     func_calling_chain,
     get_faiss_db,
+    # get_faiss_db_api,
     initialize_messages,
     main_chain,
     random_email,
@@ -390,7 +391,7 @@ if "logged_in" in st.session_state:
 - Use the chat context from "{chat_history_recent}" (if available) to adjust the level of detail in your response.
 - Employ bullet points selectively, where they add clarity or organization.
 - Cite sources in main text using the Author-Date citation style where applicable.
-- Provide a list of references in markdown format of [title.journal.authors.date.](hyperlinks) at the end (journal, authors, date are optional), only for the references mentioned in the generated text.
+- Provide a list of references in markdown format of [title.journal.authors.date.](hyperlinks) at the end (or just the source file name), only for the references mentioned in the generated text.
 - Use LaTeX quoted by '$' or '$$' within markdown to render mathematical formulas.
 
 Must Avoid:
