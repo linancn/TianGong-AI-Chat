@@ -111,7 +111,7 @@ def get_highest_active_subscription(orders):
     # Get the order with the highest level
     highest_order = max(active_orders, key=lambda x: priority.get(x["planName"], -1))
 
-    return highest_order
+    return highest_order["planName"]
 
 
 def get_subscription(member_access_token: str) -> str:
@@ -185,7 +185,7 @@ def check_wix_oauth() -> (bool, str, str): # type: ignore
                     if subscription is not None:
                         auth = True
                         placeholder.empty()
-                        return auth, username, subscription["planName"]
+                        return auth, username, subscription
                     else:
                         with col_center:
                             st.error(ui.wix_login_no_active_subscription_text, icon=ui.wix_login_no_active_subscription_icon)

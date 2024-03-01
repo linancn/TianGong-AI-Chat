@@ -5,7 +5,6 @@ import os
 import random
 import re
 import string
-import tempfile
 import time
 from collections import Counter
 from datetime import datetime
@@ -27,6 +26,7 @@ os.environ["PASSWORD"] = st.secrets["password"]
 os.environ["PINECONE_API_KEY"] = st.secrets["pinecone_api_key"]
 os.environ["PINECONE_INDEX_NAME"] = st.secrets["pinecone_index_name"]
 os.environ["PINECONE_EMBEDDING_MODEL"] = st.secrets["pinecone_embedding_model"]
+# os.environ["UNSTRUCTURED_API_KEY"] = st.secrets["unstructured_api_key"]
 
 
 import weaviate
@@ -38,13 +38,20 @@ from langchain.prompts import (ChatPromptTemplate, HumanMessagePromptTemplate,
                                PromptTemplate)
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import (UnstructuredFileLoader,
-                                                  WikipediaLoader)
+from langchain_community.document_loaders import WikipediaLoader
 from langchain_community.tools import DuckDuckGoSearchResults
 from langchain_community.vectorstores import FAISS
+from langchain_core.documents import Document
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from tenacity import retry, stop_after_attempt, wait_fixed
+from unstructured.chunking.title import chunk_by_title
+from unstructured.cleaners.core import clean, group_broken_paragraphs
+from unstructured.documents.elements import (CompositeElement, Element, Table,
+                                             TableChunk)
+from unstructured.partition.auto import partition
+from unstructured_client import UnstructuredClient
+from unstructured_client.models import shared
 from xata.client import XataClient
 
 import ui_config
@@ -1243,22 +1250,54 @@ def get_faiss_db(uploaded_files):
         - This function relies on the FAISS library for creating the database and OpenAIEmbeddings for generating embeddings.
     """
 
-    text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-        chunk_size=200, chunk_overlap=20
-    )
     chunks = []
     for uploaded_file in uploaded_files:
         try:
-            with tempfile.NamedTemporaryFile(delete=True) as fp:
-                fp.write(uploaded_file.read())
-                loader = UnstructuredFileLoader(file_path=fp.name)
-                docs = loader.load()
-                full_text = docs[0].page_content
-
-            chunk = text_splitter.create_documents(
-                texts=[full_text], metadatas=[{"source": uploaded_file.name}]
+            f = io.BytesIO(uploaded_file.read())
+            elements = partition(
+                file=f,
+                content_type=uploaded_file.type,
+                # metadata_filename=uploaded_file.name,
             )
-            chunks.extend(chunk)
+            for element in elements:
+                if element.text != "":
+                    element.text = group_broken_paragraphs(element.text)
+                    element.text = clean(
+                        element.text,
+                        bullets=False,
+                        extra_whitespace=True,
+                        dashes=False,
+                        trailing_punctuation=False,
+                    )
+
+            chunks_raw = chunk_by_title(
+                elements=elements,
+                multipage_sections=True,
+                combine_text_under_n_chars=100,
+                new_after_n_chars=512,
+                max_characters=4096,
+            )
+
+            chunks_with_tables = []
+            for chunk in chunks_raw:
+                if isinstance(chunk, CompositeElement):
+                    text = chunk.text
+                    chunks_with_tables.append(text)
+                elif isinstance(chunk, (Table, TableChunk)):
+                    if chunks_with_tables:
+                        chunks_with_tables[-1] = (
+                            chunks_with_tables[-1] + "\n" + chunk.metadata.text_as_html
+                        )
+                    else:
+                        chunks_with_tables.append(chunk.hunk.metadata.text_as_html)
+
+            for chunk in chunks_with_tables:
+                chunks.append(
+                    Document(
+                        page_content=chunk,
+                        metadata={"source": uploaded_file.name},
+                    )
+                )
         except:
             pass
     if chunks != []:
@@ -1271,7 +1310,80 @@ def get_faiss_db(uploaded_files):
     return faiss_db
 
 
-def search_uploaded_docs(query, top_k=16):
+# def get_faiss_db_api(uploaded_files):
+#     """
+#     Creates a FAISS database from a list of uploaded files.
+
+#     :param uploaded_files: List of uploaded file objects.
+#     :type uploaded_files: list of file-like objects
+#     :returns: A FAISS database containing the embeddings of the chunks from the uploaded files' content.
+#     :rtype: FAISS database object
+
+#     Function Behavior:
+#         - Iterates through the list of uploaded files.
+#         - Reads the content of each uploaded file and processes it into smaller chunks.
+#         - Embeds the chunks using OpenAIEmbeddings.
+#         - Creates a FAISS database from the embeddings of the chunks.
+#         - If the chunks list is empty, a warning message is displayed and the function terminates.
+
+#     Exceptions:
+#         - Could raise exceptions related to file reading or invalid file format.
+#         - An exception may propagate from the FAISS.from_documents method.
+#         - TypeError could be raised if the types of 'uploaded_files' do not match the expected types.
+
+#     Note:
+#         - This function relies on the FAISS library for creating the database and OpenAIEmbeddings for generating embeddings.
+#     """
+
+#     chunks = []
+#     for uploaded_file in uploaded_files:
+#         try:
+#             s = UnstructuredClient(api_key_auth=os.environ["UNSTRUCTURED_API_KEY"])
+#             f = io.BytesIO(uploaded_file.read())
+#             req = shared.PartitionParameters(
+#                 # Note that this currently only supports a single file
+#                 files=shared.Files(
+#                     content=f,
+#                     file_name=uploaded_file.name,
+#                 ),
+#                 # Other partition params
+#                 strategy="hi_res",
+#             )
+#             res = s.general.partition(req)
+#             for e in res.elements:
+#                 print(e)
+#             elements1 = [Element(e) for e in res.elements]
+
+#             elements = partition(
+#                 file=f,
+#                 metadata_filename=uploaded_file.name,
+#                 header_footer=False,
+#                 strategy="hi_res",
+#             )
+
+#             chunk = chunk_by_title(
+#                 elements=elements,
+#                 multipage_sections=True,
+#                 combine_text_under_n_chars=100,
+#                 new_after_n_chars=512,
+#                 max_characters=4096,
+#             )
+
+#             chunks.extend(chunk)
+#         except Exception as e:
+#             st.warning(e)
+#             pass
+#     if chunks != []:
+#         embeddings = OpenAIEmbeddings(model=os.environ["PINECONE_EMBEDDING_MODEL"])
+#         faiss_db = FAISS.from_documents(chunks, embeddings)
+#     else:
+#         st.warning(ui.sidebar_file_uploader_error)
+#         st.stop()
+
+#     return faiss_db
+
+
+def search_uploaded_docs(query, top_k=8):
     """
     Searches the FAISS database for similar documents based on the provided query and returns a list of top results.
 
