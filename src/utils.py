@@ -1285,12 +1285,17 @@ def get_faiss_db(uploaded_files):
                     text = chunk.text
                     chunks_with_tables.append(text)
                 elif isinstance(chunk, (Table, TableChunk)):
+                    text_as_html = getattr(chunk.metadata, "text_as_html", None)
+                    text_to_append = (
+                        text_as_html if text_as_html is not None else chunk.text
+                    )
+
                     if chunks_with_tables:
                         chunks_with_tables[-1] = (
-                            chunks_with_tables[-1] + "\n" + chunk.metadata.text_as_html
+                            chunks_with_tables[-1] + "\n" + text_to_append
                         )
                     else:
-                        chunks_with_tables.append(chunk.hunk.metadata.text_as_html)
+                        chunks_with_tables.append(text_to_append)
 
             for chunk in chunks_with_tables:
                 chunks.append(
@@ -1384,7 +1389,7 @@ def get_faiss_db(uploaded_files):
 #     return faiss_db
 
 
-def search_uploaded_docs(query, top_k=3):
+def search_uploaded_docs(query, top_k=5):
     """
     Searches the FAISS database for similar documents based on the provided query and returns a list of top results.
 
