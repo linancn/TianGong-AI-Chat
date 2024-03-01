@@ -100,7 +100,8 @@ def get_member_access_token(code: str):
 
 def get_highest_active_subscription(orders):
     # Define priority levels
-    priority = {"Elite": 3, "Pro": 2, "Test Purchase": 1, "Beta test": 0}
+    # priority = {"Elite": 3, "Pro": 2, "Test Purchase": 1, "Beta test": 0}
+    priority = {"Elite": 3, "Pro": 2}
 
     # Find all orders with "ACTIVE" status
     active_orders = [order for order in orders if order["status"] == "ACTIVE"]
@@ -110,6 +111,9 @@ def get_highest_active_subscription(orders):
 
     # Get the order with the highest level
     highest_order = max(active_orders, key=lambda x: priority.get(x["planName"], -1))
+    
+    if highest_order["planName"] not in priority:
+        return None
 
     return highest_order["planName"]
 
