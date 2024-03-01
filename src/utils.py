@@ -1384,7 +1384,7 @@ def get_faiss_db(uploaded_files):
 #     return faiss_db
 
 
-def search_uploaded_docs(query, top_k=8):
+def search_uploaded_docs(query, top_k=3):
     """
     Searches the FAISS database for similar documents based on the provided query and returns a list of top results.
 
