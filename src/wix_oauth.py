@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import json
+import time
 
 import requests
 import streamlit as st
@@ -126,7 +127,7 @@ def get_subscription(member_access_token: str) -> str:
     return subscription
 
 
-def check_wix_oauth() -> (bool, str, str):
+def check_wix_oauth() -> tuple[bool, str, str]:
     component_url = st.secrets["component_url"]
     placeholder = st.empty()
 
@@ -159,37 +160,31 @@ def check_wix_oauth() -> (bool, str, str):
                 wix_component = components.declare_component(
                     "wix_component", url=component_url
                 )
-                wix_component_post = components.declare_component(
-                    "wix_component_post", url=component_url
+                st.session_state["wix_return_data"] = wix_component(
+                    url=st.session_state["wix_callback_url"]
                 )
+                while (
+                    "wix_return_data" not in st.session_state
+                    or st.session_state["wix_return_data"] is None
+                ):
+                    time.sleep(0.1)
 
-                if "wix_first_run" not in st.session_state:
-                    st.session_state["wix_return_data"] = wix_component(
-                        url=st.session_state["wix_callback_url"]
-                    )
-                    st.session_state["wix_first_run"] = True
-                # At least run twice, with the state code unchanged to get the code to login in
-                if st.session_state["wix_return_data"] is None:
-                    st.session_state["wix_return_data"] = wix_component_post(
-                        url=st.session_state["wix_callback_url"]
-                    )
+                member_access_token = get_member_access_token(
+                    code=st.session_state["wix_return_data"]
+                )
+                subscription = get_subscription(member_access_token=member_access_token)
+
+                # Check if the subscription is not None (i.e., user has an active subscription)
+                if subscription is not None:
+                    auth = True
+                    placeholder.empty()
+                    return auth, username, subscription
                 else:
-                    member_access_token = get_member_access_token(
-                        code=st.session_state["wix_return_data"]
-                    )
-                    subscription = get_subscription(
-                        member_access_token=member_access_token
-                    )
-
-                    # Check if the subscription is not None (i.e., user has an active subscription)
-                    if subscription is not None:
-                        auth = True
-                        placeholder.empty()
-                        return auth, username, subscription
-                    else:
-                        with col_center:
-                            st.error("Login failed: No active subscription found.", icon="🚫")
-                        return False, None, None
+                    with col_center:
+                        st.error(
+                            "Login failed: No active subscription found.", icon="🚫"
+                        )
+                    return False, None, None
             else:
                 with col_center:
                     st.error(ui.wix_login_error_text, icon=ui.wix_login_error_icon)
