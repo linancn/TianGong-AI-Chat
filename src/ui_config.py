@@ -29,6 +29,7 @@ class UI:
     wix_signup_button_label: str
     wix_signup_button_url: str
     wix_login_error_text: str
+    wix_login_error_timeout: str
     wix_login_error_icon: str
     wix_login_no_active_subscription_text: str
     wix_login_no_active_subscription_icon: str

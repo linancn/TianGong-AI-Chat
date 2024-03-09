@@ -15,6 +15,7 @@ ui_data = {
     "wix_signup_button_url": "https://www.kaiwu.info/zh/plans-pricing",
     "wix_login_error_icon": "🚨",
     "wix_login_error_text": "Login failed, please check your username and password.",
+    "wix_login_error_timeout": "Login timeout, please try again later.",
     "wix_login_no_active_subscription_icon": "🚫",
     "wix_login_no_active_subscription_text": "Login failed: No active subscription found. (您没有生效的订阅。)",
     "theme": {

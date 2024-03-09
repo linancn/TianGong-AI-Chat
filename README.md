@@ -174,3 +174,6 @@ sudo nginx -s stop
 ## To Do
 
 DDG empty results bug
+
+apt install certbot
+apt install python3-certbot-nginx
