@@ -162,6 +162,8 @@ if "logged_in" in st.session_state:
 
                     else:
                         st.session_state["chat_disabled"] = True
+                else:
+                    st.session_state["chat_disabled"] = False
 
                 current_top_k_mappings = f"{search_knowledge_base}_{search_online}_{search_wikipedia}_{search_arxiv}_{search_docs_option}"
 
