@@ -40,6 +40,7 @@ from langchain.prompts import (
 )
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.chat_models import ChatZhipuAI
 from langchain_community.document_loaders import WikipediaLoader
 from langchain_community.tools import DuckDuckGoSearchResults
 from langchain_community.vectorstores import FAISS
@@ -1438,11 +1439,18 @@ def main_chain():
         - TypeError could be raised if internal configurations within the function do not match the expected types.
     """
 
-    llm_chat = ChatOpenAI(
-        model=llm_model,
-        temperature=0,
+    # llm_chat = ChatOpenAI(
+    #     model=llm_model,
+    #     temperature=0,
+    #     streaming=True,
+    #     verbose=langchain_verbose,
+    # )
+
+    llm_chat = ChatZhipuAI(
+        api_key=st.secrets["zhipu_api_key"],
+        model="glm-4",
+        temperature=0.5,
         streaming=True,
-        verbose=langchain_verbose,
     )
 
     template = """{input}"""

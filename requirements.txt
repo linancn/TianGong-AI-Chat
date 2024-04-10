@@ -2,6 +2,7 @@ arxiv
 duckduckgo-search
 faiss-cpu
 fastapi
+httpx-sse
 itsdangerous
 langchain
 langchain-openai
@@ -9,6 +10,7 @@ langchain-pinecone
 openai
 pdfplumber
 pinecone-client
+PyJWT
 requests
 sphinx
 sphinx-autobuild
