@@ -55,6 +55,7 @@ from unstructured.partition.auto import partition
 from unstructured_client import UnstructuredClient
 from unstructured_client.models import shared
 from xata.client import XataClient
+from zhipuai import ZhipuAI
 
 import ui_config
 
@@ -288,6 +289,167 @@ def func_calling_chain():
     )
 
     return func_calling_chain
+
+
+def func_calling_chain_zhipuai(input: str):
+    """
+    Using ZhipuAI to Create and return a function calling chain for extracting query and filter information from a chat history.
+
+    :returns: An object representing the function calling chain configured to generate structured output based on the provided JSON schema and chat prompt template.
+    :rtype: object
+
+    Function Behavior:
+        - Defines a JSON schema for structured output that includes query information and date filters.
+        - Creates a chat prompt template to instruct the underlying language model on how to generate the desired structured output.
+        - Utilizes a language model for structured output generation.
+        - Creates the function calling chain with 'create_structured_output_runnable', passing the JSON schema, language model, and chat prompt template as arguments.
+
+    Exceptions:
+        - This function depends on external modules and classes like 'SystemMessage', 'HumanMessage', 'ChatPromptTemplate', etc. Exceptions may arise if these dependencies encounter issues.
+
+    Note:
+        - It uses a specific language model identified by 'llm_model' for structured output generation. Ensure that 'llm_model' is properly initialized and available for use to avoid unexpected issues.
+    """
+    tools = [
+        {
+            "title": "get_querys_and_filters_to_search_database",
+            "description": "Extract the queries and filters for database searching",
+            "type": "function",
+            "function": {
+                "name": "get_querys_and_filters_to_search_database",
+                "description": "Extract the queries and filters for database searching",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "The next query extracted for a vector database semantic search from a chat history. Translate the query into accurate English if it is not already in English.",
+                        },
+                        "arxiv_query": {
+                            "type": "string",
+                            "description": "The next query for arXiv search extracted from a chat history in the format of a JSON object. Translate the query into accurate English if it is not already in English.",
+                        },
+                        "source": {
+                            "type": "string",
+                            "description": "Journal Name or Source extracted for a vector database semantic search, MUST be in upper case.",
+                            "enum": [
+                                "AGRICULTURE, ECOSYSTEMS & ENVIRONMENT",
+                                "ANNUAL REVIEW OF ECOLOGY, EVOLUTION, AND SYSTEMATICS",
+                                "ANNUAL REVIEW OF ENVIRONMENT AND RESOURCES",
+                                "APPLIED CATALYSIS B: ENVIRONMENTAL",
+                                "BIOGEOSCIENCES",
+                                "BIOLOGICAL CONSERVATION",
+                                "BIOTECHNOLOGY ADVANCES",
+                                "CONSERVATION BIOLOGY",
+                                "CONSERVATION LETTERS",
+                                "CRITICAL REVIEWS IN ENVIRONMENTAL SCIENCE AND TECHNOLOGY",
+                                "DIVERSITY AND DISTRIBUTIONS",
+                                "ECOGRAPHY",
+                                "ECOLOGICAL APPLICATIONS",
+                                "ECOLOGICAL ECONOMICS",
+                                "ECOLOGICAL MONOGRAPHS",
+                                "ECOLOGY",
+                                "ECOLOGY LETTERS",
+                                "ECONOMIC SYSTEMS RESEARCH",
+                                "ECOSYSTEM HEALTH AND SUSTAINABILITY",
+                                "ECOSYSTEM SERVICES",
+                                "ECOSYSTEMS",
+                                "ENERGY & ENVIRONMENTAL SCIENCE",
+                                "ENVIRONMENT INTERNATIONAL",
+                                "ENVIRONMENTAL CHEMISTRY LETTERS",
+                                "ENVIRONMENTAL HEALTH PERSPECTIVES",
+                                "ENVIRONMENTAL POLLUTION",
+                                "ENVIRONMENTAL SCIENCE & TECHNOLOGY",
+                                "ENVIRONMENTAL SCIENCE & TECHNOLOGY LETTERS",
+                                "ENVIRONMENTAL SCIENCE AND ECOTECHNOLOGY",
+                                "ENVIRONMENTAL SCIENCE AND POLLUTION RESEARCH",
+                                "EVOLUTION",
+                                "FOREST ECOSYSTEMS",
+                                "FRONTIERS IN ECOLOGY AND THE ENVIRONMENT",
+                                "FRONTIERS OF ENVIRONMENTAL SCIENCE & ENGINEERING",
+                                "FUNCTIONAL ECOLOGY",
+                                "GLOBAL CHANGE BIOLOGY",
+                                "GLOBAL ECOLOGY AND BIOGEOGRAPHY",
+                                "GLOBAL ENVIRONMENTAL CHANGE",
+                                "INTERNATIONAL SOIL AND WATER CONSERVATION RESEARCH",
+                                "JOURNAL OF ANIMAL ECOLOGY",
+                                "JOURNAL OF APPLIED ECOLOGY",
+                                "JOURNAL OF BIOGEOGRAPHY",
+                                "JOURNAL OF CLEANER PRODUCTION",
+                                "JOURNAL OF ECOLOGY",
+                                "JOURNAL OF ENVIRONMENTAL INFORMATICS",
+                                "JOURNAL OF ENVIRONMENTAL MANAGEMENT",
+                                "JOURNAL OF HAZARDOUS MATERIALS",
+                                "JOURNAL OF INDUSTRIAL ECOLOGY",
+                                "JOURNAL OF PLANT ECOLOGY",
+                                "LANDSCAPE AND URBAN PLANNING",
+                                "LANDSCAPE ECOLOGY",
+                                "METHODS IN ECOLOGY AND EVOLUTION",
+                                "MICROBIOME",
+                                "MOLECULAR ECOLOGY",
+                                "NATURE",
+                                "NATURE CLIMATE CHANGE",
+                                "NATURE COMMUNICATIONS",
+                                "NATURE ECOLOGY & EVOLUTION",
+                                "NATURE ENERGY",
+                                "NATURE REVIEWS EARTH & ENVIRONMENT",
+                                "NATURE SUSTAINABILITY",
+                                "ONE EARTH",
+                                "PEOPLE AND NATURE",
+                                "PROCEEDINGS OF THE NATIONAL ACADEMY OF SCIENCES",
+                                "PROCEEDINGS OF THE ROYAL SOCIETY B: BIOLOGICAL SCIENCES",
+                                "RENEWABLE AND SUSTAINABLE ENERGY REVIEWS",
+                                "RESOURCES, CONSERVATION AND RECYCLING",
+                                "REVIEWS IN ENVIRONMENTAL SCIENCE AND BIO/TECHNOLOGY",
+                                "SCIENCE",
+                                "SCIENCE ADVANCES",
+                                "SCIENCE OF THE TOTAL ENVIRONMENT",
+                                "SCIENTIFIC DATA",
+                                "SUSTAINABLE CITIES AND SOCIETY",
+                                "SUSTAINABLE MATERIALS AND TECHNOLOGIES",
+                                "SUSTAINABLE PRODUCTION AND CONSUMPTION",
+                                "THE AMERICAN NATURALIST",
+                                "THE INTERNATIONAL JOURNAL OF LIFE CYCLE ASSESSMENT",
+                                "THE ISME JOURNAL",
+                                "THE LANCET PLANETARY HEALTH",
+                                "TRENDS IN ECOLOGY & EVOLUTION",
+                                "WASTE MANAGEMENT",
+                                "WATER RESEARCH",
+                            ],
+                        },
+                        "created_at": {
+                            "type": "string",
+                            "description": 'Date extracted for a vector database semantic search, in MongoDB\'s query and projection operators, in format like {"$gte": 1609459200.0, "$lte": 1640908800.0}',
+                        },
+                    },
+                },
+            },
+            "required": ["query"],
+        }
+    ]
+
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a world-class algorithm for extracting the next query and filters for searching from a chat history. Make sure to answer in the correct structured format.",
+        },
+        {
+            "role": "user",
+            "content": f"The chat history:\n {input}",
+        },
+    ]
+
+    client = ZhipuAI(api_key=st.secrets["zhipu_api_key"])
+
+    response = client.chat.completions.create(
+        model="glm-4",  # 填写需要调用的模型名称
+        messages=messages,
+        tools=tools,
+        tool_choice="auto",
+        temperature=0.01,
+    )
+
+    return response
 
 
 def search_pinecone(query: str, filters: dict = {}, top_k: int = 16):
@@ -1449,7 +1611,7 @@ def main_chain():
     llm_chat = ChatZhipuAI(
         api_key=st.secrets["zhipu_api_key"],
         model="glm-4",
-        temperature=0.5,
+        temperature=0.01,
         streaming=True,
     )
 

@@ -18,7 +18,7 @@ from utils import (
     StreamHandler,
     delete_chat_history,
     fetch_chat_history,
-    func_calling_chain,
+    func_calling_chain_zhipuai,
     get_faiss_db,
     initialize_messages,
     main_chain,
@@ -359,20 +359,18 @@ if "logged_in" in st.session_state:
                             ]
                         )
 
-                        func_calling_response = func_calling_chain().invoke(
-                            {"input": formatted_messages}
+                        func_calling_response = json.loads(
+                            (
+                                func_calling_chain_zhipuai(formatted_messages)
+                                .choices[0]
+                                .message.tool_calls[0]
+                                .function.arguments
+                            )
                         )
 
                         query = func_calling_response.get("query")
-                        arxiv_query = func_calling_response.get("arxiv_query")
-
-                        try:
-                            created_at = json.loads(
-                                func_calling_response.get("created_at", None)
-                            )
-                        except TypeError:
-                            created_at = None
-
+                        arxiv_query = func_calling_response.get("arxiv_query", None)
+                        created_at = func_calling_response.get("created_at", None)
                         source = func_calling_response.get("source", None)
 
                         filters = {}

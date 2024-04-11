@@ -24,3 +24,4 @@ uvicorn[standard]
 weaviate-client
 wikipedia
 xata
+zhipuai
