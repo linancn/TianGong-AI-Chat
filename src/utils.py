@@ -32,7 +32,7 @@ import weaviate
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import LLMChain
 from langchain.chains.openai_functions import create_structured_output_runnable
-from langchain.memory import XataChatMessageHistory
+from langchain_community.chat_message_histories import XataChatMessageHistory
 from langchain.prompts import (
     ChatPromptTemplate,
     HumanMessagePromptTemplate,

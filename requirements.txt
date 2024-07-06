@@ -5,11 +5,13 @@ fastapi
 httpx-sse
 itsdangerous
 langchain
+langchain_community
 langchain-openai
 langchain-pinecone
 openai
 pdfplumber
 pinecone-client
+psutil
 PyJWT
 requests
 sphinx
