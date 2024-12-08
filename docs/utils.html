@@ -67,6 +67,7 @@
 <li><a class="reference internal" href="#utils.search_internet"><code class="docutils literal notranslate"><span class="pre">search_internet()</span></code></a></li>
 <li><a class="reference internal" href="#utils.search_pinecone"><code class="docutils literal notranslate"><span class="pre">search_pinecone()</span></code></a></li>
 <li><a class="reference internal" href="#utils.search_uploaded_docs"><code class="docutils literal notranslate"><span class="pre">search_uploaded_docs()</span></code></a></li>
+<li><a class="reference internal" href="#utils.search_weaviate"><code class="docutils literal notranslate"><span class="pre">search_weaviate()</span></code></a></li>
 <li><a class="reference internal" href="#utils.search_wiki"><code class="docutils literal notranslate"><span class="pre">search_wiki()</span></code></a></li>
 <li><a class="reference internal" href="#utils.wiki_query_func_calling_chain"><code class="docutils literal notranslate"><span class="pre">wiki_query_func_calling_chain()</span></code></a></li>
 <li><a class="reference internal" href="#utils.xata_chat_history"><code class="docutils literal notranslate"><span class="pre">xata_chat_history()</span></code></a></li>
@@ -679,6 +680,46 @@ def your_function():</p>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.search_weaviate">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">search_weaviate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.search_weaviate" title="Link to this definition"></a></dt>
+<dd><p>Performs a similarity search on Weaviate’s vector database based on a given query and returns a list of relevant documents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>query</strong> (<em>str</em>) – The query to be used for similarity search in Weaviate’s vector database.</p></li>
+<li><p><strong>top_k</strong> (<em>int</em><em> or </em><em>None</em>) – The number of top matching documents to return. Defaults to 16.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of dictionaries, each containing the content and source of the matched documents. The function returns an empty list if ‘top_k’ is set to 0.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Function Behavior:</dt><dd><ul class="simple">
+<li><p>Initializes Weaviate with the specified API key and environment.</p></li>
+<li><p>Conducts a similarity search based on the provided query.</p></li>
+<li><p>Extracts and formats the relevant document information before returning.</p></li>
+</ul>
+</dd>
+<dt>Exceptions:</dt><dd><ul class="simple">
+<li><p>This function relies on Weaviate and Python’s os library. Exceptions could propagate if there are issues related to API keys, environment variables, or Weaviate initialization.</p></li>
+<li><p>TypeError could be raised if the types of ‘query’ or ‘top_k’ do not match the expected types.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>Ensure the Weaviate API key and environment variables are set before running this function.</p></li>
+<li><p>The function uses ‘OpenAIEmbeddings’ to initialize Weaviate’s vector store, which should be compatible with the embeddings in the Weaviate index.</p></li>
+</ul>
+</div>
 </dd></dl>
 
 <dl class="py function">

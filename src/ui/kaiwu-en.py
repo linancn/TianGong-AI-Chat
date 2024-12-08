@@ -19,10 +19,10 @@ ui_data = {
     "wix_login_no_active_subscription_icon": "🚫",
     "wix_login_no_active_subscription_text": "Login failed: No active subscription found. (您没有生效的订阅。)",
     "theme": {
-        "primaryColor": "#82318E",
+        "primaryColor": "#1499E3",
     },
     "page_title": "Kaiwu Chat",
-    "page_icon": "src/static/favicon.ico",
+    "page_icon": "src/static/kaiwu/favicon.ico",
     "page_markdown": """
       <style>
           body {
@@ -35,7 +35,7 @@ ui_data = {
               text-decoration: none;
           }
           div[data-testid="stDecoration"] {
-              background-image: linear-gradient(90deg, #82318E, #C2B6B2);
+              background-image: linear-gradient(90deg, #1499E3, #E6FAFF);
           }
           div[data-testid="stImage"] {
               min-width: 50px;
@@ -60,7 +60,7 @@ ui_data = {
         }
       </style>
       """,
-    "sidebar_image": "src/static/logo.png",
+    "sidebar_image": "src/static/kaiwu/logo.png",
     "sidebar_title": "Kaiwu Chat",
     "sidebar_subheader": "Ask to retrieve sustainability-related information, and get inspired.",
     "sidebar_welcome_text": """""",
@@ -100,8 +100,8 @@ ui_data = {
     <span style='font-size: 12px;padding-left:20px;'>关闭所有来源就是ChatGPT的GPT-4o。</span>
     """,
     "current_chat_title": "Chat History :",
-    "chat_ai_avatar": "src/static/logo.png",
-    "chat_user_avatar": "src/static/user.png",
+    "chat_ai_avatar": "src/static/kaiwu/logo.png",
+    "chat_user_avatar": "src/static/kaiwu/user.png",
     "chat_ai_welcome": "Hi {username}! How can I help?",
     "chat_human_placeholder": "Send a message in any language",
     "sidebar_newchat_button_label": "➕ New Chat",

@@ -101,7 +101,8 @@ def get_member_access_token(code: str):
 
 def get_highest_active_subscription(orders):
     # Define priority levels
-    priority = {"Elite": 3, "Pro": 2, "Basic": 1}
+        # priority = {"Elite": 3, "Pro": 2, "Test Purchase": 1, "Beta test": 0}
+    priority = {"Elite": 3, "Pro": 2}
 
     # Find all orders with "ACTIVE" status
     active_orders = [order for order in orders if order["status"] == "ACTIVE"]
@@ -110,7 +111,10 @@ def get_highest_active_subscription(orders):
         return None
 
     # Get the order with the highest level
-    highest_order = max(active_orders, key=lambda x: priority.get(x["planName"], 0))
+    highest_order = max(active_orders, key=lambda x: priority.get(x["planName"], -1))
+    
+    if highest_order["planName"] not in priority:
+        return None
 
     return highest_order["planName"]
 
@@ -127,7 +131,7 @@ def get_subscription(member_access_token: str) -> str:
     return subscription
 
 
-def check_wix_oauth() -> tuple[bool, str, str]:
+def check_wix_oauth() -> tuple[bool, str, str]: # type: ignore
     component_url = st.secrets["component_url"]
     placeholder = st.empty()
 
@@ -163,10 +167,17 @@ def check_wix_oauth() -> tuple[bool, str, str]:
                 st.session_state["wix_return_data"] = wix_component(
                     url=st.session_state["wix_callback_url"]
                 )
+
+                wix_return_data_get_time = 0
                 while (
                     "wix_return_data" not in st.session_state
                     or st.session_state["wix_return_data"] is None
                 ):
+                    if wix_return_data_get_time > 150:
+                        with col_center:
+                            st.error(ui.wix_login_error_timeout, icon=ui.wix_login_error_icon)
+                        return False, None, None
+                    wix_return_data_get_time += 1
                     time.sleep(0.1)
 
                 member_access_token = get_member_access_token(
@@ -181,9 +192,7 @@ def check_wix_oauth() -> tuple[bool, str, str]:
                     return auth, username, subscription
                 else:
                     with col_center:
-                        st.error(
-                            "Login failed: No active subscription found.", icon="🚫"
-                        )
+                        st.error(ui.wix_login_no_active_subscription_text, icon=ui.wix_login_no_active_subscription_icon)
                     return False, None, None
             else:
                 with col_center:

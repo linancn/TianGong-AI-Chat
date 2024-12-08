@@ -21,5 +21,3 @@ docs/
 .github/
 
 sphinx/
-
-.streamlit/secrets.toml

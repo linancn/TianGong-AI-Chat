@@ -1,5 +1,5 @@
+import asyncio
 import datetime
-import json
 import time
 import uuid
 from datetime import datetime
@@ -12,23 +12,18 @@ import ui_config
 import utils
 import wix_oauth as wix_oauth
 from sensitivity_checker import check_text_sensitivity
-from top_k_mappings import top_k_mappings
-from utils import check_password  # get_faiss_db_api,
 from utils import (
     StreamHandler,
+    check_password,
+    count_chat_history,
     delete_chat_history,
     fetch_chat_history,
-    func_calling_chain,
-    get_faiss_db,
+    get_begin_datetime,
     initialize_messages,
     main_chain,
+    func_calling_chain,
     random_email,
-    search_arxiv_docs,
-    search_internet,
-    search_pinecone,
-    search_uploaded_docs,
-    search_weaviate,
-    search_wiki,
+    concurrent_search_service,
     xata_chat_history,
 )
 
@@ -105,88 +100,98 @@ if "logged_in" in st.session_state:
                 if "search_option_disabled" not in st.session_state:
                     st.session_state["search_option_disabled"] = False
 
-                search_knowledge_base = st.toggle(
-                    ui.search_knowledge_base_checkbox_label,
+                search_sci = st.toggle(
+                    ui.search_journal_paper_checkbox_label,
                     value=False,
                     disabled=st.session_state["search_option_disabled"],
                 )
+                search_report = st.toggle(
+                    ui.search_report_checkbox_label, 
+                    value=False,
+                    disabled=st.session_state["search_option_disabled"],
+                )
+                search_standard = st.toggle(
+                    ui.search_standard_checkbox_label, 
+                    value=False,
+                    disabled=st.session_state["search_option_disabled"],
+                )
+
+                search_patent = st.toggle(
+                    ui.search_patent_checkbox_label, 
+                    value=False,
+                    disabled=st.session_state["search_option_disabled"],
+                )
+
                 search_online = st.toggle(
                     ui.search_internet_checkbox_label,
                     value=False,
                     disabled=st.session_state["search_option_disabled"],
                 )
-                # search_wikipedia = st.toggle(
-                #     ui.search_wikipedia_checkbox_label, value=False
-                # )
-                # search_arxiv = st.toggle(ui.search_arxiv_checkbox_label, value=False)
 
-                search_docs = st.toggle(
-                    ui.search_docs_checkbox_label,
-                    value=False,
-                    disabled=False,
-                    key="search_option_disabled",
-                )
+                search_list = []
+                if search_sci:
+                    search_list.append("sci_search")
+                if search_report:
+                    search_list.append("report_search")
+                if search_standard:
+                    search_list.append("standard_search")
+                if search_patent:
+                    search_list.append("patent_search")
+                if search_online:
+                    search_list.append("internet_search")
+
+
+                # if (
+                #     "subsription" in st.session_state
+                #     and st.session_state["subsription"] == "Elite"
+                # ):
+                #     search_docs = st.toggle(
+                #         ui.search_docs_checkbox_label,
+                #         value=False,
+                #         disabled=False,
+                #         key="search_option_disabled",
+                #     )
+                # else:
+                #     search_docs = st.toggle(
+                #         ui.search_docs_checkbox_label,
+                #         value=False,
+                #         disabled=True,
+                #         key="search_option_disabled",
+                #     )
 
                 # search_knowledge_base = True
                 # search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
-                search_wikipedia = False
-                search_arxiv = False
-                # search_docs = False
+                # search_wikipedia = False
+                # search_arxiv = False
+                # # search_docs = False
 
-                search_docs_option = None
+                # search_docs_option = None
 
-                if search_docs:
-                    # search_docs_option = st.radio(
-                    #     label=ui.search_docs_options,
-                    #     options=(
-                    #         ui.search_docs_options_combined,
-                    #         ui.search_docs_options_isolated,
-                    #     ),
-                    #     horizontal=True,
-                    # )
+                # st.session_state["chat_disabled"] = False
 
-                    search_docs_option = ui.search_docs_options_isolated
-                    uploaded_files = st.file_uploader(
-                        ui.sidebar_file_uploader_title,
-                        accept_multiple_files=True,
-                        type=None,
-                    )
+                # current_top_k_mappings = f"{search_knowledge_base}_{search_online}_{search_wikipedia}_{search_arxiv}_{search_docs_option}"
 
-                    if uploaded_files != []:
-                        st.session_state["chat_disabled"] = False
-                        if uploaded_files != st.session_state.get("uploaded_files"):
-                            st.session_state["uploaded_files"] = uploaded_files
-                            with st.spinner(ui.sidebar_file_uploader_spinner):
-                                st.session_state["faiss_db"] = get_faiss_db(
-                                    uploaded_files
-                                )
+                # top_k_values = top_k_mappings.get(current_top_k_mappings)
 
-                    else:
-                        st.session_state["chat_disabled"] = True
+                # # override search_docs_top_k if search_docs_option is isolated
+                # if top_k_values is None:
+                #     search_knowledge_base_top_k = 0
+                #     search_online_top_k = 0
+                #     search_wikipedia_top_k = 0
+                #     search_arxiv_top_k = 0
+                #     search_docs_top_k = 16
+                # else:
+                #     search_knowledge_base_top_k = top_k_values.get(
+                #         "search_knowledge_base_top_k", 0
+                #     )
+                #     search_online_top_k = top_k_values.get("search_online_top_k", 0)
+                #     search_wikipedia_top_k = top_k_values.get(
+                #         "search_wikipedia_top_k", 0
+                #     )
+                #     search_arxiv_top_k = top_k_values.get("search_arxiv_top_k", 0)
+                #     search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
 
-                current_top_k_mappings = f"{search_knowledge_base}_{search_online}_{search_wikipedia}_{search_arxiv}_{search_docs_option}"
-
-                top_k_values = top_k_mappings.get(current_top_k_mappings)
-
-                # override search_docs_top_k if search_docs_option is isolated
-                if top_k_values is None:
-                    search_knowledge_base_top_k = 0
-                    search_online_top_k = 0
-                    search_wikipedia_top_k = 0
-                    search_arxiv_top_k = 0
-                    search_docs_top_k = 16
-                else:
-                    search_knowledge_base_top_k = top_k_values.get(
-                        "search_knowledge_base_top_k", 0
-                    )
-                    search_online_top_k = top_k_values.get("search_online_top_k", 0)
-                    search_wikipedia_top_k = top_k_values.get(
-                        "search_wikipedia_top_k", 0
-                    )
-                    search_arxiv_top_k = top_k_values.get("search_arxiv_top_k", 0)
-                    search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
-
-            st.markdown(body=ui.sidebar_instructions)
+            st.markdown(body=ui.sidebar_instructions, unsafe_allow_html=True)
 
             st.divider()
 
@@ -200,8 +205,6 @@ if "logged_in" in st.session_state:
                         "first_run",
                         "messages",
                         "xata_history",
-                        "uploaded_files",
-                        "faiss_db",
                     ]
                     for key in keys_to_delete:
                         try:
@@ -225,8 +228,6 @@ if "logged_in" in st.session_state:
                         "first_run",
                         "messages",
                         "xata_history",
-                        "uploaded_files",
-                        "faiss_db",
                     ]
                     for key in keys_to_delete:
                         try:
@@ -310,105 +311,131 @@ if "logged_in" in st.session_state:
                 disabled=st.session_state["chat_disabled"],
             )
             if user_query:
-                st.chat_message("human", avatar=ui.chat_user_avatar).markdown(
-                    user_query
-                )
-                st.session_state["messages"].append(
-                    {"role": "human", "content": user_query}
-                )
-                human_message = HumanMessage(
-                    content=user_query,
-                    additional_kwargs={"id": st.session_state["username"]},
-                )
-                st.session_state["xata_history"].add_message(human_message)
-
-                # check text sensitivity
-                answer = check_text_sensitivity(user_query)["answer"]
-                if answer is not None:
-                    with st.chat_message("ai", avatar=ui.chat_ai_avatar):
-                        st.markdown(answer)
-                        st.session_state["messages"].append(
-                            {
-                                "role": "ai",
-                                "content": answer,
-                            }
-                        )
-                        ai_message = AIMessage(
-                            content=answer,
-                            additional_kwargs={"id": st.session_state["username"]},
-                        )
-                        st.session_state["xata_history"].add_message(ai_message)
+                beginDatetime = get_begin_datetime()
+                if (
+                    "count_chat_history" not in st.session_state
+                    or "begin_hour" not in st.session_state
+                ):
+                    st.session_state["begin_hour"] = beginDatetime.hour
+                    st.session_state["count_chat_history"] = count_chat_history(
+                        st.session_state["username"], beginDatetime
+                    )
                 else:
-                    current_message = st.session_state["messages"][-8:][1:][:-1]
-                    for item in current_message:
-                        item.pop("avatar", None)
-
-                    chat_history_recent = str(current_message)
-
                     if (
-                        search_knowledge_base
-                        or search_online
-                        or search_wikipedia
-                        or search_arxiv
-                        or search_docs
+                        st.session_state["begin_hour"] != beginDatetime.hour
+                        or st.session_state["count_chat_history"] % 10 == 0
                     ):
-                        formatted_messages = str(
-                            [
-                                (msg["role"], msg["content"])
-                                for msg in st.session_state["messages"][1:]
-                            ]
+                        st.session_state["begin_hour"] = beginDatetime.hour
+                        st.session_state["count_chat_history"] = count_chat_history(
+                            st.session_state["username"], beginDatetime
                         )
 
-                        func_calling_response = func_calling_chain().invoke(
-                            {"input": formatted_messages}
-                        )
+                if (
+                    not (
+                        "subsription" in st.session_state
+                        and st.session_state["subsription"] == "Elite"
+                    )
+                ) and st.session_state["count_chat_history"] > 39:
+                    time_range_str = (
+                        str(beginDatetime.hour)
+                        + ":00 - "
+                        + str(beginDatetime.hour + 3)
+                        + ":00"
+                    )
+                    st.chat_message("ai", avatar=ui.chat_ai_avatar).markdown(
+                        "You have reached the usage limit for this time range (UTC "
+                        + time_range_str
+                        + "). Please try again later. (您已达到 UTC "
+                        + time_range_str
+                        + " 时间范围的使用限制，请稍后再试。)"
+                    )
 
-                        query = func_calling_response.get("query")
-                        arxiv_query = func_calling_response.get("arxiv_query")
+                else:
+                    st.chat_message("human", avatar=ui.chat_user_avatar).markdown(
+                        user_query
+                    )
+                    st.session_state["messages"].append(
+                        {"role": "human", "content": user_query}
+                    )
+                    human_message = HumanMessage(
+                        content=user_query,
+                        additional_kwargs={"id": st.session_state["username"]},
+                    )
+                    st.session_state["xata_history"].add_message(human_message)
 
-                        try:
-                            created_at = json.loads(
-                                func_calling_response.get("created_at", None)
+                    # check text sensitivity
+                    answer = check_text_sensitivity(user_query)["answer"]
+                    if answer is not None:
+                        with st.chat_message("ai", avatar=ui.chat_ai_avatar):
+                            st.markdown(answer)
+                            st.session_state["messages"].append(
+                                {
+                                    "role": "ai",
+                                    "content": answer,
+                                }
                             )
-                        except TypeError:
-                            created_at = None
-
-                        source = func_calling_response.get("source", None)
-
-                        filters = {}
-                        if created_at:
-                            filters["date"] = created_at
-                        if source:
-                            filters["journal"] = source
-
-                        docs_response = []
-                        docs_response.extend(
-                            search_pinecone(
-                                query=query,
-                                filters=filters,
-                                top_k=search_knowledge_base_top_k,
+                            ai_message = AIMessage(
+                                content=answer,
+                                additional_kwargs={"id": st.session_state["username"]},
                             )
-                        )
-                        # docs_response.extend(
-                        #     search_weaviate(
-                        #         query=query,
-                        #         top_k=search_knowledge_base_top_k,
-                        #     )
-                        # )
-                        docs_response.extend(
-                            search_internet(query, top_k=search_online_top_k)
-                        )
-                        docs_response.extend(
-                            search_wiki(query, top_k=search_wikipedia_top_k)
-                        )
-                        docs_response.extend(
-                            search_arxiv_docs(arxiv_query, top_k=search_arxiv_top_k)
-                        )
-                        docs_response.extend(
-                            search_uploaded_docs(query, top_k=search_docs_top_k)
-                        )
+                            st.session_state["xata_history"].add_message(ai_message)
+                            st.session_state["count_chat_history"] += 1
+                    else:
+                        current_message = st.session_state["messages"][-8:][1:][:-1]
+                        for item in current_message:
+                            item.pop("avatar", None)
 
-                        input = f"""Must Follow:
+                        chat_history_recent = str(current_message)
+
+                        if (
+                            search_sci
+                            or search_online 
+                            or search_report 
+                            or search_patent 
+                            or search_standard
+                        ):
+                            formatted_messages = str(
+                                [
+                                    (msg["role"], msg["content"])
+                                    for msg in st.session_state["messages"][1:]
+                                ]
+                            )
+
+                            func_calling_response = func_calling_chain().invoke(
+                                {"input": formatted_messages}
+                            )
+
+                            query = func_calling_response.get("query")
+
+                            # try:
+                            #     created_at = json.loads(
+                            #         func_calling_response.get("created_at", None)
+                            #     )
+                            # except TypeError:
+                            #     created_at = None
+
+                            # source = func_calling_response.get("source", None)
+
+                            # filters = {}
+                            # if created_at:
+                            #     filters["created_at"] = created_at
+                            # if source:
+                            #     filters["source"] = source
+
+                            # docs_response = []
+                            # docs_response.extend(
+                            #     search_sci_service(
+                            #         query=query,
+                            #         filters=filters,
+                            #         top_k=3,
+                            #     )
+                            # )
+                            # docs_response.extend(
+                            #     search_internet(query, top_k=3)
+                            # )
+                            docs_response = asyncio.run(concurrent_search_service(urls=search_list,query=query))
+
+                            input = f"""Must Follow:
 - Respond to "{user_query}" by using information from "{docs_response}" (if available) and your own knowledge to provide a logical, clear, and critically analyzed reply in the same language.
 - Use the chat context from "{chat_history_recent}" (if available) to adjust the level of detail in your response.
 - Employ bullet points selectively, where they add clarity or organization.
@@ -421,31 +448,32 @@ Must Avoid:
 - Translate cited references into the query's language.
 - Preface responses with any designation such as "AI:"."""
 
-                    else:
-                        input = f"""Respond to "{user_query}". If "{chat_history_recent}" is not empty, use it as chat context."""
+                        else:
+                            input = f"""Respond to "{user_query}". If "{chat_history_recent}" is not empty, use it as chat context."""
 
-                    with st.chat_message("ai", avatar=ui.chat_ai_avatar):
-                        st_callback = StreamHandler(st.empty())
-                        response = main_chain().invoke(
-                            {"input": input},
-                            {"callbacks": [st_callback]},
-                        )
+                        with st.chat_message("ai", avatar=ui.chat_ai_avatar):
+                            st_callback = StreamHandler(st.empty())
+                            response = main_chain().invoke(
+                                {"input": input},
+                                {"callbacks": [st_callback]},
+                            )
 
-                        st.session_state["messages"].append(
-                            {
-                                "role": "ai",
-                                "content": response["text"],
-                            }
-                        )
-                        ai_message = AIMessage(
-                            content=response["text"],
-                            additional_kwargs={"id": st.session_state["username"]},
-                        )
-                        st.session_state["xata_history"].add_message(ai_message)
+                            st.session_state["messages"].append(
+                                {
+                                    "role": "ai",
+                                    "content": response,
+                                }
+                            )
+                            ai_message = AIMessage(
+                                content=response,
+                                additional_kwargs={"id": st.session_state["username"]},
+                            )
+                            st.session_state["xata_history"].add_message(ai_message)
+                            st.session_state["count_chat_history"] += 1
 
-                if len(st.session_state["messages"]) == 3:
-                    st.session_state["xata_history_refresh"] = True
-                    st.rerun()
+                    if len(st.session_state["messages"]) == 3:
+                        st.session_state["xata_history_refresh"] = True
+                        st.rerun()
         else:
             user_query = st.chat_input(
                 placeholder=ui.chat_human_placeholder,
