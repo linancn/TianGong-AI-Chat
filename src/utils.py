@@ -12,11 +12,8 @@ import streamlit as st
 import aiohttp
 import asyncio
 
-
-os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
 os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
 os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
-os.environ["LLM_MODEL"] = st.secrets["llm_model"]
 os.environ["LANGCHAIN_VERBOSE"] = str(st.secrets["langchain_verbose"])
 os.environ["PASSWORD"] = st.secrets["password"]
 os.environ["X_REGION"] = st.secrets["x_region"]
@@ -42,8 +39,6 @@ import ui_config
 
 ui = ui_config.create_ui_from_config()
 
-
-llm_model = os.environ["LLM_MODEL"]
 langchain_verbose = bool(os.environ.get("LANGCHAIN_VERBOSE", "True") == "True")
 
 
@@ -119,7 +114,7 @@ def check_password():
         return True
 
 
-def func_calling_chain():
+def func_calling_chain(api_key, llm_model, openai_api_base):
     """
     Creates and returns a function calling chain for extracting query and filter information from a chat history.
 
@@ -250,18 +245,18 @@ def func_calling_chain():
         SystemMessage(
             content="You are a world-class algorithm for extracting the next query and filters for searching from a chat history. Make sure to answer in the correct structured format."
         ),
-        HumanMessage(content="The chat history:"),
-        HumanMessagePromptTemplate.from_template("{input}"),
+        HumanMessagePromptTemplate.from_template("The chat history:\n{input}"),
     ]
 
     prompt_func_calling = ChatPromptTemplate(messages=prompt_func_calling_msgs)
 
     # llm_func_calling = ChatOpenAI(model_name=llm_model, temperature=0, streaming=False)
     llm_func_calling = ChatOpenAI(
+        api_key=api_key,
         model_name=llm_model,
         temperature=0.1,
         streaming=False,
-        openai_api_base="https://open.bigmodel.cn/api/paas/v4/",
+        openai_api_base=openai_api_base,
     )
 
     func_calling_chain = prompt_func_calling | llm_func_calling.with_structured_output(
@@ -314,7 +309,7 @@ async def concurrent_search_service(urls: list, query: str, top_k: int = 16):
         return await asyncio.gather(*tasks)
 
 
-def main_chain():
+def main_chain(api_key, llm_model, openai_api_base):
     """
     Creates and returns a main Large Language Model (LLM) chain configured to produce responses only to science-related queries while avoiding sensitive topics.
 
@@ -331,18 +326,13 @@ def main_chain():
         - TypeError could be raised if internal configurations within the function do not match the expected types.
     """
 
-    # llm_chat = ChatOpenAI(
-    #     model=llm_model,
-    #     temperature=0,
-    #     streaming=True,
-    #     verbose=langchain_verbose,
-    # )
     llm_chat = ChatOpenAI(
+        api_key=api_key,
         model_name=llm_model,
         temperature=0.1,
         streaming=True,
         verbose=langchain_verbose,
-        openai_api_base="https://open.bigmodel.cn/api/paas/v4/",
+        openai_api_base=openai_api_base,
     )
 
     template = """{input}"""
