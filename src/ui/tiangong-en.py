@@ -2,10 +2,10 @@ ui_data = {
     "need_fixed_passwd": False,
     "wix_login_title": """
     <p align="center">
-        <img src="app/static/kaiwu/logo.png" alt="Kaiwu" width="60" style="margin-top: 50px"/>
+        <img src="app/static/kaiwu/logo.png" alt="Tiangong" width="60" style="margin-top: 50px"/>
     </p>
     <p align="center"  style="margin-bottom: 30px; font-size:24px">
-        Welcome to Kaiwu Chat
+        Welcome to Tiangong Chat
     </p>
     """,
     "wix_login_username_label": "Email Address / 电子邮箱",
@@ -21,8 +21,8 @@ ui_data = {
     "theme": {
         "primaryColor": "#82318E",
     },
-    "page_title": "Kaiwu Chat",
-    "page_icon": "src/static/favicon.ico",
+    "page_title": "Tiangong Chat",
+    "page_icon": "src/static/logo.png",
     "page_markdown": """
       <style>
           body {
@@ -48,6 +48,33 @@ ui_data = {
           .css-164nlkn {
               text-align: right;
           }
+          .thusoetext {
+              width: 200px;
+              height: 50px;
+              background-image: url('app/static/thu_soe_text.png');
+              background-size: 180px 50px;
+              background-repeat: no-repeat;
+              background-position: center;
+              opacity: 0.5;
+          }
+          .thulogo {
+              width: 50px;
+              height: 50px;
+              background-image: url('app/static/thu_logo.png');
+              background-size: 50px 50px;
+              background-repeat: no-repeat;
+              background-position: center;
+              opacity: 0.5;
+          }
+          .soelogo {
+              width: 50px;
+              height: 50px;
+              background-image: url('app/static/soe_logo.png');
+              background-size: 45px 45px;
+              background-repeat: no-repeat;
+              background-position: center;
+              opacity: 0.5;
+          }
           .text-sm {
               font-size: .875rem;
               line-height: 1.25rem
@@ -61,21 +88,24 @@ ui_data = {
       </style>
       """,
     "sidebar_image": "src/static/logo.png",
-    "sidebar_title": "Kaiwu Chat",
-    "sidebar_subheader": "Ask to retrieve sustainability-related information, and get inspired.",
+    "sidebar_title": "Tiangong Chat",
+    "sidebar_subheader": "环境生态领域智能助手",
     "sidebar_welcome_text": """""",
     "sidebar_markdown": """
-        <div style="position: fixed; left:25px; bottom: 10px; height:110px; width: 300px; font-size: 14px; font-weight: bold; background-color: transparent;">
-            <table style="border: 0; position: absolute; bottom: 5px;">
+        <div style="position: fixed; left:25px; bottom: 10px; height:110px; width: 315px; font-size: 14px; font-weight: bold; background-color: #F0F2F6;">
+            <table style="border: 0; position: absolute; bottom: 35px;">
+                <tr style="border: 0; width:315px; ">
+                    <td class="thulogo" style="border: 0;"></td>
+                    <td class="soelogo" style="border: 0;"></td>
+                    <td class="thusoetext" style="border: 0;"></td>
+                </tr>
+                <table style="border: 0; position: absolute; bottom: 5px; width:315px;">
                 <tr style="border: 0;">
-                    <td style="border: 0; text-align: left; padding: 0; width: 210px"><p style="margin: 0; opacity: 0.5;">
-                        <a href="https://www.tiangong.earth/">Based on TianGong AI</a></p>
-                    </td>
-                    <td style="border: 0; text-align: right; padding: 0; width: 100px;"><p style="margin: 0; opacity: 0.5;">
-                        <a href="https://www.kaiwu.info">Visit Kaiwu</a></p>
+                    <td style="border: 0; text-align: left; padding: 0;"><p class="text-sm" style="margin: 0; opacity: 0.5;"><a style="color: black" href="https://mingxu.tiangong.world"> 环境数据科学与系统工程团队</a></p></td>
+                    <td style="border: 0; text-align: left; padding: 0;">
+                        <p class="text-sm" style="opacity: 0.5; margin: 0;"><a style="color: black" href="https://www.tiangong.earth/ai">Tiangong AI</a></p>
                     </td>
                 </tr>
-            </table>
         </div>
         """,
     "sidebar_expander_title": "Sources / 信息来源:",
@@ -92,12 +122,8 @@ ui_data = {
     "sidebar_file_uploader_spinner": "Analyzing...",
     "sidebar_file_uploader_error": "None of the files can be analyzed, please check the format!",
     "sidebar_instructions": """
-    <span style='font-size: 14px;'>📚 **[Before Starting: Helpful Tips!](https://www.kaiwu.info/learning)**</span><br />
-    <span style='font-size: 12px;padding-left:20px;'>**[开始之前：重要提示!](https://www.kaiwu.info/zh/learning)**</span><br />
-    <span style='font-size: 14px;'>💾 Activate data sources to retrieve.</span><br />
-    <span style='font-size: 12px;padding-left:20px;'>打开所需的信息来源。</span><br />
-    <span style='font-size: 14px;'>💡 Work as ChatGPT (GPT-4o) if no source is active.</span><br />
-    <span style='font-size: 12px;padding-left:20px;'>关闭所有来源就是ChatGPT的GPT-4o。</span>
+    <span style='font-size: 14px;'>🔥 限时限量，智享AI科研新体验</span><br />
+    <span style='font-size: 14px;'>🏹 如需更佳体验，请前往[Kaiwu](https://www.kaiwu.info)</span><br />
     """,
     "current_chat_title": "Chat History :",
     "chat_ai_avatar": "src/static/logo.png",

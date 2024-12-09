@@ -281,7 +281,7 @@ async def fetch(session, url, query, results_per_url, headers):
             return {"error": f"Request failed with status code {response.status}"}
 
 
-async def concurrent_search_service(urls: list, query: str, top_k: int = 16):
+async def concurrent_search_service(urls: list, query: str, top_k: int = 8):
     """
     Perform concurrent search requests to multiple URLs with specified query and filters.
 
@@ -294,7 +294,7 @@ async def concurrent_search_service(urls: list, query: str, top_k: int = 16):
         list: A list of responses from all the URLs.
     """
     num_urls = len(urls)
-    results_per_url = max(1, min(10, top_k // num_urls))
+    results_per_url = max(1, min(8, top_k // num_urls))
 
     headers = {
         "Content-Type": "application/json",
