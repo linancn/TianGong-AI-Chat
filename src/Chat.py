@@ -104,11 +104,11 @@ if "logged_in" in st.session_state:
                 index=0,
                 help="glm-4-plus / ernie-3.5-128k",
             )
-            if base_model == "智谱 ZHIPU":
+            if base_model == "ZHIPU 智谱":
                 api_key = st.secrets["openai_api_key_zhipu"]
                 llm_model = st.secrets["llm_model_zhipu"]
                 openai_api_base = st.secrets["openai_api_base_zhipu"]
-            elif base_model == "百度 BAIDU":
+            elif base_model == "BAIDU 百度":
                 api_key = st.secrets["openai_api_key_baidu"]
                 llm_model = st.secrets["llm_model_baidu"]
                 openai_api_base = st.secrets["openai_api_base_baidu"]
