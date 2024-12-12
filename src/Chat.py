@@ -86,7 +86,7 @@ if "logged_in" in st.session_state:
                 st.image(ui.sidebar_image)
             with col_text:
                 st.title(ui.sidebar_title)
-            st.subheader(ui.sidebar_subheader)
+            st.subheader("环境生态领域智能助手",help="Environment and Ecology Intelligent Assistant")
 
             if "subsription" in st.session_state:
                 st.markdown(
@@ -97,17 +97,18 @@ if "logged_in" in st.session_state:
                 )
 
             base_model = st.radio(
-                label="模型选择",
-                label_visibility="collapsed",
+                label="模型选择 / Model Selection",
+                # label_visibility="collapsed",
                 options=["ZHIPU 智谱", "BAIDU 百度"],
                 horizontal=True,
                 index=0,
+                help="glm-4-plus / ernie-3.5-128k",
             )
-            if base_model == "ZHIPU 智谱":
+            if base_model == "智谱 ZHIPU":
                 api_key = st.secrets["openai_api_key_zhipu"]
                 llm_model = st.secrets["llm_model_zhipu"]
                 openai_api_base = st.secrets["openai_api_base_zhipu"]
-            elif base_model == "BAIDU 百度":
+            elif base_model == "百度 BAIDU":
                 api_key = st.secrets["openai_api_key_baidu"]
                 llm_model = st.secrets["llm_model_baidu"]
                 openai_api_base = st.secrets["openai_api_base_baidu"]
@@ -206,9 +207,8 @@ if "logged_in" in st.session_state:
                 #     search_arxiv_top_k = top_k_values.get("search_arxiv_top_k", 0)
                 #     search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
 
-            st.markdown(body=ui.sidebar_instructions, unsafe_allow_html=True)
-
-            st.divider()
+            st.markdown("🔥 限时限量免费开放", help="Limited time and quantity free access")
+            st.markdown("🏹 如需更佳体验，请前往 [Kaiwu](https://www.kaiwu.info)", help="ChatGPT 4o and chat history archives")
 
             col_newchat, col_delete = st.columns([1, 1])
             with col_newchat:
@@ -475,7 +475,9 @@ if "logged_in" in st.session_state:
 
                             with st.chat_message("ai", avatar=ui.chat_ai_avatar):
                                 st_callback = StreamHandler(st.empty())
-                                response = main_chain(api_key, llm_model, openai_api_base).invoke(
+                                response = main_chain(
+                                    api_key, llm_model, openai_api_base
+                                ).invoke(
                                     {"input": input},
                                     {"callbacks": [st_callback]},
                                 )

@@ -2,10 +2,10 @@ ui_data = {
     "need_fixed_passwd": False,
     "wix_login_title": """
     <p align="center">
-        <img src="app/static/kaiwu/logo.png" alt="Tiangong" width="60" style="margin-top: 50px"/>
+        <img src="app/static/kaiwu/logo.png" alt="TianGong" width="60" style="margin-top: 50px"/>
     </p>
     <p align="center"  style="margin-bottom: 30px; font-size:24px">
-        Welcome to Tiangong Chat
+        Welcome to TianGong Chat
     </p>
     """,
     "wix_login_username_label": "Email Address / 电子邮箱",
@@ -21,7 +21,7 @@ ui_data = {
     "theme": {
         "primaryColor": "#82318E",
     },
-    "page_title": "Tiangong Chat",
+    "page_title": "TianGong Chat",
     "page_icon": "src/static/logo.png",
     "page_markdown": """
       <style>
@@ -88,7 +88,7 @@ ui_data = {
       </style>
       """,
     "sidebar_image": "src/static/logo.png",
-    "sidebar_title": "Tiangong Chat",
+    "sidebar_title": "TianGong Chat",
     "sidebar_subheader": "环境生态领域智能助手",
     "sidebar_welcome_text": """""",
     "sidebar_markdown": """
@@ -103,18 +103,18 @@ ui_data = {
                 <tr style="border: 0;">
                     <td style="border: 0; text-align: left; padding: 0;"><p class="text-sm" style="margin: 0; opacity: 0.5;"><a style="color: black" href="https://mingxu.tiangong.world"> 环境数据科学与系统工程团队</a></p></td>
                     <td style="border: 0; text-align: left; padding: 0;">
-                        <p class="text-sm" style="opacity: 0.5; margin: 0;"><a style="color: black" href="https://www.tiangong.earth/ai">Tiangong AI</a></p>
+                        <p class="text-sm" style="opacity: 0.5; margin: 0;"><a style="color: black" href="https://www.tiangong.earth/ai">TianGong AI</a></p>
                     </td>
                 </tr>
         </div>
         """,
-    "sidebar_expander_title": "Sources / 信息来源:",
-    "search_journal_paper_checkbox_label": "📂 Journal Paper / 期刊文献",
-    "search_internet_checkbox_label": "🌐 Internet / 互联网",
-    "search_report_checkbox_label": "📄 Report / 报告",
-    "search_standard_checkbox_label": "📘 Standard / 标准",
+    "sidebar_expander_title": "信息来源 / Sources:",
+    "search_journal_paper_checkbox_label": "📂 期刊文献 / Journal Paper",
+    "search_internet_checkbox_label": "🌐 互联网 / Internet",
+    "search_report_checkbox_label": "📄 报告 / Report",
+    "search_standard_checkbox_label": "📘 标准 / Standard",
     "search_docs_checkbox_label": "Documents / 文档",
-    "search_patent_checkbox_label": "🧠 Patent / 专利",
+    "search_patent_checkbox_label": "🧠 专利 / Patent",
     "search_docs_options": "Options:",
     "search_docs_options_isolated": "Isolated",
     "search_docs_options_combined": "Combined",
@@ -123,13 +123,14 @@ ui_data = {
     "sidebar_file_uploader_error": "None of the files can be analyzed, please check the format!",
     "sidebar_instructions": """
     <span style='font-size: 14px;'>🔥 限时限量，智享AI科研新体验</span><br />
-    <span style='font-size: 14px;'>🏹 如需更佳体验，请前往[Kaiwu](https://www.kaiwu.info)</span><br />
+    <span style='font-size: 14px;'>
+    </span><br />
     """,
     "current_chat_title": "Chat History :",
     "chat_ai_avatar": "src/static/logo.png",
     "chat_user_avatar": "src/static/user.png",
-    "chat_ai_welcome": "Hi {username}! How can I help?",
-    "chat_human_placeholder": "Send a message in any language",
+    "chat_ai_welcome": "您好! 我能帮您什么吗? / Hi {username}! How can I help?",
+    "chat_human_placeholder": "可用任何语言来提问 / Send a message in any language",
     "sidebar_newchat_button_label": "➕ New Chat",
     "sidebar_delete_button_label": "🗑️ Delete Chat",
     "sidebar_newchat_label": "New Chat",
