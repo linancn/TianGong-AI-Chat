@@ -99,10 +99,10 @@ if "logged_in" in st.session_state:
             base_model = st.radio(
                 label="模型选择 / Model Selection",
                 # label_visibility="collapsed",
-                options=["ZHIPU 智谱", "BAIDU 百度"],
+                options=["BAIDU 百度", "ZHIPU 智谱"],
                 horizontal=True,
                 index=0,
-                help="glm-4-plus / ernie-3.5-128k",
+                help="ernie-4.0-turbo-128k / glm-4-plus",
             )
             if base_model == "ZHIPU 智谱":
                 api_key = st.secrets["openai_api_key_zhipu"]
