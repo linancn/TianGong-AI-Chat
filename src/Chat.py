@@ -108,10 +108,12 @@ if "logged_in" in st.session_state:
                 api_key = st.secrets["openai_api_key_zhipu"]
                 llm_model = st.secrets["llm_model_zhipu"]
                 openai_api_base = st.secrets["openai_api_base_zhipu"]
+                baidu_llm = False
             elif base_model == "BAIDU 百度":
                 api_key = st.secrets["openai_api_key_baidu"]
                 llm_model = st.secrets["llm_model_baidu"]
                 openai_api_base = st.secrets["openai_api_base_baidu"]
+                baidu_llm = True
 
             with st.expander(ui.sidebar_expander_title, expanded=True):
                 if "search_option_disabled" not in st.session_state:
@@ -457,26 +459,28 @@ if "logged_in" in st.session_state:
                                     )
                                 )
 
-                                input = f"""Must Follow:
-    - Respond to "{user_query}" by using information from "{docs_response}" (if available) and your own knowledge to provide a logical, clear, and critically analyzed reply in the same language.
-    - Use the chat context from "{chat_history_recent}" (if available) to adjust the level of detail in your response.
-    - Employ bullet points selectively, where they add clarity or organization.
-    - Cite sources in main text using the Author-Date citation style where applicable.
-    - Provide a list of references in markdown format of [title.journal.authors.date.](hyperlinks) at the end (or just the source file name), only for the references mentioned in the generated text.
-    - Use LaTeX quoted by '$' or '$$' within markdown to render mathematical formulas.
+                                input = f"""必须遵循：
+- 使用“{docs_response}”（如果有）和您自己的知识回应“{user_query}”，以用户相同的语言提供逻辑清晰、经过批判性分析的回复。
+- 如果有“{chat_history_recent}”，请利用聊天上下文调整回复的详细程度。
+- 如果没有提供参考或没有上下文的情况，不要要求用户提供，直接回应用户的问题。
+- 有选择地使用项目符号，以提高清晰度或组织性。
+- 在适用情况下，使用 作者-日期 的引用风格在正文中引用来源。
+- 在末尾以Markdown格式提供一个参考文献列表，格式为[标题.期刊.作者.日期.](链接)（或仅文件名），仅包括文本中提到的参考文献。
+- 在Markdown中使用 '$' 或 '$$' 引用LaTeX以渲染数学公式。
 
-    Must Avoid:
-    - Repeat the human's query.
-    - Translate cited references into the query's language.
-    - Preface responses with any designation such as "AI:"."""
+必须避免：
+- 重复用户的查询。
+- 将引用的参考文献翻译成用户查询的语言。
+- 在回复前加上任何标识，如“AI：”。
+"""
 
                             else:
-                                input = f"""Respond to "{user_query}". If "{chat_history_recent}" is not empty, use it as chat context."""
+                                input = f"""回应“{user_query}”。如果“{chat_history_recent}”不为空，请使用其作为聊天上下文。"""
 
                             with st.chat_message("ai", avatar=ui.chat_ai_avatar):
                                 st_callback = StreamHandler(st.empty())
                                 response = main_chain(
-                                    api_key, llm_model, openai_api_base
+                                    api_key, llm_model, openai_api_base, baidu_llm
                                 ).invoke(
                                     {"input": input},
                                     {"callbacks": [st_callback]},

@@ -2,6 +2,7 @@ langchain
 langchain_community
 langchain-openai
 pytz
+qianfan
 requests
 streamlit
 tiktoken

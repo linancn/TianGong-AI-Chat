@@ -22,6 +22,9 @@ os.environ["PW"] = st.secrets["pw"]
 os.environ["REMOTE_BEARER_TOKEN"] = st.secrets["bearer_token"]
 os.environ["END_POINT"] = st.secrets["end_point"]
 
+os.environ["QIANFAN_AK"] = st.secrets["qianfan_ak"]
+os.environ["QIANFAN_SK"] = st.secrets["qianfan_sk"]
+
 
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.prompts import (
@@ -33,6 +36,7 @@ from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain_community.chat_message_histories import XataChatMessageHistory
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
+from langchain_community.llms.baidu_qianfan_endpoint import QianfanLLMEndpoint
 from xata.client import XataClient
 
 import ui_config
@@ -309,7 +313,7 @@ async def concurrent_search_service(urls: list, query: str, top_k: int = 8):
         return await asyncio.gather(*tasks)
 
 
-def main_chain(api_key, llm_model, openai_api_base):
+def main_chain(api_key, llm_model, openai_api_base, baidu_llm):
     """
     Creates and returns a main Large Language Model (LLM) chain configured to produce responses only to science-related queries while avoiding sensitive topics.
 
@@ -326,14 +330,22 @@ def main_chain(api_key, llm_model, openai_api_base):
         - TypeError could be raised if internal configurations within the function do not match the expected types.
     """
 
-    llm_chat = ChatOpenAI(
-        api_key=api_key,
-        model_name=llm_model,
-        temperature=0.1,
-        streaming=True,
-        verbose=langchain_verbose,
-        openai_api_base=openai_api_base,
-    )
+    if baidu_llm:
+        llm_chat = QianfanLLMEndpoint(
+            endpoint="ernie-4.0-turbo-128k",
+            model="ERNIE-4.0-Turbo-8K",
+            temperature=0.1,
+            streaming=True,
+        )
+    else:
+        llm_chat = ChatOpenAI(
+            api_key=api_key,
+            model_name=llm_model,
+            temperature=0.1,
+            streaming=True,
+            verbose=langchain_verbose,
+            openai_api_base=openai_api_base,
+        )
 
     template = """{input}"""
 
