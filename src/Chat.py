@@ -101,19 +101,20 @@ if "logged_in" in st.session_state:
                 # label_visibility="collapsed",
                 options=["BAIDU 百度", "ZHIPU 智谱"],
                 horizontal=True,
-                index=0,
+                index=1,
                 help="ernie-4.0-turbo-128k / glm-4-plus",
+                disabled=True,
             )
             if base_model == "ZHIPU 智谱":
                 api_key = st.secrets["openai_api_key_zhipu"]
                 llm_model = st.secrets["llm_model_zhipu"]
                 openai_api_base = st.secrets["openai_api_base_zhipu"]
                 baidu_llm = False
-            elif base_model == "BAIDU 百度":
-                api_key = st.secrets["openai_api_key_baidu"]
-                llm_model = st.secrets["llm_model_baidu"]
-                openai_api_base = st.secrets["openai_api_base_baidu"]
-                baidu_llm = True
+            # elif base_model == "BAIDU 百度":
+            #     api_key = st.secrets["openai_api_key_baidu"]
+            #     llm_model = st.secrets["llm_model_baidu"]
+            #     openai_api_base = st.secrets["openai_api_base_baidu"]
+            #     baidu_llm = True
 
             with st.expander(ui.sidebar_expander_title, expanded=True):
                 if "search_option_disabled" not in st.session_state:
