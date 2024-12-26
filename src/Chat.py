@@ -345,7 +345,7 @@ if "logged_in" in st.session_state:
                 with footer_container:
                     user_input = chat_input_widget()
                 footer_container.float(
-                    "display:flex; align-items:center;justify-content:center; flex-direction:column; position:fixed; bottom:5px; margin:0; padding:0;"
+                    "display:flex; align-items:center;justify-content:center; flex-direction:column; position:fixed; bottom:5px; margin:0; padding:0; z-index:0;"
                 )
                 if user_input:
                     if "text" in user_input:
@@ -548,7 +548,7 @@ if "logged_in" in st.session_state:
                 with footer_container:
                     user_input = chat_input_widget()
                 footer_container.float(
-                    "display:flex; align-items:center;justify-content:center; flex-direction:column; position:fixed; bottom:5px; margin:0; padding:0;"
+                    "display:flex; align-items:center;justify-content:center; flex-direction:column; position:fixed; bottom:5px; margin:0; padding:0; z-index:0;"
                 )
                 del st.session_state["xata_history_refresh"]
 
