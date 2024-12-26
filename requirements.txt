@@ -9,7 +9,7 @@ qianfan
 requests
 streamlit
 streamlit-chat-widget
-streamlit_extras
+streamlit_float
 tiktoken
 toml
 xata

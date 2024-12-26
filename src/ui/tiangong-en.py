@@ -84,7 +84,7 @@ ui_data = {
           }
           .st-emotion-cache-5rimss a {
                 color: #000000;
-        }
+          }
       </style>
       """,
     "sidebar_image": "src/static/logo.png",

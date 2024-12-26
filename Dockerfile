@@ -1,5 +1,11 @@
 FROM --platform=linux/amd64 python:3.12-slim-bullseye
 
+# Install dependencies
+RUN apt-get update
+RUN apt-get install -y ffmpeg
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/*
+
 # Set the working directory in the container
 WORKDIR /app
 
