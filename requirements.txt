@@ -8,7 +8,7 @@ pytz
 qianfan
 requests
 streamlit
-streamlit-chat-widget
+streamlit-chat-widget-tiangong
 streamlit_float
 tiktoken
 toml
