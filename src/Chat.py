@@ -165,56 +165,6 @@ if "logged_in" in st.session_state:
                 if search_online:
                     search_list.append("internet_search")
 
-                # if (
-                #     "subsription" in st.session_state
-                #     and st.session_state["subsription"] == "Elite"
-                # ):
-                #     search_docs = st.toggle(
-                #         ui.search_docs_checkbox_label,
-                #         value=False,
-                #         disabled=False,
-                #         key="search_option_disabled",
-                #     )
-                # else:
-                #     search_docs = st.toggle(
-                #         ui.search_docs_checkbox_label,
-                #         value=False,
-                #         disabled=True,
-                #         key="search_option_disabled",
-                #     )
-
-                # search_knowledge_base = True
-                # search_online = st.toggle(ui.search_internet_checkbox_label, value=False)
-                # search_wikipedia = False
-                # search_arxiv = False
-                # # search_docs = False
-
-                # search_docs_option = None
-
-                # st.session_state["chat_disabled"] = False
-
-                # current_top_k_mappings = f"{search_knowledge_base}_{search_online}_{search_wikipedia}_{search_arxiv}_{search_docs_option}"
-
-                # top_k_values = top_k_mappings.get(current_top_k_mappings)
-
-                # # override search_docs_top_k if search_docs_option is isolated
-                # if top_k_values is None:
-                #     search_knowledge_base_top_k = 0
-                #     search_online_top_k = 0
-                #     search_wikipedia_top_k = 0
-                #     search_arxiv_top_k = 0
-                #     search_docs_top_k = 16
-                # else:
-                #     search_knowledge_base_top_k = top_k_values.get(
-                #         "search_knowledge_base_top_k", 0
-                #     )
-                #     search_online_top_k = top_k_values.get("search_online_top_k", 0)
-                #     search_wikipedia_top_k = top_k_values.get(
-                #         "search_wikipedia_top_k", 0
-                #     )
-                #     search_arxiv_top_k = top_k_values.get("search_arxiv_top_k", 0)
-                #     search_docs_top_k = top_k_values.get("search_docs_top_k", 0)
-
             st.markdown(
                 "🔥 限时限量免费开放", help="Limited time and quantity free access"
             )
@@ -343,7 +293,7 @@ if "logged_in" in st.session_state:
                 #     disabled=st.session_state["chat_disabled"],
                 # )
                 with footer_container:
-                    user_input = chat_input_widget()
+                    user_input = chat_input_widget(key="user_input")
                 footer_container.float(
                     "display:flex; align-items:center;justify-content:center; flex-direction:column; position:fixed; bottom:5px; margin:0; padding:0; z-index:0;"
                 )
@@ -461,32 +411,6 @@ if "logged_in" in st.session_state:
 
                                     query = func_calling_response.get("query")
 
-                                    # try:
-                                    #     created_at = json.loads(
-                                    #         func_calling_response.get("created_at", None)
-                                    #     )
-                                    # except TypeError:
-                                    #     created_at = None
-
-                                    # source = func_calling_response.get("source", None)
-
-                                    # filters = {}
-                                    # if created_at:
-                                    #     filters["created_at"] = created_at
-                                    # if source:
-                                    #     filters["source"] = source
-
-                                    # docs_response = []
-                                    # docs_response.extend(
-                                    #     search_sci_service(
-                                    #         query=query,
-                                    #         filters=filters,
-                                    #         top_k=3,
-                                    #     )
-                                    # )
-                                    # docs_response.extend(
-                                    #     search_internet(query, top_k=3)
-                                    # )
                                     docs_response = asyncio.run(
                                         concurrent_search_service(
                                             urls=search_list, query=query
