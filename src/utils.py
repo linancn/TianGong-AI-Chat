@@ -368,7 +368,6 @@ def main_chain(api_key, llm_model, openai_api_base, baidu_llm):
         - TypeError could be raised if internal configurations within the function do not match the expected types.
     """
 
-
     llm_chat = ChatOllama(
         model="deepseek-r1:70b",
         disable_streaming=False,
@@ -404,11 +403,64 @@ class StreamHandler(BaseCallbackHandler):
         :param kwargs: Additional keyword arguments, if any.
         """
         self.text += token
-        marker = '</think>'
+        marker = "</think>"
         idx = self.text.find(marker)
         if idx != -1:
-            content_to_display = self.text[idx + len(marker):]
+            content_to_display = self.text[idx + len(marker) :]
             self.container.markdown(content_to_display)
+
+
+class ThinkStreamHandler(BaseCallbackHandler):
+    def __init__(self):
+        self.text = ""
+        self.think_content = ""
+        self.after_think_content = ""
+        self.found_think_end = False  # 标记是否已找到 </think>
+
+        with st.expander("思考过程...", expanded=True, icon="🤔"):
+            self.think_container = st.empty()
+
+        self.after_think_container = st.empty()
+
+        self.start_marker = "<think>"
+        self.end_marker = "</think>"
+
+    def on_llm_new_token(self, token: str, **kwargs) -> None:
+        self.text += token
+
+        if not self.found_think_end:
+            # 还没找到 </think>，先按原逻辑截取 <think> 内容
+            start_idx = self.text.find(self.start_marker)
+            if start_idx != -1:
+                start_idx += len(self.start_marker)
+                think_part = self.text[start_idx:]
+                end_idx = think_part.find(self.end_marker)
+                if end_idx == -1:
+                    self.think_content = think_part
+                else:
+                    self.think_content = think_part[:end_idx]
+                    # 标记已经找到 </think>
+                    absolute_end_idx = start_idx + end_idx
+                    self.found_think_end = True
+                    # 初始化 after_think_content
+                    self.after_think_content = self.text[
+                        absolute_end_idx + len(self.end_marker) :
+                    ]
+
+                # 更新 <think> 容器
+                self.think_container.markdown(self.think_content)
+
+                # 如果这时刚刚找到 </think>，也要更新 after_think_container
+                if self.found_think_end:
+                    self.after_think_container.markdown(self.after_think_content)
+
+        else:
+            # 如果已经找到 </think>，就持续更新后续文本
+            # after_think_content = self.text[上次提取后的位置:] ...
+            # 这里可以直接取 self.after_think_content = self.text[??? :]
+            # 也可以维护一个 index 变量，或每次更新新的增量
+            self.after_think_content = self.text.split(self.end_marker, 1)[-1]
+            self.after_think_container.markdown(self.after_think_content)
 
 
 def xata_chat_history(_session_id: str):

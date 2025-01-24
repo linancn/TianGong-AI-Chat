@@ -6,7 +6,6 @@ from datetime import datetime
 
 import streamlit as st
 from langchain.schema import AIMessage, HumanMessage
-from langchain_community.callbacks.streamlit import StreamlitCallbackHandler
 from streamlit.web.server.websocket_headers import _get_websocket_headers
 from streamlit_chat_widget import chat_input_widget
 from streamlit_float import *
@@ -17,6 +16,7 @@ import wix_oauth as wix_oauth
 from sensitivity_checker import check_text_sensitivity
 from utils import (
     StreamHandler,
+    ThinkStreamHandler,
     check_password,
     concurrent_search_service,
     count_chat_history,
@@ -437,7 +437,7 @@ if "logged_in" in st.session_state:
                                     input = f"""回应“{user_query}”。如果“{chat_history_recent}”不为空，请使用其作为聊天上下文。"""
 
                                 with st.chat_message("ai", avatar=ui.chat_ai_avatar):
-                                    st_callback = StreamHandler(st.empty())
+                                    st_callback = ThinkStreamHandler()
                                     response = main_chain(
                                         api_key, llm_model, openai_api_base, baidu_llm
                                     ).invoke(
