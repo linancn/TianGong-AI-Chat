@@ -1,5 +1,6 @@
 """utilities used in the app"""
 
+import asyncio
 import os
 import random
 import re
@@ -7,10 +8,9 @@ import string
 import time
 from datetime import datetime
 
+import aiohttp
 import pytz
 import streamlit as st
-import aiohttp
-import asyncio
 
 os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
 os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
@@ -26,6 +26,8 @@ os.environ["QIANFAN_AK"] = st.secrets["qianfan_ak"]
 os.environ["QIANFAN_SK"] = st.secrets["qianfan_sk"]
 
 
+import ffmpeg
+from aip import AipSpeech
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.prompts import (
     ChatPromptTemplate,
@@ -34,13 +36,11 @@ from langchain.prompts import (
 )
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain_community.chat_message_histories import XataChatMessageHistory
-from langchain_core.output_parsers import StrOutputParser
-from langchain_openai import ChatOpenAI
 from langchain_community.llms.baidu_qianfan_endpoint import QianfanLLMEndpoint
+from langchain_core.output_parsers import StrOutputParser
+from langchain_ollama.chat_models import ChatOllama
+from langchain_openai import ChatOpenAI
 from xata.client import XataClient
-
-from aip import AipSpeech
-import ffmpeg
 
 import ui_config
 
@@ -123,38 +123,35 @@ def check_password():
 
 def convert_audio_in_memory(input_bytes):
     try:
-        input_stream = ffmpeg.input('pipe:0', format='webm')  # 或 format='matroska'
+        input_stream = ffmpeg.input("pipe:0", format="webm")  # 或 format='matroska'
         output_stream = ffmpeg.output(
-            input_stream,
-            'pipe:1',
-            format='wav',
-            acodec='pcm_s16le',
-            ar='16000',
-            ac='1'
+            input_stream, "pipe:1", format="wav", acodec="pcm_s16le", ar="16000", ac="1"
         )
 
         process = ffmpeg.run_async(
-            output_stream,
-            pipe_stdin=True,
-            pipe_stdout=True,
-            pipe_stderr=True
+            output_stream, pipe_stdin=True, pipe_stdout=True, pipe_stderr=True
         )
 
         stdout, stderr = process.communicate(input=input_bytes)
 
         if process.returncode != 0:
-            raise ffmpeg.Error('FFmpeg转换失败', stdout, stderr)
+            raise ffmpeg.Error("FFmpeg转换失败", stdout, stderr)
 
         return stdout
 
     except ffmpeg.Error as e:
-        print('转换失败！错误信息：')
+        print("转换失败！错误信息：")
         print(e.stderr.decode())
         return None
 
+
 def voice_to_text(audio_bytes):
     audio_bytes = convert_audio_in_memory(audio_bytes)
-    client = AipSpeech(st.secrets["voice_app_id"], st.secrets["voice_app_key"], st.secrets["voice_app_secret"])
+    client = AipSpeech(
+        st.secrets["voice_app_id"],
+        st.secrets["voice_app_key"],
+        st.secrets["voice_app_secret"],
+    )
     text = client.asr(audio_bytes, "wav", 16000, {"dev_pid": 1537})
     return text
 
@@ -371,22 +368,12 @@ def main_chain(api_key, llm_model, openai_api_base, baidu_llm):
         - TypeError could be raised if internal configurations within the function do not match the expected types.
     """
 
-    if baidu_llm:
-        llm_chat = QianfanLLMEndpoint(
-            endpoint="ernie-4.0-turbo-128k",
-            model="ERNIE-4.0-Turbo-8K",
-            temperature=0.1,
-            streaming=True,
-        )
-    else:
-        llm_chat = ChatOpenAI(
-            api_key=api_key,
-            model_name=llm_model,
-            temperature=0.1,
-            streaming=True,
-            verbose=langchain_verbose,
-            openai_api_base=openai_api_base,
-        )
+
+    llm_chat = ChatOllama(
+        model="deepseek-r1:70b",
+        disable_streaming=False,
+        verbose=langchain_verbose,
+    )
 
     template = """{input}"""
 
@@ -417,7 +404,11 @@ class StreamHandler(BaseCallbackHandler):
         :param kwargs: Additional keyword arguments, if any.
         """
         self.text += token
-        self.container.markdown(self.text)
+        marker = '</think>'
+        idx = self.text.find(marker)
+        if idx != -1:
+            content_to_display = self.text[idx + len(marker):]
+            self.container.markdown(content_to_display)
 
 
 def xata_chat_history(_session_id: str):

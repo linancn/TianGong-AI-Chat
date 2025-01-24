@@ -3,6 +3,7 @@ chardet
 ffmpeg-python
 langchain
 langchain_community
+langchain-ollama
 langchain-openai
 pytz
 qianfan

@@ -6,6 +6,7 @@ from datetime import datetime
 
 import streamlit as st
 from langchain.schema import AIMessage, HumanMessage
+from langchain_community.callbacks.streamlit import StreamlitCallbackHandler
 from streamlit.web.server.websocket_headers import _get_websocket_headers
 from streamlit_chat_widget import chat_input_widget
 from streamlit_float import *
@@ -443,6 +444,10 @@ if "logged_in" in st.session_state:
                                         {"input": input},
                                         {"callbacks": [st_callback]},
                                     )
+                                    if "</think>" in response:
+                                        response = response.split("</think>", 1)[
+                                            1
+                                        ].strip()
 
                                     st.session_state["messages"].append(
                                         {
