@@ -36,9 +36,14 @@ https://ollama.com/library/deepseek-r1
 https://ollama.com/library/qwen2.5
 
 ```bash
+
+ollama serve
+
 ollama run deepseek-r1:1.5b-qwen-distill-fp16
+ollama run deepseek-r1:70b
 
 ollama run qwen2.5:1.5b-instruct-fp16
+ollama run qwen2.5:14b-instruct
 ```
 
 ## Start

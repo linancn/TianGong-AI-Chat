@@ -22,9 +22,6 @@ os.environ["PW"] = st.secrets["pw"]
 os.environ["REMOTE_BEARER_TOKEN"] = st.secrets["bearer_token"]
 os.environ["END_POINT"] = st.secrets["end_point"]
 
-os.environ["QIANFAN_AK"] = st.secrets["qianfan_ak"]
-os.environ["QIANFAN_SK"] = st.secrets["qianfan_sk"]
-
 
 import ffmpeg
 from aip import AipSpeech
@@ -34,12 +31,10 @@ from langchain.prompts import (
     HumanMessagePromptTemplate,
     PromptTemplate,
 )
-from langchain.schema import AIMessage, HumanMessage, SystemMessage
+from langchain.schema import AIMessage, HumanMessage
 from langchain_community.chat_message_histories import XataChatMessageHistory
-from langchain_community.llms.baidu_qianfan_endpoint import QianfanLLMEndpoint
 from langchain_core.output_parsers import StrOutputParser
 from langchain_ollama.chat_models import ChatOllama
-from langchain_openai import ChatOpenAI
 from xata.client import XataClient
 
 import ui_config
@@ -185,106 +180,12 @@ def func_calling_chain(api_key, llm_model, openai_api_base):
                 "description": "The next query extracted for a vector database semantic search from a chat history. Translate the query into accurate English if it is not already in English.",
                 "type": "string",
             },
-            # "source": {
-            #     "title": "Source Filter",
-            #     "description": "Journal Name or Source extracted for a vector database semantic search, MUST be in upper case.",
-            #     "type": "string",
-            #     "enum": [
-            #         "AGRICULTURE, ECOSYSTEMS & ENVIRONMENT",
-            #         "ANNUAL REVIEW OF ECOLOGY, EVOLUTION, AND SYSTEMATICS",
-            #         "ANNUAL REVIEW OF ENVIRONMENT AND RESOURCES",
-            #         "APPLIED CATALYSIS B: ENVIRONMENTAL",
-            #         "BIOGEOSCIENCES",
-            #         "BIOLOGICAL CONSERVATION",
-            #         "BIOTECHNOLOGY ADVANCES",
-            #         "CONSERVATION BIOLOGY",
-            #         "CONSERVATION LETTERS",
-            #         "CRITICAL REVIEWS IN ENVIRONMENTAL SCIENCE AND TECHNOLOGY",
-            #         "DIVERSITY AND DISTRIBUTIONS",
-            #         "ECOGRAPHY",
-            #         "ECOLOGICAL APPLICATIONS",
-            #         "ECOLOGICAL ECONOMICS",
-            #         "ECOLOGICAL MONOGRAPHS",
-            #         "ECOLOGY",
-            #         "ECOLOGY LETTERS",
-            #         "ECONOMIC SYSTEMS RESEARCH",
-            #         "ECOSYSTEM HEALTH AND SUSTAINABILITY",
-            #         "ECOSYSTEM SERVICES",
-            #         "ECOSYSTEMS",
-            #         "ENERGY & ENVIRONMENTAL SCIENCE",
-            #         "ENVIRONMENT INTERNATIONAL",
-            #         "ENVIRONMENTAL CHEMISTRY LETTERS",
-            #         "ENVIRONMENTAL HEALTH PERSPECTIVES",
-            #         "ENVIRONMENTAL POLLUTION",
-            #         "ENVIRONMENTAL SCIENCE & TECHNOLOGY",
-            #         "ENVIRONMENTAL SCIENCE & TECHNOLOGY LETTERS",
-            #         "ENVIRONMENTAL SCIENCE AND ECOTECHNOLOGY",
-            #         "ENVIRONMENTAL SCIENCE AND POLLUTION RESEARCH",
-            #         "EVOLUTION",
-            #         "FOREST ECOSYSTEMS",
-            #         "FRONTIERS IN ECOLOGY AND THE ENVIRONMENT",
-            #         "FRONTIERS OF ENVIRONMENTAL SCIENCE & ENGINEERING",
-            #         "FUNCTIONAL ECOLOGY",
-            #         "GLOBAL CHANGE BIOLOGY",
-            #         "GLOBAL ECOLOGY AND BIOGEOGRAPHY",
-            #         "GLOBAL ENVIRONMENTAL CHANGE",
-            #         "INTERNATIONAL SOIL AND WATER CONSERVATION RESEARCH",
-            #         "JOURNAL OF ANIMAL ECOLOGY",
-            #         "JOURNAL OF APPLIED ECOLOGY",
-            #         "JOURNAL OF BIOGEOGRAPHY",
-            #         "JOURNAL OF CLEANER PRODUCTION",
-            #         "JOURNAL OF ECOLOGY",
-            #         "JOURNAL OF ENVIRONMENTAL INFORMATICS",
-            #         "JOURNAL OF ENVIRONMENTAL MANAGEMENT",
-            #         "JOURNAL OF HAZARDOUS MATERIALS",
-            #         "JOURNAL OF INDUSTRIAL ECOLOGY",
-            #         "JOURNAL OF PLANT ECOLOGY",
-            #         "LANDSCAPE AND URBAN PLANNING",
-            #         "LANDSCAPE ECOLOGY",
-            #         "METHODS IN ECOLOGY AND EVOLUTION",
-            #         "MICROBIOME",
-            #         "MOLECULAR ECOLOGY",
-            #         "NATURE",
-            #         "NATURE CLIMATE CHANGE",
-            #         "NATURE COMMUNICATIONS",
-            #         "NATURE ECOLOGY & EVOLUTION",
-            #         "NATURE ENERGY",
-            #         "NATURE REVIEWS EARTH & ENVIRONMENT",
-            #         "NATURE SUSTAINABILITY",
-            #         "ONE EARTH",
-            #         "PEOPLE AND NATURE",
-            #         "PROCEEDINGS OF THE NATIONAL ACADEMY OF SCIENCES",
-            #         "PROCEEDINGS OF THE ROYAL SOCIETY B: BIOLOGICAL SCIENCES",
-            #         "RENEWABLE AND SUSTAINABLE ENERGY REVIEWS",
-            #         "RESOURCES, CONSERVATION AND RECYCLING",
-            #         "REVIEWS IN ENVIRONMENTAL SCIENCE AND BIO/TECHNOLOGY",
-            #         "SCIENCE",
-            #         "SCIENCE ADVANCES",
-            #         "SCIENCE OF THE TOTAL ENVIRONMENT",
-            #         "SCIENTIFIC DATA",
-            #         "SUSTAINABLE CITIES AND SOCIETY",
-            #         "SUSTAINABLE MATERIALS AND TECHNOLOGIES",
-            #         "SUSTAINABLE PRODUCTION AND CONSUMPTION",
-            #         "THE AMERICAN NATURALIST",
-            #         "THE INTERNATIONAL JOURNAL OF LIFE CYCLE ASSESSMENT",
-            #         "THE ISME JOURNAL",
-            #         "THE LANCET PLANETARY HEALTH",
-            #         "TRENDS IN ECOLOGY & EVOLUTION",
-            #         "WASTE MANAGEMENT",
-            #         "WATER RESEARCH",
-            #     ],
-            # },
-            # "created_at": {
-            #     "title": "Date Filter",
-            #     "description": 'Date extracted for a vector database semantic search, in MongoDB\'s query and projection operators, in format like {"$gte": 1609459200.0, "$lte": 1640908800.0}',
-            #     "type": "string",
-            # },
         },
         "required": ["query"],
     }
 
     prompt_func_calling_msgs = [
-        SystemMessage(
+        HumanMessage(
             content="You are a world-class algorithm for extracting the next query and filters for searching from a chat history. Make sure to answer in the correct structured format."
         ),
         HumanMessagePromptTemplate.from_template("The chat history:\n{input}"),
@@ -293,12 +194,18 @@ def func_calling_chain(api_key, llm_model, openai_api_base):
     prompt_func_calling = ChatPromptTemplate(messages=prompt_func_calling_msgs)
 
     # llm_func_calling = ChatOpenAI(model_name=llm_model, temperature=0, streaming=False)
-    llm_func_calling = ChatOpenAI(
-        api_key=api_key,
-        model_name=llm_model,
-        temperature=0.1,
-        streaming=False,
-        openai_api_base=openai_api_base,
+    # llm_func_calling = ChatOpenAI(
+    #     api_key=api_key,
+    #     model_name=llm_model,
+    #     temperature=0.1,
+    #     streaming=False,
+    #     openai_api_base=openai_api_base,
+    # )
+
+    llm_func_calling = ChatOllama(
+        model=st.secrets["base_model"],
+        disable_streaming=True,
+        verbose=langchain_verbose,
     )
 
     func_calling_chain = prompt_func_calling | llm_func_calling.with_structured_output(
@@ -369,7 +276,7 @@ def main_chain(api_key, llm_model, openai_api_base, baidu_llm):
     """
 
     llm_chat = ChatOllama(
-        model="deepseek-r1:70b",
+        model=st.secrets["reasoning_model"],
         disable_streaming=False,
         verbose=langchain_verbose,
     )

@@ -482,8 +482,8 @@ if "logged_in" in st.session_state:
                 del st.session_state["xata_history_refresh"]
 
         except Exception as e:
-            # st.error(e)
-            st.error(ui.chat_error_message)
+            st.error(e)
+            # st.error(ui.chat_error_message)
 
     if __name__ == "__main__":
         main()
