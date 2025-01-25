@@ -30,6 +30,17 @@ pip freeze > requirements_freeze.txt
 sudo apt install python3.12-dev
 ```
 
+https://github.com/ollama/ollama
+
+https://ollama.com/library/deepseek-r1
+https://ollama.com/library/qwen2.5
+
+```bash
+ollama run deepseek-r1:1.5b-qwen-distill-fp16
+
+ollama run qwen2.5:1.5b-instruct-fp16
+```
+
 ## Start
 
 ```bash
