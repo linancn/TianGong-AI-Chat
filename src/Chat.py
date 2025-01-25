@@ -1,9 +1,7 @@
 import asyncio
-import uuid
 
 import streamlit as st
 from langchain.schema import AIMessage, HumanMessage
-from streamlit.web.server.websocket_headers import _get_websocket_headers
 
 import ui_config
 import utils
@@ -11,12 +9,10 @@ import wix_oauth as wix_oauth
 from sensitivity_checker import check_text_sensitivity
 from utils import (
     ThinkStreamHandler,
-    check_password,
     concurrent_search_service,
     func_calling_chain,
     initialize_messages,
     main_chain,
-    random_email,
 )
 
 ui = ui_config.create_ui_from_config()
@@ -28,275 +24,215 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-if "state" not in st.session_state:
-    st.session_state["state"] = str(uuid.uuid4()).replace("-", "")
-if "code_verifier" not in st.session_state:
-    st.session_state["code_verifier"] = str(uuid.uuid4()).replace("-", "")
-
-if "username" not in st.session_state or st.session_state["username"] is None:
-    if st.secrets["wix_oauth"] and "logged_in" not in st.session_state:
-        try:
-            (
-                auth,
-                st.session_state["username"],
-                st.session_state["subsription"],
-            ) = wix_oauth.check_wix_oauth()
-        except:
-            pass
-    elif st.secrets["anonymous_allowed"]:
-        st.session_state["username"] = random_email()
-        auth = True
-    elif not st.secrets["anonymous_allowed"]:
-        if ui.need_fixed_passwd is True:
-            auth = check_password()
-            if auth:
-                st.session_state["username"] = random_email()
-        elif ui.need_fixed_passwd is False:
-            auth = False
-            st.session_state["username"] = _get_websocket_headers().get(
-                "Username", None
-            )
-            if st.session_state["username"] is not None:
-                auth = True
-
 try:
-    if auth:
-        st.session_state["logged_in"] = True
+    # SIDEBAR
+    with st.sidebar:
+        st.markdown(
+            ui.sidebar_markdown,
+            unsafe_allow_html=True,
+        )
+        col_image, col_text = st.columns([1, 4])
+        with col_image:
+            st.image(ui.sidebar_image)
+        with col_text:
+            st.title(ui.sidebar_title)
+        st.subheader(
+            "环境生态领域智能助手",
+            help="Environment and Ecology Intelligent Assistant",
+        )
+
+        with st.expander(ui.sidebar_expander_title, expanded=True):
+            if "search_option_disabled" not in st.session_state:
+                st.session_state["search_option_disabled"] = False
+
+            search_sci = st.toggle(
+                ui.search_journal_paper_checkbox_label,
+                value=False,
+                disabled=st.session_state["search_option_disabled"],
+            )
+            search_report = st.toggle(
+                ui.search_report_checkbox_label,
+                value=False,
+                disabled=st.session_state["search_option_disabled"],
+            )
+            search_standard = st.toggle(
+                ui.search_standard_checkbox_label,
+                value=False,
+                disabled=st.session_state["search_option_disabled"],
+            )
+
+            search_patent = st.toggle(
+                ui.search_patent_checkbox_label,
+                value=False,
+                disabled=st.session_state["search_option_disabled"],
+            )
+
+            search_online = st.toggle(
+                ui.search_internet_checkbox_label,
+                value=False,
+                disabled=st.session_state["search_option_disabled"],
+            )
+
+            search_list = []
+            if search_sci:
+                search_list.append("sci_search")
+            if search_report:
+                search_list.append("report_search")
+            if search_standard:
+                search_list.append("standard_search")
+            if search_patent:
+                search_list.append("patent_search")
+            if search_online:
+                search_list.append("internet_search")
+
+        st.markdown("🔥 限时限量免费开放", help="Limited time and quantity free access")
+        st.markdown(
+            "🏹 如需更佳体验，请前往 [Kaiwu](https://www.kaiwu.info)",
+            help="ChatGPT 4o and chat history archives",
+        )
+
+        def init_new_chat():
+            for key in st.session_state.keys():
+                del st.session_state[key]
+
+        new_chat = st.button(
+            ui.sidebar_newchat_button_label,
+            use_container_width=True,
+            on_click=init_new_chat,
+        )
+
+        if "first_run" not in st.session_state:
+            st.session_state["first_run"] = True
+        else:
+            st.session_state["messages"] = initialize_messages(
+                st.session_state["xata_history"].messages
+            )
+
 except:
-    pass
+    st.warning(ui.chat_error_message)
 
-if "logged_in" in st.session_state:
+
+@utils.enable_chat_history
+def main():
     try:
-        # SIDEBAR
-        with st.sidebar:
-            st.markdown(
-                ui.sidebar_markdown,
-                unsafe_allow_html=True,
-            )
-            col_image, col_text = st.columns([1, 4])
-            with col_image:
-                st.image(ui.sidebar_image)
-            with col_text:
-                st.title(ui.sidebar_title)
-            st.subheader(
-                "环境生态领域智能助手",
-                help="Environment and Ecology Intelligent Assistant",
+        if "chat_disabled" not in st.session_state:
+            st.session_state["chat_disabled"] = False
+
+        if "xata_history_refresh" not in st.session_state:
+            user_query = st.chat_input(
+                placeholder=ui.chat_human_placeholder,
+                disabled=st.session_state["chat_disabled"],
             )
 
-            base_model = st.radio(
-                label="模型选择 / Model Selection",
-                # label_visibility="collapsed",
-                options=["ZHIPU 智谱", "BAIDU 百度"],
-                horizontal=True,
-                # index=1,
-                help="ernie-4.0-turbo-128k / glm-4-plus",
-                disabled=True,
-            )
-            if base_model == "ZHIPU 智谱":
-                api_key = st.secrets["openai_api_key_zhipu"]
-                llm_model = st.secrets["llm_model_zhipu"]
-                openai_api_base = st.secrets["openai_api_base_zhipu"]
-                baidu_llm = False
-            elif base_model == "BAIDU 百度":
-                api_key = st.secrets["openai_api_key_baidu"]
-                llm_model = st.secrets["llm_model_baidu"]
-                openai_api_base = st.secrets["openai_api_base_baidu"]
-                baidu_llm = True
-
-            with st.expander(ui.sidebar_expander_title, expanded=True):
-                if "search_option_disabled" not in st.session_state:
-                    st.session_state["search_option_disabled"] = False
-
-                search_sci = st.toggle(
-                    ui.search_journal_paper_checkbox_label,
-                    value=False,
-                    disabled=st.session_state["search_option_disabled"],
+            if user_query:
+                st.chat_message("human", avatar=ui.chat_user_avatar).markdown(
+                    user_query
                 )
-                search_report = st.toggle(
-                    ui.search_report_checkbox_label,
-                    value=False,
-                    disabled=st.session_state["search_option_disabled"],
+                st.session_state["messages"].append(
+                    {"role": "human", "content": user_query}
                 )
-                search_standard = st.toggle(
-                    ui.search_standard_checkbox_label,
-                    value=False,
-                    disabled=st.session_state["search_option_disabled"],
+                human_message = HumanMessage(
+                    content=user_query,
                 )
+                st.session_state["xata_history"].add_message(human_message)
 
-                search_patent = st.toggle(
-                    ui.search_patent_checkbox_label,
-                    value=False,
-                    disabled=st.session_state["search_option_disabled"],
-                )
+                # check text sensitivity
+                answer = check_text_sensitivity(user_query)["answer"]
+                if answer is not None:
+                    with st.chat_message("ai", avatar=ui.chat_ai_avatar):
+                        st.markdown(answer)
+                        st.session_state["messages"].append(
+                            {
+                                "role": "ai",
+                                "content": answer,
+                            }
+                        )
+                        ai_message = AIMessage(
+                            content=answer,
+                        )
+                        st.session_state["xata_history"].add_message(ai_message)
+                else:
+                    current_message = st.session_state["messages"][-8:][1:][:-1]
+                    for item in current_message:
+                        item.pop("avatar", None)
 
-                search_online = st.toggle(
-                    ui.search_internet_checkbox_label,
-                    value=False,
-                    disabled=st.session_state["search_option_disabled"],
-                )
+                    chat_history_recent = str(current_message)
 
-                search_list = []
-                if search_sci:
-                    search_list.append("sci_search")
-                if search_report:
-                    search_list.append("report_search")
-                if search_standard:
-                    search_list.append("standard_search")
-                if search_patent:
-                    search_list.append("patent_search")
-                if search_online:
-                    search_list.append("internet_search")
+                    if (
+                        search_sci
+                        or search_online
+                        or search_report
+                        or search_patent
+                        or search_standard
+                    ):
+                        formatted_messages = str(
+                            [
+                                (msg["role"], msg["content"])
+                                for msg in st.session_state["messages"][1:]
+                            ]
+                        )
 
-            st.markdown(
-                "🔥 限时限量免费开放", help="Limited time and quantity free access"
-            )
-            st.markdown(
-                "🏹 如需更佳体验，请前往 [Kaiwu](https://www.kaiwu.info)",
-                help="ChatGPT 4o and chat history archives",
-            )
+                        func_calling_response = func_calling_chain().invoke(
+                            {"input": formatted_messages}
+                        )
 
-            def init_new_chat():
-                for key in st.session_state.keys():
-                    del st.session_state[key]
+                        query = func_calling_response.get("query")
 
-            new_chat = st.button(
-                ui.sidebar_newchat_button_label,
-                use_container_width=True,
-                on_click=init_new_chat,
-            )
+                        docs_response = asyncio.run(
+                            concurrent_search_service(urls=search_list, query=query)
+                        )
 
-            if "first_run" not in st.session_state:
-                st.session_state["first_run"] = True
-            else:
-                st.session_state["messages"] = initialize_messages(
-                    st.session_state["xata_history"].messages
-                )
+                        input = f"""必须遵循：
+- 使用“{docs_response}”（如果有）和您自己的知识回应“{user_query}”，以用户相同的语言提供逻辑清晰、经过批判性分析的回复。
+- 如果有“{chat_history_recent}”，请利用聊天上下文调整回复的详细程度。
+- 如果没有提供参考或没有上下文的情况，不要要求用户提供，直接回应用户的问题。
+- 有选择地使用项目符号，以提高清晰度或组织性。
+- 在适用情况下，使用 作者-日期 的引用风格在正文中引用来源。
+- 在末尾以Markdown格式提供一个参考文献列表，格式为[标题.期刊.作者.日期.](链接)（或仅文件名），仅包括文本中提到的参考文献。
+- 在Markdown中使用 '$' 或 '$$' 引用LaTeX以渲染数学公式。
 
-    except:
-        st.warning(ui.chat_error_message)
+必须避免：
+- 重复用户的查询。
+- 将引用的参考文献翻译成用户查询的语言。
+- 在回复前加上任何标识，如“AI：”。
+"""
 
-    @utils.enable_chat_history
-    def main():
-        try:
-            if "chat_disabled" not in st.session_state:
-                st.session_state["chat_disabled"] = False
-
-            if "xata_history_refresh" not in st.session_state:
-                user_query = st.chat_input(
-                    placeholder=ui.chat_human_placeholder,
-                    disabled=st.session_state["chat_disabled"],
-                )
-
-                if user_query:
-                    st.chat_message("human", avatar=ui.chat_user_avatar).markdown(
-                        user_query
-                    )
-                    st.session_state["messages"].append(
-                        {"role": "human", "content": user_query}
-                    )
-                    human_message = HumanMessage(
-                        content=user_query,
-                    )
-                    st.session_state["xata_history"].add_message(human_message)
-
-                    # check text sensitivity
-                    answer = check_text_sensitivity(user_query)["answer"]
-                    if answer is not None:
-                        with st.chat_message("ai", avatar=ui.chat_ai_avatar):
-                            st.markdown(answer)
-                            st.session_state["messages"].append(
-                                {
-                                    "role": "ai",
-                                    "content": answer,
-                                }
-                            )
-                            ai_message = AIMessage(
-                                content=answer,
-                            )
-                            st.session_state["xata_history"].add_message(ai_message)
                     else:
-                        current_message = st.session_state["messages"][-8:][1:][:-1]
-                        for item in current_message:
-                            item.pop("avatar", None)
+                        input = f"""回应“{user_query}”。如果“{chat_history_recent}”不为空，请使用其作为聊天上下文。"""
 
-                        chat_history_recent = str(current_message)
+                    with st.chat_message("ai", avatar=ui.chat_ai_avatar):
+                        st_callback = ThinkStreamHandler()
+                        response = main_chain().invoke(
+                            {"input": input},
+                            {"callbacks": [st_callback]},
+                        )
+                        if "</think>" in response:
+                            response = response.split("</think>", 1)[1].strip()
 
-                        if (
-                            search_sci
-                            or search_online
-                            or search_report
-                            or search_patent
-                            or search_standard
-                        ):
-                            formatted_messages = str(
-                                [
-                                    (msg["role"], msg["content"])
-                                    for msg in st.session_state["messages"][1:]
-                                ]
-                            )
+                        st.session_state["messages"].append(
+                            {
+                                "role": "ai",
+                                "content": response,
+                            }
+                        )
+                        ai_message = AIMessage(
+                            content=response,
+                        )
+                        st.session_state["xata_history"].add_message(ai_message)
 
-                            func_calling_response = func_calling_chain(
-                                api_key, llm_model, openai_api_base
-                            ).invoke({"input": formatted_messages})
+                st.session_state["xata_history_refresh"] = True
+                st.rerun()
+        else:
+            user_query = st.chat_input(
+                placeholder=ui.chat_human_placeholder,
+                disabled=st.session_state["chat_disabled"],
+            )
+            del st.session_state["xata_history_refresh"]
 
-                            query = func_calling_response.get("query")
+    except Exception as e:
+        st.error(e)
+        # st.error(ui.chat_error_message)
 
-                            docs_response = asyncio.run(
-                                concurrent_search_service(urls=search_list, query=query)
-                            )
 
-                            input = f"""必须遵循：
-    - 使用“{docs_response}”（如果有）和您自己的知识回应“{user_query}”，以用户相同的语言提供逻辑清晰、经过批判性分析的回复。
-    - 如果有“{chat_history_recent}”，请利用聊天上下文调整回复的详细程度。
-    - 如果没有提供参考或没有上下文的情况，不要要求用户提供，直接回应用户的问题。
-    - 有选择地使用项目符号，以提高清晰度或组织性。
-    - 在适用情况下，使用 作者-日期 的引用风格在正文中引用来源。
-    - 在末尾以Markdown格式提供一个参考文献列表，格式为[标题.期刊.作者.日期.](链接)（或仅文件名），仅包括文本中提到的参考文献。
-    - 在Markdown中使用 '$' 或 '$$' 引用LaTeX以渲染数学公式。
-
-    必须避免：
-    - 重复用户的查询。
-    - 将引用的参考文献翻译成用户查询的语言。
-    - 在回复前加上任何标识，如“AI：”。
-    """
-
-                        else:
-                            input = f"""回应“{user_query}”。如果“{chat_history_recent}”不为空，请使用其作为聊天上下文。"""
-
-                        with st.chat_message("ai", avatar=ui.chat_ai_avatar):
-                            st_callback = ThinkStreamHandler()
-                            response = main_chain(
-                                api_key, llm_model, openai_api_base, baidu_llm
-                            ).invoke(
-                                {"input": input},
-                                {"callbacks": [st_callback]},
-                            )
-                            if "</think>" in response:
-                                response = response.split("</think>", 1)[1].strip()
-
-                            st.session_state["messages"].append(
-                                {
-                                    "role": "ai",
-                                    "content": response,
-                                }
-                            )
-                            ai_message = AIMessage(
-                                content=response,
-                            )
-                            st.session_state["xata_history"].add_message(ai_message)
-
-                    st.session_state["xata_history_refresh"] = True
-                    st.rerun()
-            else:
-                user_query = st.chat_input(
-                    placeholder=ui.chat_human_placeholder,
-                    disabled=st.session_state["chat_disabled"],
-                )
-                del st.session_state["xata_history_refresh"]
-
-        except Exception as e:
-            st.error(e)
-            # st.error(ui.chat_error_message)
-
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()

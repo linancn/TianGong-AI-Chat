@@ -112,7 +112,7 @@ def check_password():
         return True
 
 
-def func_calling_chain(api_key, llm_model, openai_api_base):
+def func_calling_chain():
     """
     Creates and returns a function calling chain for extracting query and filter information from a chat history.
 
@@ -219,7 +219,7 @@ async def concurrent_search_service(urls: list, query: str, top_k: int = 8):
         return await asyncio.gather(*tasks)
 
 
-def main_chain(api_key, llm_model, openai_api_base, baidu_llm):
+def main_chain():
     """
     Creates and returns a main Large Language Model (LLM) chain configured to produce responses only to science-related queries while avoiding sensitive topics.
 
