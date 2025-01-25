@@ -1,8 +1,5 @@
 import asyncio
-import datetime
-import time
 import uuid
-from datetime import datetime
 
 import streamlit as st
 from langchain.schema import AIMessage, HumanMessage
@@ -16,15 +13,10 @@ from utils import (
     ThinkStreamHandler,
     check_password,
     concurrent_search_service,
-    count_chat_history,
-    delete_chat_history,
-    fetch_chat_history,
     func_calling_chain,
-    get_begin_datetime,
     initialize_messages,
     main_chain,
     random_email,
-    xata_chat_history,
 )
 
 ui = ui_config.create_ui_from_config()
@@ -90,14 +82,6 @@ if "logged_in" in st.session_state:
                 "环境生态领域智能助手",
                 help="Environment and Ecology Intelligent Assistant",
             )
-
-            if "subsription" in st.session_state:
-                st.markdown(
-                    ui.sidebar_welcome_text.format(
-                        username=st.session_state["username"].split("@")[0],
-                        subscription=st.session_state["subsription"],
-                    )
-                )
 
             base_model = st.radio(
                 label="模型选择 / Model Selection",
@@ -171,108 +155,23 @@ if "logged_in" in st.session_state:
                 help="ChatGPT 4o and chat history archives",
             )
 
-            col_newchat, col_delete = st.columns([1, 1])
-            with col_newchat:
+            def init_new_chat():
+                for key in st.session_state.keys():
+                    del st.session_state[key]
 
-                def init_new_chat():
-                    keys_to_delete = [
-                        "selected_chat_id",
-                        "timestamp",
-                        "first_run",
-                        "messages",
-                        "xata_history",
-                    ]
-                    for key in keys_to_delete:
-                        try:
-                            del st.session_state[key]
-                        except:
-                            pass
-
-                new_chat = st.button(
-                    ui.sidebar_newchat_button_label,
-                    use_container_width=True,
-                    on_click=init_new_chat,
-                )
-
-            with col_delete:
-
-                def delete_chat():
-                    delete_chat_history(st.session_state["selected_chat_id"])
-                    keys_to_delete = [
-                        "selected_chat_id",
-                        "timestamp",
-                        "first_run",
-                        "messages",
-                        "xata_history",
-                    ]
-                    for key in keys_to_delete:
-                        try:
-                            del st.session_state[key]
-                        except:
-                            pass
-
-                delete_chat = st.button(
-                    ui.sidebar_delete_button_label,
-                    use_container_width=True,
-                    on_click=delete_chat,
-                )
-
-            if "first_run" not in st.session_state:
-                timestamp = time.time()
-                st.session_state["timestamp"] = timestamp
-            else:
-                timestamp = st.session_state["timestamp"]
-
-            try:  # fetch chat history from xata
-                table_map = fetch_chat_history(st.session_state["username"])
-
-                # add new chat to table_map
-                table_map_new = {
-                    str(timestamp): datetime.fromtimestamp(timestamp).strftime(
-                        "%Y-%m-%d"
-                    )
-                    + " : "
-                    + ui.sidebar_newchat_label
-                }
-
-                # Merge two dicts
-                table_map = table_map_new | table_map
-            except:  # if no chat history in xata
-                table_map = {
-                    str(timestamp): datetime.fromtimestamp(timestamp).strftime(
-                        "%Y-%m-%d"
-                    )
-                    + " : "
-                    + ui.sidebar_newchat_label
-                }
-
-            # Get all keys from table_map into a list
-            entries = list(table_map.keys())
-            # Check if selected_chat_id exists in session_state, if not set default as the first entry
-            if "selected_chat_id" not in st.session_state:
-                st.session_state["selected_chat_id"] = entries[0]
-
-            # Update the selectbox with the current selected_chat_id value
-            current_chat_id = st.selectbox(
-                label=ui.current_chat_title,
-                label_visibility="collapsed",
-                options=entries,
-                format_func=lambda x: table_map[x],
-                key="selected_chat_id",
+            new_chat = st.button(
+                ui.sidebar_newchat_button_label,
+                use_container_width=True,
+                on_click=init_new_chat,
             )
 
             if "first_run" not in st.session_state:
-                st.session_state["xata_history"] = xata_chat_history(
-                    _session_id=current_chat_id
-                )
                 st.session_state["first_run"] = True
             else:
-                st.session_state["xata_history"] = xata_chat_history(
-                    _session_id=current_chat_id
-                )
                 st.session_state["messages"] = initialize_messages(
                     st.session_state["xata_history"].messages
                 )
+
     except:
         st.warning(ui.chat_error_message)
 
@@ -289,111 +188,64 @@ if "logged_in" in st.session_state:
                 )
 
                 if user_query:
-                    beginDatetime = get_begin_datetime()
-                    if (
-                        "count_chat_history" not in st.session_state
-                        or "begin_hour" not in st.session_state
-                    ):
-                        st.session_state["begin_hour"] = beginDatetime.hour
-                        st.session_state["count_chat_history"] = count_chat_history(
-                            st.session_state["username"], beginDatetime
-                        )
+                    st.chat_message("human", avatar=ui.chat_user_avatar).markdown(
+                        user_query
+                    )
+                    st.session_state["messages"].append(
+                        {"role": "human", "content": user_query}
+                    )
+                    human_message = HumanMessage(
+                        content=user_query,
+                    )
+                    st.session_state["xata_history"].add_message(human_message)
+
+                    # check text sensitivity
+                    answer = check_text_sensitivity(user_query)["answer"]
+                    if answer is not None:
+                        with st.chat_message("ai", avatar=ui.chat_ai_avatar):
+                            st.markdown(answer)
+                            st.session_state["messages"].append(
+                                {
+                                    "role": "ai",
+                                    "content": answer,
+                                }
+                            )
+                            ai_message = AIMessage(
+                                content=answer,
+                            )
+                            st.session_state["xata_history"].add_message(ai_message)
                     else:
+                        current_message = st.session_state["messages"][-8:][1:][:-1]
+                        for item in current_message:
+                            item.pop("avatar", None)
+
+                        chat_history_recent = str(current_message)
+
                         if (
-                            st.session_state["begin_hour"] != beginDatetime.hour
-                            or st.session_state["count_chat_history"] % 10 == 0
+                            search_sci
+                            or search_online
+                            or search_report
+                            or search_patent
+                            or search_standard
                         ):
-                            st.session_state["begin_hour"] = beginDatetime.hour
-                            st.session_state["count_chat_history"] = count_chat_history(
-                                st.session_state["username"], beginDatetime
+                            formatted_messages = str(
+                                [
+                                    (msg["role"], msg["content"])
+                                    for msg in st.session_state["messages"][1:]
+                                ]
                             )
 
-                    if (
-                        not (
-                            "subsription" in st.session_state
-                            and st.session_state["subsription"] == "Elite"
-                        )
-                    ) and st.session_state["count_chat_history"] > 39:
-                        time_range_str = (
-                            str(beginDatetime.hour)
-                            + ":00 - "
-                            + str(beginDatetime.hour + 3)
-                            + ":00"
-                        )
-                        st.chat_message("ai", avatar=ui.chat_ai_avatar).markdown(
-                            "You have reached the usage limit for this time range (UTC "
-                            + time_range_str
-                            + "). Please try again later. (您已达到 UTC "
-                            + time_range_str
-                            + " 时间范围的使用限制，请稍后再试。)"
-                        )
+                            func_calling_response = func_calling_chain(
+                                api_key, llm_model, openai_api_base
+                            ).invoke({"input": formatted_messages})
 
-                    else:
-                        st.chat_message("human", avatar=ui.chat_user_avatar).markdown(
-                            user_query
-                        )
-                        st.session_state["messages"].append(
-                            {"role": "human", "content": user_query}
-                        )
-                        human_message = HumanMessage(
-                            content=user_query,
-                            additional_kwargs={"id": st.session_state["username"]},
-                        )
-                        st.session_state["xata_history"].add_message(human_message)
+                            query = func_calling_response.get("query")
 
-                        # check text sensitivity
-                        answer = check_text_sensitivity(user_query)["answer"]
-                        if answer is not None:
-                            with st.chat_message("ai", avatar=ui.chat_ai_avatar):
-                                st.markdown(answer)
-                                st.session_state["messages"].append(
-                                    {
-                                        "role": "ai",
-                                        "content": answer,
-                                    }
-                                )
-                                ai_message = AIMessage(
-                                    content=answer,
-                                    additional_kwargs={
-                                        "id": st.session_state["username"]
-                                    },
-                                )
-                                st.session_state["xata_history"].add_message(ai_message)
-                                st.session_state["count_chat_history"] += 1
-                        else:
-                            current_message = st.session_state["messages"][-8:][1:][:-1]
-                            for item in current_message:
-                                item.pop("avatar", None)
+                            docs_response = asyncio.run(
+                                concurrent_search_service(urls=search_list, query=query)
+                            )
 
-                            chat_history_recent = str(current_message)
-
-                            if (
-                                search_sci
-                                or search_online
-                                or search_report
-                                or search_patent
-                                or search_standard
-                            ):
-                                formatted_messages = str(
-                                    [
-                                        (msg["role"], msg["content"])
-                                        for msg in st.session_state["messages"][1:]
-                                    ]
-                                )
-
-                                func_calling_response = func_calling_chain(
-                                    api_key, llm_model, openai_api_base
-                                ).invoke({"input": formatted_messages})
-
-                                query = func_calling_response.get("query")
-
-                                docs_response = asyncio.run(
-                                    concurrent_search_service(
-                                        urls=search_list, query=query
-                                    )
-                                )
-
-                                input = f"""必须遵循：
+                            input = f"""必须遵循：
     - 使用“{docs_response}”（如果有）和您自己的知识回应“{user_query}”，以用户相同的语言提供逻辑清晰、经过批判性分析的回复。
     - 如果有“{chat_history_recent}”，请利用聊天上下文调整回复的详细程度。
     - 如果没有提供参考或没有上下文的情况，不要要求用户提供，直接回应用户的问题。
@@ -408,38 +260,33 @@ if "logged_in" in st.session_state:
     - 在回复前加上任何标识，如“AI：”。
     """
 
-                            else:
-                                input = f"""回应“{user_query}”。如果“{chat_history_recent}”不为空，请使用其作为聊天上下文。"""
+                        else:
+                            input = f"""回应“{user_query}”。如果“{chat_history_recent}”不为空，请使用其作为聊天上下文。"""
 
-                            with st.chat_message("ai", avatar=ui.chat_ai_avatar):
-                                st_callback = ThinkStreamHandler()
-                                response = main_chain(
-                                    api_key, llm_model, openai_api_base, baidu_llm
-                                ).invoke(
-                                    {"input": input},
-                                    {"callbacks": [st_callback]},
-                                )
-                                if "</think>" in response:
-                                    response = response.split("</think>", 1)[1].strip()
+                        with st.chat_message("ai", avatar=ui.chat_ai_avatar):
+                            st_callback = ThinkStreamHandler()
+                            response = main_chain(
+                                api_key, llm_model, openai_api_base, baidu_llm
+                            ).invoke(
+                                {"input": input},
+                                {"callbacks": [st_callback]},
+                            )
+                            if "</think>" in response:
+                                response = response.split("</think>", 1)[1].strip()
 
-                                st.session_state["messages"].append(
-                                    {
-                                        "role": "ai",
-                                        "content": response,
-                                    }
-                                )
-                                ai_message = AIMessage(
-                                    content=response,
-                                    additional_kwargs={
-                                        "id": st.session_state["username"]
-                                    },
-                                )
-                                st.session_state["xata_history"].add_message(ai_message)
-                                st.session_state["count_chat_history"] += 1
+                            st.session_state["messages"].append(
+                                {
+                                    "role": "ai",
+                                    "content": response,
+                                }
+                            )
+                            ai_message = AIMessage(
+                                content=response,
+                            )
+                            st.session_state["xata_history"].add_message(ai_message)
 
-                        if len(st.session_state["messages"]) == 3:
-                            st.session_state["xata_history_refresh"] = True
-                            st.rerun()
+                    st.session_state["xata_history_refresh"] = True
+                    st.rerun()
             else:
                 user_query = st.chat_input(
                     placeholder=ui.chat_human_placeholder,

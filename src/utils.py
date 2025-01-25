@@ -29,10 +29,9 @@ from langchain.prompts import (
     PromptTemplate,
 )
 from langchain.schema import AIMessage, HumanMessage
-from langchain_community.chat_message_histories import XataChatMessageHistory
+from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain_core.output_parsers import StrOutputParser
 from langchain_ollama.chat_models import ChatOllama
-from xata.client import XataClient
 
 import ui_config
 
@@ -254,6 +253,7 @@ def main_chain(api_key, llm_model, openai_api_base, baidu_llm):
 
     return chain
 
+
 class ThinkStreamHandler(BaseCallbackHandler):
     def __init__(self):
         self.text = ""
@@ -307,7 +307,7 @@ class ThinkStreamHandler(BaseCallbackHandler):
             self.after_think_container.markdown(self.after_think_content)
 
 
-def xata_chat_history(_session_id: str):
+def xata_chat_history():
     """
     Creates and returns an instance of XataChatMessageHistory to manage chat history based on the provided session ID.
 
@@ -325,12 +325,7 @@ def xata_chat_history(_session_id: str):
         - Exceptions could propagate from the XataChatMessageHistory class if initialization fails.
     """
 
-    chat_history = XataChatMessageHistory(
-        session_id=_session_id,
-        api_key=os.environ["XATA_API_KEY"],
-        db_url=os.environ["XATA_DATABASE_URL"],
-        table_name="tiangong_memory",
-    )
+    chat_history = StreamlitChatMessageHistory(key="chat_messages")
 
     return chat_history
 
@@ -358,20 +353,13 @@ def enable_chat_history(func):
     """
 
     if "xata_history" not in st.session_state:
-        st.session_state["xata_history"] = xata_chat_history(
-            _session_id=str(time.time())
-        )
+        st.session_state["xata_history"] = xata_chat_history()
     # to show chat history on ui
     if "messages" not in st.session_state or len(st.session_state["messages"]) == 1:
-        if "subscription" in st.session_state:
-            welcome_message_text = ui.chat_ai_welcome.format(
-                username=st.session_state["username"].split("@")[0],
-                subscription=st.session_state["subsription"],
-            )
-        else:
-            welcome_message_text = ui.chat_ai_welcome.format(
-                username="there", subscription="free"
-            )
+
+        welcome_message_text = ui.chat_ai_welcome.format(
+            username="there", subscription="free"
+        )
 
         st.session_state["messages"] = [
             {
@@ -383,6 +371,10 @@ def enable_chat_history(func):
 
     for msg in st.session_state["messages"]:
         st.chat_message(msg["role"], avatar=msg["avatar"]).write(msg["content"])
+        # if "avatar" in msg:
+        #     st.chat_message(msg["role"], avatar=msg["avatar"]).write(msg["content"])
+        # else:
+        #     st.chat_message(msg["role"]).write(msg["content"])
 
     def execute(*args, **kwargs):
         func(*args, **kwargs)
@@ -402,84 +394,6 @@ def is_valid_email(email: str) -> bool:
     """
     pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
     return bool(re.match(pattern, email))
-
-
-def fetch_chat_history(username: str):
-    """
-    Fetches the chat history from the Xata database, organizing it into a structured format for further use.
-
-    :param username: The username to filter chat history by.
-    :type username: str
-    :returns: A dictionary where each session ID is mapped to its corresponding chat history entry, formatted with date and content.
-    :rtype: dict
-
-    Function Behavior:
-        - Utilizes the XataClient class to connect to the Xata database.
-        - Executes an SQL query to fetch unique session IDs along with their latest content and timestamp.
-        - Formats the timestamp to a readable date and time format and appends it along with the content.
-        - Returns the organized chat history as a dictionary where the session IDs are the keys and the formatted chat history entries are the values.
-
-    Exceptions:
-        - ConnectionError: Could be raised if there are issues connecting to the Xata database.
-        - SQL-related exceptions: Could be raised if the query is incorrect or if there are other database-related issues.
-        - TypeError: Could be raised if the types of the returned values do not match the expected types.
-
-    Note:
-        - The SQL query used in this function assumes that the Xata database schema has specific columns. If the schema changes, the query may need to be updated.
-        - The function returns an empty dictionary if no records are found.
-    """
-    if is_valid_email(username):
-        client = XataClient()
-        response = client.sql().query(
-            f"""SELECT "sessionId", "content"
-    FROM (
-        SELECT DISTINCT ON ("sessionId") "sessionId", "xata.createdAt", "content"
-        FROM "tiangong_memory"
-        WHERE "additionalKwargs"->>'id' = '{username}'
-        ORDER BY "sessionId" DESC, "xata.createdAt" ASC
-    ) AS subquery"""
-        )
-        records = response["records"]
-        for record in records:
-            timestamp = float(record["sessionId"])
-            record["entry"] = (
-                datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
-                + " : "
-                + record["content"]
-            )
-
-        table_map = {item["sessionId"]: item["entry"] for item in records}
-
-        return table_map
-    else:
-        return {}
-
-
-def delete_chat_history(session_id):
-    """
-    Deletes the chat history associated with a specific session ID from the Xata database.
-
-    :param session_id: The session ID for which the chat history needs to be deleted.
-    :type session_id: str
-
-    Function Behavior:
-        - Utilizes the XataClient class to connect to the Xata database.
-        - Executes an SQL query to delete all records associated with the given session ID.
-
-    Exceptions:
-        - ConnectionError: Could be raised if there are issues connecting to the Xata database.
-        - SQL-related exceptions: Could be raised if the query is incorrect or if there are other database-related issues.
-
-    Note:
-        - The function does not check whether the session ID exists in the database before attempting the delete operation.
-        - Ensure that you want to permanently delete the chat history for the specified session ID before calling this function.
-    """
-
-    client = XataClient()
-    client.sql().query(
-        'DELETE FROM "tiangong_memory" WHERE "sessionId" = $1',
-        [session_id],
-    )
 
 
 def convert_history_to_message(history):
@@ -528,15 +442,10 @@ def initialize_messages(history):
     # convert history to message
     messages = [convert_history_to_message(message) for message in history]
 
-    if "subscription" in st.session_state:
-        welcome_message_text = ui.chat_ai_welcome.format(
-            username=st.session_state["username"].split("@")[0],
-            subscription=st.session_state["subsription"],
-        )
-    else:
-        welcome_message_text = ui.chat_ai_welcome.format(
-            username="there", subscription="free"
-        )
+
+    welcome_message_text = ui.chat_ai_welcome.format(
+        username="there", subscription="free"
+    )
 
     # add welcome message
     welcome_message = {
@@ -553,18 +462,3 @@ def get_begin_datetime():
     now = datetime.now(pytz.UTC)
     beginHour = (now.hour // 3) * 3
     return datetime(now.year, now.month, now.day, beginHour)
-
-
-def count_chat_history(username: str, beginDatetime: datetime):
-    if is_valid_email(username):
-        client = XataClient()
-        response = client.sql().query(
-            f"""SELECT count(*) as c
-    FROM "tiangong_memory"
-    WHERE "additionalKwargs"->>'id' = '{username}' and "xata.createdAt" > '{beginDatetime.strftime("%Y-%m-%d %H:%M:%S")}' and "type" = 'ai'
-    """
-        )
-        records = response["records"]
-        return records[0]["c"]
-    else:
-        return 0

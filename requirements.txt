@@ -6,4 +6,3 @@ requests
 streamlit
 tiktoken
 toml
-xata

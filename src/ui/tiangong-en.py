@@ -131,7 +131,7 @@ ui_data = {
     "chat_user_avatar": "src/static/user.png",
     "chat_ai_welcome": "您好! 我能帮您什么吗? / Hi {username}! How can I help?",
     "chat_human_placeholder": "可用任何语言来提问 / Send a message in any language",
-    "sidebar_newchat_button_label": "➕ New Chat",
+    "sidebar_newchat_button_label": "➕ 开启新聊天 / New Chat",
     "sidebar_delete_button_label": "🗑️ Delete Chat",
     "sidebar_newchat_label": "New Chat",
     "chat_error_message": "抱歉，当前访问量过高，请稍后再试。/ Oops, we are facing an extremely high traffic. Please try again later.",
