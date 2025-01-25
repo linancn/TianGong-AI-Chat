@@ -1,16 +1,9 @@
-baidu-aip
-chardet
-ffmpeg-python
 langchain
 langchain_community
 langchain-ollama
-langchain-openai
 pytz
-qianfan
 requests
 streamlit
-streamlit-chat-widget-tiangong
-streamlit_float
 tiktoken
 toml
 xata
