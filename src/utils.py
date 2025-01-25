@@ -261,7 +261,7 @@ class ThinkStreamHandler(BaseCallbackHandler):
         self.after_think_content = ""
         self.found_think_end = False  # 标记是否已找到 </think>
 
-        with st.expander("思考过程...", expanded=True, icon="🤔"):
+        with st.expander("思维链...", expanded=True, icon="🤔"):
             self.think_container = st.empty()
 
         self.after_think_container = st.empty()
