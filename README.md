@@ -44,6 +44,7 @@ ollama run deepseek-r1:70b
 
 ollama run qwen2.5:1.5b-instruct-fp16
 ollama run qwen2.5:14b-instruct
+ollama run qwen2.5:72b-instruct-q8_0
 ```
 
 ## Start
