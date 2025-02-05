@@ -55,6 +55,12 @@ export ui=tiangong-en
 streamlit run Chat.py
 ```
 
+## GPU Monitoring
+
+```bash
+watch -n 1 nvidia-smi
+```
+
 ### Auto Build
 
 The auto build will be triggered by pushing any tag named like release-v$version. For instance, push a tag named as v0.0.1 will build a docker image of 0.0.1 version.
