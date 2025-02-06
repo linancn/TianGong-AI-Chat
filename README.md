@@ -39,11 +39,24 @@ https://ollama.com/library/qwen2.5
 
 ollama serve
 
+# 4G
 ollama run deepseek-r1:1.5b-qwen-distill-fp16
-ollama run deepseek-r1:70b
-
 ollama run qwen2.5:1.5b-instruct-fp16
+
+# 12G
+ollama run deepseek-r1:14b-qwen-distill-q4_K_M
 ollama run qwen2.5:14b-instruct
+
+# 16G
+ollama run deepseek-r1:7b-qwen-distill-fp16
+ollama run qwen2.5:14b-instruct-q6_K
+
+# 32G
+ollama run deepseek-r1:14b-qwen-distill-fp16
+ollama run qwen2.5:32b-instruct-q6_K
+
+# 80G
+ollama run deepseek-r1:70b-llama-distill-q8_0
 ollama run qwen2.5:72b-instruct-q8_0
 ```
 

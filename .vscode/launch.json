@@ -13,6 +13,15 @@
             // "justMyCode": false,
             "args": ["run", "src/Chat.py"]
         },
+        {   
+            "name": "Chat_Local",
+            "type": "python",
+            "request": "launch",
+            "module": "streamlit",
+            "cwd": "${workspaceFolder}",
+            // "justMyCode": false,
+            "args": ["run", "src/Chat_Local.py"]
+        },
         {
             "name": "FastAPI",
             "type": "python",

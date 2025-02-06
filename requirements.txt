@@ -6,3 +6,4 @@ requests
 streamlit
 tiktoken
 toml
+weaviate-client

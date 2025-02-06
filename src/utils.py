@@ -11,9 +11,11 @@ from datetime import datetime
 import aiohttp
 import pytz
 import streamlit as st
+import weaviate
+from weaviate.classes.init import Auth
+from weaviate.classes.query import MetadataQuery, Filter
 
-os.environ["XATA_API_KEY"] = st.secrets["xata_api_key"]
-os.environ["XATA_DATABASE_URL"] = st.secrets["xata_db_url"]
+
 os.environ["LANGCHAIN_VERBOSE"] = str(st.secrets["langchain_verbose"])
 os.environ["PASSWORD"] = st.secrets["password"]
 os.environ["X_REGION"] = st.secrets["x_region"]
@@ -442,7 +444,6 @@ def initialize_messages(history):
     # convert history to message
     messages = [convert_history_to_message(message) for message in history]
 
-
     welcome_message_text = ui.chat_ai_welcome.format(
         username="there", subscription="free"
     )
@@ -462,3 +463,63 @@ def get_begin_datetime():
     now = datetime.now(pytz.UTC)
     beginHour = (now.hour // 3) * 3
     return datetime(now.year, now.month, now.day, beginHour)
+
+
+
+def search_weaviate(query: str, top_k: int = 16):
+    """
+    Performs a similarity search on Weaviate's vector database based on a given query and returns a list of relevant documents.
+
+    :param query: The query to be used for similarity search in Weaviate's vector database.
+    :type query: str
+    :param top_k: The number of top matching documents to return. Defaults to 16.
+    :type top_k: int or None
+    :returns: A list of dictionaries, each containing the content and source of the matched documents. The function returns an empty list if 'top_k' is set to 0.
+    :rtype: list of dicts
+
+    Function Behavior:
+        - Initializes Weaviate with the specified API key and environment.
+        - Conducts a similarity search based on the provided query.
+        - Extracts and formats the relevant document information before returning.
+
+    Exceptions:
+        - This function relies on Weaviate and Python's os library. Exceptions could propagate if there are issues related to API keys, environment variables, or Weaviate initialization.
+        - TypeError could be raised if the types of 'query' or 'top_k' do not match the expected types.
+
+    Note:
+        - Ensure the Weaviate API key and environment variables are set before running this function.
+        - The function uses 'OpenAIEmbeddings' to initialize Weaviate's vector store, which should be compatible with the embeddings in the Weaviate index.
+    """
+
+    if top_k == 0:
+        return []
+
+    client = weaviate.connect_to_custom(
+        http_host=st.secrets["weaviate_http_host"],  # Hostname for the HTTP API connection
+        http_port=st.secrets["weaviate_http_port"],  # Default is 80, WCD uses 443
+        http_secure=False,  # Whether to use https (secure) for the HTTP API connection
+        grpc_host=st.secrets["weaviate_grpc_host"],  # Hostname for the gRPC API connection
+        grpc_port=st.secrets["weaviate_grpc_port"],  # Default is 50051, WCD uses 443
+        grpc_secure=False,  # Whether to use a secure channel for the gRPC API connection
+        auth_credentials=Auth.api_key(st.secrets["weaviate_api_key"]),  # API key for authentication
+    )
+    collection = client.collections.get("tiangong")
+
+    hybrid_response = collection.query.hybrid(
+        query=query,
+        target_vector="content",
+        query_properties=["content"],
+        alpha=0.3,
+        return_metadata=MetadataQuery(score=True, explain_score=True),
+        limit=top_k,
+    )
+
+    client.close()
+
+    docs_list = []
+    for doc in hybrid_response.objects:
+        docs_list.append(
+            {"content": doc.properties["content"], "source": doc.properties["source"]}
+        )
+
+    return docs_list
