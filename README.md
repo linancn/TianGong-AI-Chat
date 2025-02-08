@@ -57,6 +57,7 @@ ollama run qwen2.5:72b-instruct-q8_0
 
 ```bash
 export ui=tiangong-en
+export ui=audit-cn
 
 streamlit run Chat.py
 ```
