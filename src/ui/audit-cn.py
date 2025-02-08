@@ -1,12 +1,6 @@
 ui_data = {
     "need_fixed_passwd": False,
     "wix_login_title": """
-    <p align="center">
-        <img src="app/static/kaiwu/logo.png" alt="TianGong" width="60" style="margin-top: 50px"/>
-    </p>
-    <p align="center"  style="margin-bottom: 30px; font-size:24px">
-        Welcome to TianGong Chat
-    </p>
     """,
     "wix_login_username_label": "Email Address / 电子邮箱",
     "wix_login_password_label": "Password / 密码",
@@ -19,7 +13,7 @@ ui_data = {
     "wix_login_no_active_subscription_icon": "🚫",
     "wix_login_no_active_subscription_text": "Login failed: No active subscription found. (您没有生效的订阅。)",
     "theme": {
-        "primaryColor": "#82318E",
+        "primaryColor": "#0054A5",
     },
     "page_title": "审计智脑",
     "page_icon": "src/static/audit/favicon.ico",
@@ -35,7 +29,7 @@ ui_data = {
               text-decoration: none;
           }
           div[data-testid="stDecoration"] {
-              background-image: linear-gradient(90deg, #82318E, #C2B6B2);
+              background-image: linear-gradient(90deg, #0054A5, #6D92DC);
           }
           div[data-testid="stImage"] {
               min-width: 50px;
@@ -80,7 +74,7 @@ ui_data = {
                 </tr>
                 <table style="border: 0; position: absolute; bottom: 5px; width:315px;">
                 <tr style="border: 0;">
-                    <td style="border: 0; text-align: left; padding: 0;"><p class="text-sm" style="margin: 0; opacity: 0.5;"><a style="color: black" > 智能系统研发与数据治理团队</a></p></td>
+                    <td style="border: 0; text-align: left; padding: 0;"><p class="text-sm" style="margin: 0; opacity: 0.5;"><span style="color: black" > 智能系统研发与数据治理团队 </span></p></td>
                     <td style="border: 0; text-align: left; padding: 0;">
                         <p class="text-sm" style="margin: 0;"><a style="color: black" href="https://www.tiangong.earth/ai">TianGong AI</a></p>
                     </td>
