@@ -2,13 +2,6 @@
 # TianGong Chat [![Docker Publish](https://github.com/linancn/TianGong-AI-Chat/actions/workflows/docker_publish.yml/badge.svg)](https://github.com/linancn/TianGong-AI-Chat/actions/workflows/docker_publish.yml)
 
 ## Env Preparing
-
-### Using VSCode Dev Contariners
-
-[Tutorial](https://code.visualstudio.com/docs/devcontainers/tutorial)
-
-Python 3 -> Additional Options -> 3.12-bullseye -> ZSH Plugins (Last One) -> Trust @devcontainers-contrib -> Keep Defaults
-
 Setup `venv`:
 
 ```bash
@@ -27,7 +20,7 @@ pip freeze > requirements_freeze.txt
 ```
 
 ```bash
-sudo apt install python3.12-dev
+sudo apt install python3.13-dev
 ```
 
 https://github.com/ollama/ollama
