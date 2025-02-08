@@ -6,7 +6,7 @@
     "configurations": [
         {   
             "name": "Chat",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "streamlit",
             "cwd": "${workspaceFolder}",
@@ -15,16 +15,28 @@
         },
         {   
             "name": "Chat_Local",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "streamlit",
             "cwd": "${workspaceFolder}",
             // "justMyCode": false,
             "args": ["run", "src/Chat_Local.py"]
         },
+        {   
+            "name": "Chat_Audit",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "cwd": "${workspaceFolder}",
+            // "justMyCode": false,
+            "args": ["run", "src/Chat_Audit.py"],
+            "env": {
+                "ui": "audit-cn"
+            }
+        },
         {
             "name": "FastAPI",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
             "args": [

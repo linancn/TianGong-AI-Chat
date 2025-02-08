@@ -43,6 +43,8 @@ class UI:
     sidebar_welcome_text: str
     sidebar_markdown: str
     sidebar_expander_title: str
+    search_public_checkbox_label: str
+    search_internal_checkbox_label: str
     search_journal_paper_checkbox_label: str
     search_internet_checkbox_label: str
     search_report_checkbox_label: str
