@@ -517,24 +517,28 @@ def weaviate_hybrid_search(query: str, top_k: int = 8):
         limit=top_k,
     )
 
-    # docs_list = []
-    # for doc in hybrid_response.objects:
-    #     docs_list.append(
-    #         {"content": doc.properties["content"], "source": doc.properties["source"]}
-    #     )
+    docs_list = []
+    for doc in hybrid_response.objects:
+        docs_list.append(
+            {"content": doc.properties["content"], "source": doc.properties["source"]}
+        )
 
-    return hybrid_response
+    client.close()
+
+    return docs_list
 
 
-def get_adjacent_chunks_from_weaviate(query, k: int = 1, k_before=None, k_after=None):
-    hybrid_search_results = weaviate_hybrid_search(query)
+def weaviate_hybrid_search_extention(query, top_k: int = 8, ext_k: int = 1):
+    hybrid_search_results = collection.query.hybrid(
+        query=query,
+        target_vector="content",
+        query_properties=["content"],
+        alpha=0.3,
+        return_metadata=MetadataQuery(score=True, explain_score=True),
+        limit=top_k,
+    )
 
     original_search_results = hybrid_search_results.objects
-
-    if k_before is None:
-        k_before = k
-    if k_after is None:
-        k_after = k
 
     doc_chunks = defaultdict(list)
     doc_sources = {}
@@ -546,7 +550,7 @@ def get_adjacent_chunks_from_weaviate(query, k: int = 1, k_before=None, k_after=
         doc_chunk_id = properties["doc_chunk_id"]
         doc_uuid, chunk_id_str = doc_chunk_id.split("_")
         chunk_id = int(chunk_id_str)
-        
+
         if doc_uuid not in doc_sources and "source" in properties:
             doc_sources[doc_uuid] = properties["source"]
 
@@ -554,44 +558,52 @@ def get_adjacent_chunks_from_weaviate(query, k: int = 1, k_before=None, k_after=
             doc_chunks[doc_uuid].append((chunk_id, content))
             added_chunks.add((doc_uuid, chunk_id))
 
-        if k_before:
-            for i in range(1, k_before + 1):
-                target_chunk = chunk_id - i
-                if target_chunk >= 0 and (doc_uuid, target_chunk) not in added_chunks:
-                    before_response = collection.query.fetch_objects(
-                        filters=Filter.by_property("doc_chunk_id").equal(
-                            f"{doc_uuid}_{target_chunk}"
-                        ),
-                    )
-                    if before_response.objects:
-                        before_obj = before_response.objects[0]
-                        before_content = before_obj.properties["content"]
+        # Extend backward and forward using ext_k
+        for i in range(1, ext_k + 1):
+            # Fetch previous chunk
+            target_chunk_before = chunk_id - i
+            if (
+                target_chunk_before >= 0
+                and (doc_uuid, target_chunk_before) not in added_chunks
+            ):
+                before_response = collection.query.fetch_objects(
+                    filters=Filter.by_property("doc_chunk_id").equal(
+                        f"{doc_uuid}_{target_chunk_before}"
+                    ),
+                )
+                if before_response.objects:
+                    before_obj = before_response.objects[0]
+                    before_content = before_obj.properties["content"]
+                    if (
+                        doc_uuid not in doc_sources
+                        and "source" in before_obj.properties
+                    ):
+                        doc_sources[doc_uuid] = before_obj.properties["source"]
+                    doc_chunks[doc_uuid].append((target_chunk_before, before_content))
+                    added_chunks.add((doc_uuid, target_chunk_before))
 
-                        if doc_uuid not in doc_sources and "source" in before_obj.properties:
-                            doc_sources[doc_uuid] = before_obj.properties["source"]
-                        doc_chunks[doc_uuid].append((target_chunk, before_content))
-                        added_chunks.add((doc_uuid, target_chunk))
-
-        total_chunk_count = collection.aggregate.over_all(
-            total_count=True,
-            filters=Filter.by_property("doc_chunk_id").like(f"{doc_uuid}*"),
-        ).total_count
-        if k_after:
-            for i in range(1, k_after + 1):
-                target_chunk = chunk_id + i
-                if target_chunk <= total_chunk_count and (doc_uuid, target_chunk) not in added_chunks:
-                    after_response = collection.query.fetch_objects(
-                        filters=Filter.by_property("doc_chunk_id").equal(
-                            f"{doc_uuid}_{target_chunk}"
-                        ),
-                    )
-                    if after_response.objects:
-                        after_obj = after_response.objects[0]
-                        after_content = after_obj.properties["content"]
-                        if doc_uuid not in doc_sources and "source" in after_obj.properties:
-                            doc_sources[doc_uuid] = after_obj.properties["source"]
-                        doc_chunks[doc_uuid].append((target_chunk, after_content))
-                        added_chunks.add((doc_uuid, target_chunk))
+            # Fetch following chunk
+            total_chunk_count = collection.aggregate.over_all(
+                total_count=True,
+                filters=Filter.by_property("doc_chunk_id").like(f"{doc_uuid}*"),
+            ).total_count
+            target_chunk_after = chunk_id + i
+            if (
+                target_chunk_after <= total_chunk_count
+                and (doc_uuid, target_chunk_after) not in added_chunks
+            ):
+                after_response = collection.query.fetch_objects(
+                    filters=Filter.by_property("doc_chunk_id").equal(
+                        f"{doc_uuid}_{target_chunk_after}"
+                    ),
+                )
+                if after_response.objects:
+                    after_obj = after_response.objects[0]
+                    after_content = after_obj.properties["content"]
+                    if doc_uuid not in doc_sources and "source" in after_obj.properties:
+                        doc_sources[doc_uuid] = after_obj.properties["source"]
+                    doc_chunks[doc_uuid].append((target_chunk_after, after_content))
+                    added_chunks.add((doc_uuid, target_chunk_after))
 
     for doc_uuid in doc_chunks:
         doc_chunks[doc_uuid].sort(key=lambda x: x[0])
@@ -601,6 +613,6 @@ def get_adjacent_chunks_from_weaviate(query, k: int = 1, k_before=None, k_after=
         combined_content = "".join(chunk_content for _, chunk_content in chunks)
         source = doc_sources.get(doc_uuid, "")
         docs_list.append({"content": combined_content, "source": source})
-    
+
     client.close()
     return docs_list
