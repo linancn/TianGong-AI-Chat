@@ -12,6 +12,7 @@ import aiohttp
 import pytz
 import streamlit as st
 import weaviate
+from collections import defaultdict
 from weaviate.classes.init import Auth
 from weaviate.classes.query import MetadataQuery, Filter
 
@@ -465,8 +466,21 @@ def get_begin_datetime():
     return datetime(now.year, now.month, now.day, beginHour)
 
 
+client = weaviate.connect_to_custom(
+    http_host=st.secrets["weaviate_http_host"],  # Hostname for the HTTP API connection
+    http_port=st.secrets["weaviate_http_port"],  # Default is 80, WCD uses 443
+    http_secure=False,  # Whether to use https (secure) for the HTTP API connection
+    grpc_host=st.secrets["weaviate_grpc_host"],  # Hostname for the gRPC API connection
+    grpc_port=st.secrets["weaviate_grpc_port"],  # Default is 50051, WCD uses 443
+    grpc_secure=False,  # Whether to use a secure channel for the gRPC API connection
+    auth_credentials=Auth.api_key(
+        st.secrets["weaviate_api_key"]
+    ),  # API key for authentication
+)
+collection = client.collections.get("tiangong")
 
-def search_weaviate(query: str, top_k: int = 16):
+
+def weaviate_hybrid_search(query: str, top_k: int = 8):
     """
     Performs a similarity search on Weaviate's vector database based on a given query and returns a list of relevant documents.
 
@@ -494,17 +508,6 @@ def search_weaviate(query: str, top_k: int = 16):
     if top_k == 0:
         return []
 
-    client = weaviate.connect_to_custom(
-        http_host=st.secrets["weaviate_http_host"],  # Hostname for the HTTP API connection
-        http_port=st.secrets["weaviate_http_port"],  # Default is 80, WCD uses 443
-        http_secure=False,  # Whether to use https (secure) for the HTTP API connection
-        grpc_host=st.secrets["weaviate_grpc_host"],  # Hostname for the gRPC API connection
-        grpc_port=st.secrets["weaviate_grpc_port"],  # Default is 50051, WCD uses 443
-        grpc_secure=False,  # Whether to use a secure channel for the gRPC API connection
-        auth_credentials=Auth.api_key(st.secrets["weaviate_api_key"]),  # API key for authentication
-    )
-    collection = client.collections.get("tiangong")
-
     hybrid_response = collection.query.hybrid(
         query=query,
         target_vector="content",
@@ -514,12 +517,90 @@ def search_weaviate(query: str, top_k: int = 16):
         limit=top_k,
     )
 
-    client.close()
+    # docs_list = []
+    # for doc in hybrid_response.objects:
+    #     docs_list.append(
+    #         {"content": doc.properties["content"], "source": doc.properties["source"]}
+    #     )
+
+    return hybrid_response
+
+
+def get_adjacent_chunks_from_weaviate(query, k: int = 1, k_before=None, k_after=None):
+    hybrid_search_results = weaviate_hybrid_search(query)
+
+    original_search_results = hybrid_search_results.objects
+
+    if k_before is None:
+        k_before = k
+    if k_after is None:
+        k_after = k
+
+    doc_chunks = defaultdict(list)
+    doc_sources = {}
+    added_chunks = set()
+
+    for result in original_search_results:
+        properties = result.properties
+        content = properties["content"]
+        doc_chunk_id = properties["doc_chunk_id"]
+        doc_uuid, chunk_id_str = doc_chunk_id.split("_")
+        chunk_id = int(chunk_id_str)
+        
+        if doc_uuid not in doc_sources and "source" in properties:
+            doc_sources[doc_uuid] = properties["source"]
+
+        if (doc_uuid, chunk_id) not in added_chunks:
+            doc_chunks[doc_uuid].append((chunk_id, content))
+            added_chunks.add((doc_uuid, chunk_id))
+
+        if k_before:
+            for i in range(1, k_before + 1):
+                target_chunk = chunk_id - i
+                if target_chunk >= 0 and (doc_uuid, target_chunk) not in added_chunks:
+                    before_response = collection.query.fetch_objects(
+                        filters=Filter.by_property("doc_chunk_id").equal(
+                            f"{doc_uuid}_{target_chunk}"
+                        ),
+                    )
+                    if before_response.objects:
+                        before_obj = before_response.objects[0]
+                        before_content = before_obj.properties["content"]
+
+                        if doc_uuid not in doc_sources and "source" in before_obj.properties:
+                            doc_sources[doc_uuid] = before_obj.properties["source"]
+                        doc_chunks[doc_uuid].append((target_chunk, before_content))
+                        added_chunks.add((doc_uuid, target_chunk))
+
+        total_chunk_count = collection.aggregate.over_all(
+            total_count=True,
+            filters=Filter.by_property("doc_chunk_id").like(f"{doc_uuid}*"),
+        ).total_count
+        if k_after:
+            for i in range(1, k_after + 1):
+                target_chunk = chunk_id + i
+                if target_chunk <= total_chunk_count and (doc_uuid, target_chunk) not in added_chunks:
+                    after_response = collection.query.fetch_objects(
+                        filters=Filter.by_property("doc_chunk_id").equal(
+                            f"{doc_uuid}_{target_chunk}"
+                        ),
+                    )
+                    if after_response.objects:
+                        after_obj = after_response.objects[0]
+                        after_content = after_obj.properties["content"]
+                        if doc_uuid not in doc_sources and "source" in after_obj.properties:
+                            doc_sources[doc_uuid] = after_obj.properties["source"]
+                        doc_chunks[doc_uuid].append((target_chunk, after_content))
+                        added_chunks.add((doc_uuid, target_chunk))
+
+    for doc_uuid in doc_chunks:
+        doc_chunks[doc_uuid].sort(key=lambda x: x[0])
 
     docs_list = []
-    for doc in hybrid_response.objects:
-        docs_list.append(
-            {"content": doc.properties["content"], "source": doc.properties["source"]}
-        )
-
+    for doc_uuid, chunks in doc_chunks.items():
+        combined_content = "".join(chunk_content for _, chunk_content in chunks)
+        source = doc_sources.get(doc_uuid, "")
+        docs_list.append({"content": combined_content, "source": source})
+    
+    client.close()
     return docs_list

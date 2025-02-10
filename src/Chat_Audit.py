@@ -7,7 +7,7 @@ import wix_oauth as wix_oauth
 from sensitivity_checker import check_text_sensitivity
 from utils import (
     ThinkStreamHandler,
-    search_weaviate,
+    get_adjacent_chunks_from_weaviate,
     func_calling_chain,
     initialize_messages,
     main_chain,
@@ -136,8 +136,8 @@ def main():
                         query = func_calling_response.get("query")
 
                         docs_response = []
-                        if search_internal:
-                            public_response = search_weaviate(query)
+                        if search_public:
+                            public_response = get_adjacent_chunks_from_weaviate(query)
                             docs_response.append(public_response)
 
                         input = f"""必须遵循：
