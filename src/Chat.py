@@ -104,18 +104,19 @@ if "logged_in" in st.session_state:
             base_model = st.radio(
                 label="模型选择 / Model Selection",
                 # label_visibility="collapsed",
-                options=["ZHIPU 智谱", "BAIDU 百度"],
+                options=["百度千帆（DeepSeek-R1）"],
+                # options=["ZHIPU 智谱", "BAIDU 百度"],
                 horizontal=True,
                 # index=1,
-                help="ernie-4.0-turbo-128k / glm-4-plus",
-                disabled=True,
+                # help="ernie-4.0-turbo-128k / glm-4-plus",
+                disabled=False,
             )
             if base_model == "ZHIPU 智谱":
                 api_key = st.secrets["openai_api_key_zhipu"]
                 llm_model = st.secrets["llm_model_zhipu"]
                 openai_api_base = st.secrets["openai_api_base_zhipu"]
                 baidu_llm = False
-            elif base_model == "BAIDU 百度":
+            elif base_model == "百度千帆（DeepSeek-R1）":
                 api_key = st.secrets["openai_api_key_baidu"]
                 llm_model = st.secrets["llm_model_baidu"]
                 openai_api_base = st.secrets["openai_api_base_baidu"]
@@ -409,7 +410,7 @@ if "logged_in" in st.session_state:
                                         api_key, llm_model, openai_api_base
                                     ).invoke({"input": formatted_messages})
 
-                                    query = func_calling_response.get("query")
+                                    query = func_calling_response.get("next_query")
 
                                     docs_response = asyncio.run(
                                         concurrent_search_service(

@@ -183,7 +183,7 @@ def func_calling_chain(api_key, llm_model, openai_api_base):
         "description": "Extract the queries and filters for database searching",
         "type": "object",
         "properties": {
-            "query": {
+            "next_query": {
                 "title": "Query",
                 "description": "The next query extracted for a vector database semantic search from a chat history. Translate the query into accurate English if it is not already in English.",
                 "type": "string",
@@ -283,7 +283,7 @@ def func_calling_chain(api_key, llm_model, openai_api_base):
             #     "type": "string",
             # },
         },
-        "required": ["query"],
+        "required": ["next_query"],
     }
 
     prompt_func_calling_msgs = [
@@ -296,12 +296,20 @@ def func_calling_chain(api_key, llm_model, openai_api_base):
     prompt_func_calling = ChatPromptTemplate(messages=prompt_func_calling_msgs)
 
     # llm_func_calling = ChatOpenAI(model_name=llm_model, temperature=0, streaming=False)
+    # llm_func_calling = ChatOpenAI(
+    #     api_key=api_key,
+    #     model_name=llm_model,
+    #     temperature=0.1,
+    #     streaming=False,
+    #     openai_api_base=openai_api_base,
+    # )
+
     llm_func_calling = ChatOpenAI(
-        api_key=api_key,
-        model_name=llm_model,
+        api_key=st.secrets["openai_api_key_zhipu"],
+        model_name=st.secrets["llm_model_zhipu"],
         temperature=0.1,
         streaming=False,
-        openai_api_base=openai_api_base,
+        openai_api_base=st.secrets["openai_api_base_zhipu"],
     )
 
     func_calling_chain = prompt_func_calling | llm_func_calling.with_structured_output(
@@ -371,22 +379,31 @@ def main_chain(api_key, llm_model, openai_api_base, baidu_llm):
         - TypeError could be raised if internal configurations within the function do not match the expected types.
     """
 
-    if baidu_llm:
-        llm_chat = QianfanLLMEndpoint(
-            endpoint="ernie-4.0-turbo-128k",
-            model="ERNIE-4.0-Turbo-8K",
-            temperature=0.1,
-            streaming=True,
-        )
-    else:
-        llm_chat = ChatOpenAI(
-            api_key=api_key,
-            model_name=llm_model,
-            temperature=0.1,
-            streaming=True,
-            verbose=langchain_verbose,
-            openai_api_base=openai_api_base,
-        )
+    # if baidu_llm:
+    #     llm_chat = QianfanLLMEndpoint(
+    #         endpoint="ernie-4.0-turbo-128k",
+    #         model="ERNIE-4.0-Turbo-8K",
+    #         temperature=0.1,
+    #         streaming=True,
+    #     )
+    # else:
+    #     llm_chat = ChatOpenAI(
+    #         api_key=api_key,
+    #         model_name=llm_model,
+    #         temperature=0.1,
+    #         streaming=True,
+    #         verbose=langchain_verbose,
+    #         openai_api_base=openai_api_base,
+    #     )
+
+    llm_chat = ChatOpenAI(
+        api_key=st.secrets["openai_api_key_baidu"],
+        model_name=st.secrets["llm_model_baidu"],
+        temperature=0.1,
+        streaming=True,
+        verbose=langchain_verbose,
+        openai_api_base=st.secrets["openai_api_base_baidu"],
+    )
 
     template = """{input}"""
 
