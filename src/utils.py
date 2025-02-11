@@ -466,69 +466,29 @@ def get_begin_datetime():
     return datetime(now.year, now.month, now.day, beginHour)
 
 
-client = weaviate.connect_to_custom(
-    http_host=st.secrets["weaviate_http_host"],  # Hostname for the HTTP API connection
-    http_port=st.secrets["weaviate_http_port"],  # Default is 80, WCD uses 443
-    http_secure=False,  # Whether to use https (secure) for the HTTP API connection
-    grpc_host=st.secrets["weaviate_grpc_host"],  # Hostname for the gRPC API connection
-    grpc_port=st.secrets["weaviate_grpc_port"],  # Default is 50051, WCD uses 443
-    grpc_secure=False,  # Whether to use a secure channel for the gRPC API connection
-    auth_credentials=Auth.api_key(
-        st.secrets["weaviate_api_key"]
-    ),  # API key for authentication
-)
-collection = client.collections.get("tiangong")
-
-
-def weaviate_hybrid_search(query: str, top_k: int = 8):
-    """
-    Performs a similarity search on Weaviate's vector database based on a given query and returns a list of relevant documents.
-
-    :param query: The query to be used for similarity search in Weaviate's vector database.
-    :type query: str
-    :param top_k: The number of top matching documents to return. Defaults to 16.
-    :type top_k: int or None
-    :returns: A list of dictionaries, each containing the content and source of the matched documents. The function returns an empty list if 'top_k' is set to 0.
-    :rtype: list of dicts
-
-    Function Behavior:
-        - Initializes Weaviate with the specified API key and environment.
-        - Conducts a similarity search based on the provided query.
-        - Extracts and formats the relevant document information before returning.
-
-    Exceptions:
-        - This function relies on Weaviate and Python's os library. Exceptions could propagate if there are issues related to API keys, environment variables, or Weaviate initialization.
-        - TypeError could be raised if the types of 'query' or 'top_k' do not match the expected types.
-
-    Note:
-        - Ensure the Weaviate API key and environment variables are set before running this function.
-        - The function uses 'OpenAIEmbeddings' to initialize Weaviate's vector store, which should be compatible with the embeddings in the Weaviate index.
-    """
-
-    if top_k == 0:
-        return []
-
-    hybrid_response = collection.query.hybrid(
-        query=query,
-        target_vector="content",
-        query_properties=["content"],
-        alpha=0.3,
-        return_metadata=MetadataQuery(score=True, explain_score=True),
-        limit=top_k,
+def weaviate_connection(collection_name):
+    client = weaviate.connect_to_custom(
+        http_host=st.secrets[
+            "weaviate_http_host"
+        ],  # Hostname for the HTTP API connection
+        http_port=st.secrets["weaviate_http_port"],  # Default is 80, WCD uses 443
+        http_secure=False,  # Whether to use https (secure) for the HTTP API connection
+        grpc_host=st.secrets[
+            "weaviate_grpc_host"
+        ],  # Hostname for the gRPC API connection
+        grpc_port=st.secrets["weaviate_grpc_port"],  # Default is 50051, WCD uses 443
+        grpc_secure=False,  # Whether to use a secure channel for the gRPC API connection
+        auth_credentials=Auth.api_key(
+            st.secrets["weaviate_api_key"]
+        ),  # API key for authentication
     )
 
-    docs_list = []
-    for doc in hybrid_response.objects:
-        docs_list.append(
-            {"content": doc.properties["content"], "source": doc.properties["source"]}
-        )
+    collection = client.collections.get(collection_name)
 
-    client.close()
-
-    return docs_list
+    return collection
 
 
-def weaviate_hybrid_search_extention(query, top_k: int = 8, ext_k: int = 1):
+def weaviate_hybrid_search_extention(collection, query, top_k: int = 8, ext_k: int = 1):
     hybrid_search_results = collection.query.hybrid(
         query=query,
         target_vector="content",
@@ -537,82 +497,89 @@ def weaviate_hybrid_search_extention(query, top_k: int = 8, ext_k: int = 1):
         return_metadata=MetadataQuery(score=True, explain_score=True),
         limit=top_k,
     )
+    if ext_k == 0:
+        docs_list = []
+        for doc in hybrid_search_results.objects:
+            docs_list.append(
+                {"content": doc.properties["content"], "source": doc.properties["source"]}
+            )
+        return docs_list
+    
+    else:
+        original_search_results = hybrid_search_results.objects
 
-    original_search_results = hybrid_search_results.objects
+        doc_chunks = defaultdict(list)
+        doc_sources = {}
+        added_chunks = set()
 
-    doc_chunks = defaultdict(list)
-    doc_sources = {}
-    added_chunks = set()
+        for result in original_search_results:
+            properties = result.properties
+            content = properties["content"]
+            doc_chunk_id = properties["doc_chunk_id"]
+            doc_uuid, chunk_id_str = doc_chunk_id.split("_")
+            chunk_id = int(chunk_id_str)
 
-    for result in original_search_results:
-        properties = result.properties
-        content = properties["content"]
-        doc_chunk_id = properties["doc_chunk_id"]
-        doc_uuid, chunk_id_str = doc_chunk_id.split("_")
-        chunk_id = int(chunk_id_str)
+            if doc_uuid not in doc_sources and "source" in properties:
+                doc_sources[doc_uuid] = properties["source"]
 
-        if doc_uuid not in doc_sources and "source" in properties:
-            doc_sources[doc_uuid] = properties["source"]
+            if (doc_uuid, chunk_id) not in added_chunks:
+                doc_chunks[doc_uuid].append((chunk_id, content))
+                added_chunks.add((doc_uuid, chunk_id))
 
-        if (doc_uuid, chunk_id) not in added_chunks:
-            doc_chunks[doc_uuid].append((chunk_id, content))
-            added_chunks.add((doc_uuid, chunk_id))
+            # Extend backward and forward using ext_k
+            for i in range(1, ext_k + 1):
+                # Fetch previous chunk
+                target_chunk_before = chunk_id - i
+                if (
+                    target_chunk_before >= 0
+                    and (doc_uuid, target_chunk_before) not in added_chunks
+                ):
+                    before_response = collection.query.fetch_objects(
+                        filters=Filter.by_property("doc_chunk_id").equal(
+                            f"{doc_uuid}_{target_chunk_before}"
+                        ),
+                    )
+                    if before_response.objects:
+                        before_obj = before_response.objects[0]
+                        before_content = before_obj.properties["content"]
+                        if (
+                            doc_uuid not in doc_sources
+                            and "source" in before_obj.properties
+                        ):
+                            doc_sources[doc_uuid] = before_obj.properties["source"]
+                        doc_chunks[doc_uuid].append((target_chunk_before, before_content))
+                        added_chunks.add((doc_uuid, target_chunk_before))
 
-        # Extend backward and forward using ext_k
-        for i in range(1, ext_k + 1):
-            # Fetch previous chunk
-            target_chunk_before = chunk_id - i
-            if (
-                target_chunk_before >= 0
-                and (doc_uuid, target_chunk_before) not in added_chunks
-            ):
-                before_response = collection.query.fetch_objects(
-                    filters=Filter.by_property("doc_chunk_id").equal(
-                        f"{doc_uuid}_{target_chunk_before}"
-                    ),
-                )
-                if before_response.objects:
-                    before_obj = before_response.objects[0]
-                    before_content = before_obj.properties["content"]
-                    if (
-                        doc_uuid not in doc_sources
-                        and "source" in before_obj.properties
-                    ):
-                        doc_sources[doc_uuid] = before_obj.properties["source"]
-                    doc_chunks[doc_uuid].append((target_chunk_before, before_content))
-                    added_chunks.add((doc_uuid, target_chunk_before))
+                # Fetch following chunk
+                total_chunk_count = collection.aggregate.over_all(
+                    total_count=True,
+                    filters=Filter.by_property("doc_chunk_id").like(f"{doc_uuid}*"),
+                ).total_count
+                target_chunk_after = chunk_id + i
+                if (
+                    target_chunk_after <= total_chunk_count
+                    and (doc_uuid, target_chunk_after) not in added_chunks
+                ):
+                    after_response = collection.query.fetch_objects(
+                        filters=Filter.by_property("doc_chunk_id").equal(
+                            f"{doc_uuid}_{target_chunk_after}"
+                        ),
+                    )
+                    if after_response.objects:
+                        after_obj = after_response.objects[0]
+                        after_content = after_obj.properties["content"]
+                        if doc_uuid not in doc_sources and "source" in after_obj.properties:
+                            doc_sources[doc_uuid] = after_obj.properties["source"]
+                        doc_chunks[doc_uuid].append((target_chunk_after, after_content))
+                        added_chunks.add((doc_uuid, target_chunk_after))
 
-            # Fetch following chunk
-            total_chunk_count = collection.aggregate.over_all(
-                total_count=True,
-                filters=Filter.by_property("doc_chunk_id").like(f"{doc_uuid}*"),
-            ).total_count
-            target_chunk_after = chunk_id + i
-            if (
-                target_chunk_after <= total_chunk_count
-                and (doc_uuid, target_chunk_after) not in added_chunks
-            ):
-                after_response = collection.query.fetch_objects(
-                    filters=Filter.by_property("doc_chunk_id").equal(
-                        f"{doc_uuid}_{target_chunk_after}"
-                    ),
-                )
-                if after_response.objects:
-                    after_obj = after_response.objects[0]
-                    after_content = after_obj.properties["content"]
-                    if doc_uuid not in doc_sources and "source" in after_obj.properties:
-                        doc_sources[doc_uuid] = after_obj.properties["source"]
-                    doc_chunks[doc_uuid].append((target_chunk_after, after_content))
-                    added_chunks.add((doc_uuid, target_chunk_after))
+        for doc_uuid in doc_chunks:
+            doc_chunks[doc_uuid].sort(key=lambda x: x[0])
 
-    for doc_uuid in doc_chunks:
-        doc_chunks[doc_uuid].sort(key=lambda x: x[0])
+        docs_list = []
+        for doc_uuid, chunks in doc_chunks.items():
+            combined_content = "".join(chunk_content for _, chunk_content in chunks)
+            source = doc_sources.get(doc_uuid, "")
+            docs_list.append({"content": combined_content, "source": source})
 
-    docs_list = []
-    for doc_uuid, chunks in doc_chunks.items():
-        combined_content = "".join(chunk_content for _, chunk_content in chunks)
-        source = doc_sources.get(doc_uuid, "")
-        docs_list.append({"content": combined_content, "source": source})
-
-    client.close()
-    return docs_list
+        return docs_list

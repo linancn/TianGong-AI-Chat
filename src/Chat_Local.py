@@ -7,7 +7,8 @@ import wix_oauth as wix_oauth
 from sensitivity_checker import check_text_sensitivity
 from utils import (
     ThinkStreamHandler,
-    search_weaviate,
+    weaviate_connection,
+    weaviate_hybrid_search_extention,
     func_calling_chain,
     initialize_messages,
     main_chain,
@@ -54,11 +55,10 @@ try:
                 disabled=st.session_state["search_option_disabled"],
             )
 
-            search_list = []
             if search_sci:
-                search_list.append("sci_search")
+                search_sci_collection = weaviate_connection("tiangong")
             if search_report:
-                search_list.append("report_search")
+                search_report_collection = weaviate_connection("audit")
 
         def init_new_chat():
             for key in st.session_state.keys():
@@ -143,8 +143,10 @@ def main():
 
                         docs_response = []
                         if search_sci:
-                            public_response = search_weaviate(query)
-                            docs_response.append(public_response)
+                            sci_response = weaviate_hybrid_search_extention(
+                                search_sci_collection, query, top_k=8, ext_k=1
+                            )
+                            docs_response.append(sci_response)
 
                         input = f"""必须遵循：
 - 使用“{docs_response}”（如果有）和您自己的知识回应“{user_query}”，以用户相同的语言提供逻辑清晰、经过批判性分析的回复。

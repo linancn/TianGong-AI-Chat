@@ -7,6 +7,7 @@ import wix_oauth as wix_oauth
 from sensitivity_checker import check_text_sensitivity
 from utils import (
     ThinkStreamHandler,
+    weaviate_connection,
     weaviate_hybrid_search_extention,
     func_calling_chain,
     initialize_messages,
@@ -53,6 +54,10 @@ try:
                 value=False,
                 disabled=st.session_state["search_option_disabled"],
             )
+            if search_public:
+                search_public_collection = weaviate_connection("tiangong")
+            if search_internal:
+                search_internal_collection = weaviate_connection("audit")
 
         def init_new_chat():
             for key in st.session_state.keys():
@@ -138,7 +143,7 @@ def main():
                         docs_response = []
                         if search_public:
                             public_response = weaviate_hybrid_search_extention(
-                                query, top_k=8, ext_k=1
+                                search_public_collection, query, top_k=8, ext_k=0
                             )
                             docs_response.append(public_response)
 
