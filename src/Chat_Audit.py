@@ -133,7 +133,7 @@ def main():
                             {"input": formatted_messages}
                         )
 
-                        query = func_calling_response.get("query")
+                        query = func_calling_response.get("next_query")
 
                         docs_response = []
                         if search_public:

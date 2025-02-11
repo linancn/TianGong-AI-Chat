@@ -139,13 +139,13 @@ def func_calling_chain():
         "description": "Extract the queries and filters for database searching",
         "type": "object",
         "properties": {
-            "query": {
+            "next_query": {
                 "title": "Query",
                 "description": "The next query extracted for a vector database semantic search from a chat history. Translate the query into accurate English if it is not already in English.",
                 "type": "string",
             },
         },
-        "required": ["query"],
+        "required": ["next_query"],
     }
 
     prompt_func_calling_msgs = [
