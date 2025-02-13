@@ -243,6 +243,8 @@ def main_chain():
         model=st.secrets["reasoning_model"],
         disable_streaming=False,
         verbose=langchain_verbose,
+        base_url=st.secrets["ollama_base_url"],
+        client_kwargs={"headers": {"Authorization": f"Bearer {st.secrets["ollama_bearer_token"]}"}},
     )
 
     template = """{input}"""
