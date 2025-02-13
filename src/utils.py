@@ -170,6 +170,10 @@ def func_calling_chain():
         model=st.secrets["base_model"],
         disable_streaming=True,
         verbose=langchain_verbose,
+        base_url=st.secrets["ollama_base_url"],
+        client_kwargs={
+            "headers": {"Authorization": f"Bearer {st.secrets["ollama_bearer_token"]}"}
+        },
     )
 
     func_calling_chain = prompt_func_calling | llm_func_calling.with_structured_output(
@@ -244,7 +248,9 @@ def main_chain():
         disable_streaming=False,
         verbose=langchain_verbose,
         base_url=st.secrets["ollama_base_url"],
-        client_kwargs={"headers": {"Authorization": f"Bearer {st.secrets["ollama_bearer_token"]}"}},
+        client_kwargs={
+            "headers": {"Authorization": f"Bearer {st.secrets["ollama_bearer_token"]}"}
+        },
     )
 
     template = """{input}"""
@@ -503,10 +509,13 @@ def weaviate_hybrid_search_extention(collection, query, top_k: int = 8, ext_k: i
         docs_list = []
         for doc in hybrid_search_results.objects:
             docs_list.append(
-                {"content": doc.properties["content"], "source": doc.properties["source"]}
+                {
+                    "content": doc.properties["content"],
+                    "source": doc.properties["source"],
+                }
             )
         return docs_list
-    
+
     else:
         original_search_results = hybrid_search_results.objects
 
@@ -549,7 +558,9 @@ def weaviate_hybrid_search_extention(collection, query, top_k: int = 8, ext_k: i
                             and "source" in before_obj.properties
                         ):
                             doc_sources[doc_uuid] = before_obj.properties["source"]
-                        doc_chunks[doc_uuid].append((target_chunk_before, before_content))
+                        doc_chunks[doc_uuid].append(
+                            (target_chunk_before, before_content)
+                        )
                         added_chunks.add((doc_uuid, target_chunk_before))
 
                 # Fetch following chunk
@@ -570,7 +581,10 @@ def weaviate_hybrid_search_extention(collection, query, top_k: int = 8, ext_k: i
                     if after_response.objects:
                         after_obj = after_response.objects[0]
                         after_content = after_obj.properties["content"]
-                        if doc_uuid not in doc_sources and "source" in after_obj.properties:
+                        if (
+                            doc_uuid not in doc_sources
+                            and "source" in after_obj.properties
+                        ):
                             doc_sources[doc_uuid] = after_obj.properties["source"]
                         doc_chunks[doc_uuid].append((target_chunk_after, after_content))
                         added_chunks.add((doc_uuid, target_chunk_after))
