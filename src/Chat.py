@@ -15,7 +15,7 @@ import utils
 import wix_oauth as wix_oauth
 from sensitivity_checker import check_text_sensitivity
 from utils import (
-    StreamHandler,
+    ThinkStreamHandler,
     check_password,
     concurrent_search_service,
     count_chat_history,
@@ -418,29 +418,33 @@ if "logged_in" in st.session_state:
                                         )
                                     )
 
-                                    input = f"""请根据最近的对话的上下文（若有）和搜索到的参考材料（若有），以用户相同的语言提供逻辑清晰、经过批判性分析回应“{user_query}”。输出结果必须遵循以下所有要求：
-        - 确保所有数学公式前后使用$$符号包裹同时必须引用LaTeX语法使用标记数学公式，以确保公式在Markdown中正确渲染。
-        - 在适用情况下，使用 作者-日期 的引用风格在正文中引用来源。
-        - 在末尾以Markdown格式提供一个参考文献列表，格式为[标题.期刊.作者.日期.](链接)（或仅文件名），仅包括文本中提到的参考文献。
-        - 对话上下文：{chat_history_recent}
-        - 参考材料（仅保留有效的相关内容，不使用无效信息进行回应）：{docs_response}
-    """
-
+                                    input = f"""请根据最近的对话的上下文（若有）和搜索到的参考材料（若有），以用户相同的语言提供逻辑清晰、经过批判性分析回应“{user_query}”。
+                                    - 参考材料（仅保留有效的相关内容，不使用无效信息进行回应）：{docs_response}
+                                    - 对话上下文：{chat_history_recent}
+                                    - 输出要求（必须严格遵循）:
+                                    1. 公式使用规则：仅在涉及数学、物理、统计等需要公式表达的领域时，使用$$包裹LaTeX语法标记数学公式，以确保公式在Markdown中正确渲染。如果内容无需公式表达，则使用简洁回答规则。
+                                    2. 引用规则：若内容涉及引用外部来源，使用作者-日期引用风格在正文中标注来源（例如：(Smith, 2020)）。在末尾以Markdown格式提供参考文献列表，格式为：标题.期刊.作者.日期.（或仅文件名），仅包括文本中提到的参考文献。如果内容无需引用，则禁止添加引用或参考文献列表。
+                                    3. 简洁回答规则：若无需公式或引用，则直接提供简洁清晰的回答，禁止添加不必要的格式或内容。"""
                                 else:
-                                    input = f"""请根据最近的对话的上下文（若有），以用户相同的语言提供逻辑清晰、经过批判性分析回应“{user_query}”。输出结果必须遵循以下所有要求：
-        - 确保所有数学公式前后使用$$符号包裹同时必须引用LaTeX语法使用标记数学公式，以确保公式在Markdown中正确渲染。
-        - 在适用情况下，使用 作者-日期 的引用风格在正文中引用来源。
-        - 在末尾以Markdown格式提供一个参考文献列表，格式为[标题.期刊.作者.日期.](链接)（或仅文件名），仅包括文本中提到的参考文献。
-        - 对话上下文：{chat_history_recent}"""
+                                    input = f"""根据最近的对话上下文（若有），以用户相同的语言提供逻辑清晰、经过批判性分析的回应“{user_query}”。
+                                    - 对话上下文：{chat_history_recent}
+                                    - 输出要求（必须严格遵循）:
+                                    1. 公式使用规则：仅在涉及数学、物理、统计等需要公式表达的领域时，使用$$包裹LaTeX语法标记数学公式，以确保公式在Markdown中正确渲染。如果内容无需公式表达，则使用简洁回答规则。
+                                    2. 引用规则：若内容涉及引用外部来源，使用作者-日期引用风格在正文中标注来源（例如：(Smith, 2020)）。在末尾以Markdown格式提供参考文献列表，格式为：标题.期刊.作者.日期.（或仅文件名），仅包括文本中提到的参考文献。如果内容无需引用，则禁止添加引用或参考文献列表。
+                                    3. 简洁回答规则：若无需公式或引用，则直接提供简洁清晰的回答，禁止添加不必要的格式或内容。"""
                                     
                                 with st.chat_message("ai", avatar=ui.chat_ai_avatar):
-                                    st_callback = StreamHandler(st.empty())
-                                    response = main_chain(
+                                    # st_callback = StreamHandler(st.empty())
+                                    st_callback = ThinkStreamHandler()
+                                    response = main_chain( 
                                         api_key, llm_model, openai_api_base, baidu_llm
                                     ).invoke(
                                         {"input": input},
                                         {"callbacks": [st_callback]},
                                     )
+
+                                    if "</think>" in response:
+                                        response = response.split("</think>", 1)[1].strip()
 
                                     st.session_state["messages"].append(
                                         {
