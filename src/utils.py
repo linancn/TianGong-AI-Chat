@@ -37,6 +37,7 @@ from langchain_community.chat_message_histories import XataChatMessageHistory
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 from langchain_community.llms.baidu_qianfan_endpoint import QianfanLLMEndpoint
+from langchain_deepseek import ChatDeepSeek
 from xata.client import XataClient
 
 from aip import AipSpeech
@@ -396,14 +397,33 @@ def main_chain(api_key, llm_model, openai_api_base, baidu_llm):
     #         openai_api_base=openai_api_base,
     #     )
 
-    llm_chat = ChatOpenAI(
-        api_key=st.secrets["openai_api_key_baidu"],
-        model_name=st.secrets["llm_model_baidu"],
-        temperature=0.1,
-        streaming=True,
-        verbose=langchain_verbose,
-        openai_api_base=st.secrets["openai_api_base_baidu"],
+    # llm_chat = ChatOpenAI(
+    #     api_key=st.secrets["openai_api_key_baidu"],
+    #     model_name=st.secrets["llm_model_baidu"],
+    #     temperature=0.1,
+    #     streaming=True,
+    #     verbose=langchain_verbose,
+    #     openai_api_base=st.secrets["openai_api_base_baidu"],
+    # )
+
+    # llm_chat = ChatOpenAI(
+    #     api_key=st.secrets["openai_api_key_ds"],
+    #     model_name=st.secrets["llm_model_ds"],
+    #     temperature=0.1,
+    #     streaming=True,
+    #     verbose=langchain_verbose,
+    #     openai_api_base=st.secrets["openai_api_base_ds"],
+    # )
+
+    llm_chat = ChatDeepSeek(
+    model=st.secrets["llm_model_ds"],
+    api_key=st.secrets["openai_api_key_ds"],
+    temperature=0,
+    max_tokens=None,
+    timeout=None,
+    max_retries=2
     )
+
 
     template = """{input}"""
 
@@ -431,41 +451,16 @@ class ThinkStreamHandler(BaseCallbackHandler):
         self.start_marker = "<think>"
         self.end_marker = "</think>"
 
-    def on_llm_new_token(self, token: str, **kwargs) -> None:
-        self.text += token
-
-        if not self.found_think_end:
-            # 还没找到 </think>，先按原逻辑截取 <think> 内容
-            start_idx = self.text.find(self.start_marker)
-            if start_idx != -1:
-                start_idx += len(self.start_marker)
-                think_part = self.text[start_idx:]
-                end_idx = think_part.find(self.end_marker)
-                if end_idx == -1:
-                    self.think_content = think_part
-                else:
-                    self.think_content = think_part[:end_idx]
-                    # 标记已经找到 </think>
-                    absolute_end_idx = start_idx + end_idx
-                    self.found_think_end = True
-                    # 初始化 after_think_content
-                    self.after_think_content = self.text[
-                        absolute_end_idx + len(self.end_marker) :
-                    ]
-
-                # 更新 <think> 容器
-                self.think_container.markdown(self.think_content)
-
-                # 如果这时刚刚找到 </think>，也要更新 after_think_container
-                if self.found_think_end:
-                    self.after_think_container.markdown(self.after_think_content)
-
+    def on_llm_new_token(self, token: str, chunk, **kwargs) -> None:
+        # self.text += token
+        self.reasoning_content = chunk.message.additional_kwargs.get("reasoning_content", None)
+        # self.text += chunk.message.additional_kwargs.get("reasoning_content", None)
+        if self.reasoning_content is not None:
+            self.text += self.reasoning_content
+            # 更新 <think> 容器
+            self.think_container.markdown(self.text)
         else:
-            # 如果已经找到 </think>，就持续更新后续文本
-            # after_think_content = self.text[上次提取后的位置:] ...
-            # 这里可以直接取 self.after_think_content = self.text[??? :]
-            # 也可以维护一个 index 变量，或每次更新新的增量
-            self.after_think_content = self.text.split(self.end_marker, 1)[-1]
+            self.after_think_content += chunk.message.content
             self.after_think_container.markdown(self.after_think_content)
 
 class StreamHandler(BaseCallbackHandler):

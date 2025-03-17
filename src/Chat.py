@@ -104,7 +104,8 @@ if "logged_in" in st.session_state:
             base_model = st.radio(
                 label="模型选择 / Model Selection",
                 # label_visibility="collapsed",
-                options=["百度千帆（DeepSeek-R1）"],
+                options=["环境脑工程（DeepSeek-R1）"],
+                # options=["百度千帆（DeepSeek-R1）"],
                 # options=["ZHIPU 智谱", "BAIDU 百度"],
                 horizontal=True,
                 # index=1,
@@ -120,6 +121,11 @@ if "logged_in" in st.session_state:
                 api_key = st.secrets["openai_api_key_baidu"]
                 llm_model = st.secrets["llm_model_baidu"]
                 openai_api_base = st.secrets["openai_api_base_baidu"]
+                baidu_llm = False
+            elif base_model == "环境脑工程（DeepSeek-R1）":
+                api_key = st.secrets["openai_api_key_ds"]
+                llm_model = st.secrets["llm_model_ds"]
+                openai_api_base = st.secrets["openai_api_base_ds"]
                 baidu_llm = True
 
             with st.expander(ui.sidebar_expander_title, expanded=True):
@@ -436,15 +442,21 @@ if "logged_in" in st.session_state:
                                 with st.chat_message("ai", avatar=ui.chat_ai_avatar):
                                     # st_callback = StreamHandler(st.empty())
                                     st_callback = ThinkStreamHandler()
-                                    response = main_chain( 
+                                    # response = main_chain( 
+                                    #     api_key, llm_model, openai_api_base, baidu_llm
+                                    # ).invoke(
+                                    #     {"input": input},
+                                    #     {"callbacks": [st_callback]},
+                                    # )
+                                    response_ls = []
+                                    for chunk in main_chain( 
                                         api_key, llm_model, openai_api_base, baidu_llm
-                                    ).invoke(
+                                    ).stream(
                                         {"input": input},
                                         {"callbacks": [st_callback]},
-                                    )
-
-                                    if "</think>" in response:
-                                        response = response.split("</think>", 1)[1].strip()
+                                    ):
+                                        response_ls.append(chunk)                            
+                                    response = "".join(response_ls).strip()
 
                                     st.session_state["messages"].append(
                                         {
@@ -479,8 +491,8 @@ if "logged_in" in st.session_state:
                 del st.session_state["xata_history_refresh"]
 
         except Exception as e:
-            # st.error(e)
-            st.error(ui.chat_error_message)
+            st.error(e)
+            # st.error(ui.chat_error_message)
 
     if __name__ == "__main__":
         main()
