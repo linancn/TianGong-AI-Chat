@@ -13,3 +13,4 @@ streamlit_float
 tiktoken
 toml
 xata
+langchain_deepseek
