@@ -36,12 +36,12 @@ from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain_community.chat_message_histories import XataChatMessageHistory
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
-from langchain_community.llms.baidu_qianfan_endpoint import QianfanLLMEndpoint
+# from langchain_community.llms.baidu_qianfan_endpoint import QianfanLLMEndpoint
 from langchain_deepseek import ChatDeepSeek
 from xata.client import XataClient
 
-from aip import AipSpeech
-import ffmpeg
+# from aip import AipSpeech
+# import ffmpeg
 
 import ui_config
 
@@ -122,42 +122,42 @@ def check_password():
         return True
 
 
-def convert_audio_in_memory(input_bytes):
-    try:
-        input_stream = ffmpeg.input('pipe:0', format='webm')  # 或 format='matroska'
-        output_stream = ffmpeg.output(
-            input_stream,
-            'pipe:1',
-            format='wav',
-            acodec='pcm_s16le',
-            ar='16000',
-            ac='1'
-        )
+# def convert_audio_in_memory(input_bytes):
+    # try:
+    #     input_stream = ffmpeg.input('pipe:0', format='webm')  # 或 format='matroska'
+    #     output_stream = ffmpeg.output(
+    #         input_stream,
+    #         'pipe:1',
+    #         format='wav',
+    #         acodec='pcm_s16le',
+    #         ar='16000',
+    #         ac='1'
+    #     )
 
-        process = ffmpeg.run_async(
-            output_stream,
-            pipe_stdin=True,
-            pipe_stdout=True,
-            pipe_stderr=True
-        )
+    #     process = ffmpeg.run_async(
+    #         output_stream,
+    #         pipe_stdin=True,
+    #         pipe_stdout=True,
+    #         pipe_stderr=True
+    #     )
 
-        stdout, stderr = process.communicate(input=input_bytes)
+    #     stdout, stderr = process.communicate(input=input_bytes)
 
-        if process.returncode != 0:
-            raise ffmpeg.Error('FFmpeg转换失败', stdout, stderr)
+    #     if process.returncode != 0:
+    #         raise ffmpeg.Error('FFmpeg转换失败', stdout, stderr)
 
-        return stdout
+    #     return stdout
 
-    except ffmpeg.Error as e:
-        print('转换失败！错误信息：')
-        print(e.stderr.decode())
-        return None
+    # except ffmpeg.Error as e:
+    #     print('转换失败！错误信息：')
+    #     print(e.stderr.decode())
+    #     return None
 
-def voice_to_text(audio_bytes):
-    audio_bytes = convert_audio_in_memory(audio_bytes)
-    client = AipSpeech(st.secrets["voice_app_id"], st.secrets["voice_app_key"], st.secrets["voice_app_secret"])
-    text = client.asr(audio_bytes, "wav", 16000, {"dev_pid": 1537})
-    return text
+# def voice_to_text(audio_bytes):
+#     audio_bytes = convert_audio_in_memory(audio_bytes)
+#     client = AipSpeech(st.secrets["voice_app_id"], st.secrets["voice_app_key"], st.secrets["voice_app_secret"])
+#     text = client.asr(audio_bytes, "wav", 16000, {"dev_pid": 1537})
+#     return text
 
 
 def func_calling_chain(api_key, llm_model, openai_api_base):

@@ -7,8 +7,8 @@ from datetime import datetime
 import streamlit as st
 from langchain.schema import AIMessage, HumanMessage
 from streamlit.web.server.websocket_headers import _get_websocket_headers
-from streamlit_chat_widget import chat_input_widget
-from streamlit_float import *
+# from streamlit_chat_widget import chat_input_widget
+# from streamlit_float import *
 
 import ui_config
 import utils
@@ -288,32 +288,32 @@ if "logged_in" in st.session_state:
     @utils.enable_chat_history
     def main():
         try:
-            float_init()
+            # float_init()
             footer_container = st.container()
 
             if "chat_disabled" not in st.session_state:
                 st.session_state["chat_disabled"] = False
 
             if "xata_history_refresh" not in st.session_state:
-                # user_query = st.chat_input(
-                #     placeholder=ui.chat_human_placeholder,
-                #     disabled=st.session_state["chat_disabled"],
-                # )
-                with footer_container:
-                    user_input = chat_input_widget(key="user_input")
-                footer_container.float(
-                    "display:flex; align-items:center;justify-content:center; flex-direction:column; position:fixed; bottom:5px; margin:0; padding:0; z-index:0;"
+                user_query = st.chat_input(
+                    placeholder=ui.chat_human_placeholder,
+                    disabled=st.session_state["chat_disabled"],
                 )
-                if user_input:
-                    if "text" in user_input:
-                        user_query = user_input["text"]
-                    elif "audioFile" in user_input:
-                        audio_bytes = bytes(user_input["audioFile"])
-                        # st.audio(audio_bytes, format="audio/wav")
-                        voice_result = utils.voice_to_text(audio_bytes)["result"]
-                        user_query = " ".join(voice_result)
+                # with footer_container:
+                #     user_input = chat_input_widget(key="user_input")
+                # footer_container.float(
+                #     "display:flex; align-items:center;justify-content:center; flex-direction:column; position:fixed; bottom:5px; margin:0; padding:0; z-index:0;"
+                # )
+                # if user_input:
+                #     if "text" in user_input:
+                #         user_query = user_input["text"]
+                #     elif "audioFile" in user_input:
+                #         audio_bytes = bytes(user_input["audioFile"])
+                #         # st.audio(audio_bytes, format="audio/wav")
+                #         voice_result = utils.voice_to_text(audio_bytes)["result"]
+                #         user_query = " ".join(voice_result)
 
-                    if user_query:
+                if user_query:
                         beginDatetime = get_begin_datetime()
                         if (
                             "count_chat_history" not in st.session_state
@@ -479,15 +479,15 @@ if "logged_in" in st.session_state:
                                 st.session_state["xata_history_refresh"] = True
                                 st.rerun()
             else:
-                # user_query = st.chat_input(
-                #     placeholder=ui.chat_human_placeholder,
-                #     disabled=st.session_state["chat_disabled"],
-                # )
-                with footer_container:
-                    user_input = chat_input_widget()
-                footer_container.float(
-                    "display:flex; align-items:center;justify-content:center; flex-direction:column; position:fixed; bottom:5px; margin:0; padding:0; z-index:0;"
+                user_query = st.chat_input(
+                    placeholder=ui.chat_human_placeholder,
+                    disabled=st.session_state["chat_disabled"],
                 )
+                # with footer_container:
+                #     user_input = chat_input_widget()
+                # footer_container.float(
+                #     "display:flex; align-items:center;justify-content:center; flex-direction:column; position:fixed; bottom:5px; margin:0; padding:0; z-index:0;"
+                # )
                 del st.session_state["xata_history_refresh"]
 
         except Exception as e:
